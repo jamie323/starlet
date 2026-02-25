@@ -936,23 +936,22 @@ function log(s){console.log('Starlet:',s);}
 // INIT
 // AUTO-FETCH: try loading JSON files from same directory (for GitHub Pages hosting)
 function autoFetch(){
-  var loaded=false;
+  console.log('Starlet: Starting auto-fetch...');
   // Try assets
   fetch('starlet-v6.json').then(function(r){
+    console.log('Starlet: Asset fetch status:', r.status, r.ok);
     if(!r.ok)throw new Error('No assets file');
     return r.json();
   }).then(function(d){
-    loaded=true;
+    console.log('Starlet: Assets JSON parsed, keys:', Object.keys(d));
     proc(d);
-    log('Auto-loaded assets from starlet-v6.json');
-  }).catch(function(){
-    // No auto-load available, check IndexedDB
-    if(!loaded){
-      dbg('m').then(function(s){
-        if(s){try{proc(JSON.parse(s));}catch(e){}}
-        else document.getElementById('ls').classList.remove('hid');
-      }).catch(function(){document.getElementById('ls').classList.remove('hid');});
-    }
+    console.log('Starlet: Auto-loaded assets from starlet-v6.json');
+  }).catch(function(e){
+    console.log('Starlet: Asset fetch failed:', e.message, '- trying IndexedDB');
+    dbg('m').then(function(s){
+      if(s){try{proc(JSON.parse(s));console.log('Starlet: Loaded from IndexedDB');}catch(e2){console.log('Starlet: IDB parse error',e2);document.getElementById('ls').classList.remove('hid');}}
+      else{console.log('Starlet: No IDB data, showing splash');document.getElementById('ls').classList.remove('hid');}
+    }).catch(function(){document.getElementById('ls').classList.remove('hid');});
   });
   // Try sounds
   fetch('starlet-sounds.json').then(function(r){
