@@ -957,7 +957,8 @@ function autoFetch(){
       for(var i=1;i<results.length;i++){
         if(results[i].assets){
           Object.keys(results[i].assets).forEach(function(k){
-            merged.assets[k]=results[i].assets[k];
+            if(merged.assets[k])merged.assets[k]=merged.assets[k].concat(results[i].assets[k]);
+            else merged.assets[k]=results[i].assets[k];
           });
         }
       }
