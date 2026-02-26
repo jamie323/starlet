@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>✨ Starlet v21-debug ✨</title>
+<title>✨ Starlet v22 ✨</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;}
@@ -52,10 +52,10 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 /* ITEM GRID — 3 columns, scrollable */
 .isc{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:12px 16px;overflow-y:auto;overflow-x:hidden;flex:1;-webkit-overflow-scrolling:touch;align-content:start;}
 .isc::-webkit-scrollbar{width:3px;}.isc::-webkit-scrollbar-thumb{background:rgba(255,107,157,0.3);border-radius:4px;}
-.ic{aspect-ratio:1;border-radius:20px;border:3px solid rgba(255,107,157,0.12);background:#FFF5F8;overflow:hidden;cursor:pointer;position:relative;transition:0.15s;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+.ic{border-radius:20px;border:3px solid rgba(255,107,157,0.12);background:#FFF5F8;overflow:hidden;cursor:pointer;position:relative;transition:0.15s;box-shadow:0 2px 8px rgba(0,0,0,0.06);aspect-ratio:1;}
 .ic:active{transform:scale(0.94);}
 .ic.on{border-color:#FF6B9D;box-shadow:0 3px 14px rgba(255,107,157,0.3);background:#FFE8EE;}
-.ic img{width:100%;height:100%;pointer-events:none;object-fit:contain;}
+.ic img{width:100%;height:100%;pointer-events:none;object-fit:cover;}
 .ic .ck{position:absolute;top:4px;right:4px;background:#FF6B9D;color:#fff;font-size:10px;font-weight:900;padding:2px 6px;border-radius:6px;display:none;}
 .ic.on .ck{display:block;}
 .in{aspect-ratio:1;border-radius:18px;border:3px dashed rgba(255,107,157,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:24px;color:rgba(255,107,157,0.3);}
@@ -1012,6 +1012,8 @@ function bIt(){
       h+='</div>';
     }
     h+='<div class="in'+(eq[c]===-1?' on':'')+'" onclick="eqp(\''+c+'\',-1)">✕</div>';
+    // object-position to show content area of 1024x1400 images
+    var opos={outfits:'center 60%',faces:'center 35%',hairhats:'center 25%',stickers:'center center'};
     var dbgLoaded=0,dbgFallback=0,dbgMissing=0;
     its.forEach(function(it,i){
       var im=IM[c+'_'+i];
@@ -1020,7 +1022,8 @@ function bIt(){
       else if(it.dataUrl) dbgFallback++;
       else dbgMissing++;
       if(!src) src='';
-      h+='<div class="ic'+(eq[c]===i?' on':'')+'" onclick="eqp(\''+c+'\','+i+')"><img src="'+src+'" draggable="false"><span class="ck">✓</span></div>';
+      var op=opos[c]||'center center';
+      h+='<div class="ic'+(eq[c]===i?' on':'')+'" onclick="eqp(\''+c+'\','+i+')"><img src="'+src+'" style="object-position:'+op+';" draggable="false"><span class="ck">✓</span></div>';
     });
     console.log('Grid['+c+']: '+its.length+' items, '+dbgLoaded+' in IM, '+dbgFallback+' fallback, '+dbgMissing+' missing');
   }
