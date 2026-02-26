@@ -49,16 +49,16 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .cattab.on .cemoji{transform:scale(1.15);}
 .cattab:active{transform:scale(0.92);}
 
-/* ITEM GRID */
-.isc{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:8px 12px;overflow-y:auto;overflow-x:hidden;flex:1;-webkit-overflow-scrolling:touch;align-content:start;}
+/* ITEM GRID — big friendly cards, 2 per row */
+.isc{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:10px 14px;overflow-y:auto;overflow-x:hidden;flex:1;-webkit-overflow-scrolling:touch;align-content:start;}
 .isc::-webkit-scrollbar{width:3px;}.isc::-webkit-scrollbar-thumb{background:rgba(255,107,157,0.3);border-radius:4px;}
-.ic{aspect-ratio:1;border-radius:14px;border:2px solid rgba(255,107,157,0.12);background:#fff;overflow:hidden;cursor:pointer;position:relative;transition:0.15s;box-shadow:0 1px 4px rgba(0,0,0,0.06);}
-.ic:active{transform:scale(0.92);}
-.ic.on{border-color:#FF6B9D;box-shadow:0 2px 10px rgba(255,107,157,0.25);background:rgba(255,107,157,0.06);}
-.ic img{width:100%;height:100%;object-fit:contain;pointer-events:none;}
-.ic .ck{position:absolute;top:2px;right:2px;background:#FF6B9D;color:#fff;font-size:7px;font-weight:900;padding:1px 4px;border-radius:4px;display:none;}
+.ic{aspect-ratio:1;border-radius:18px;border:3px solid rgba(255,107,157,0.12);background:#fff;overflow:hidden;cursor:pointer;position:relative;transition:0.15s;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+.ic:active{transform:scale(0.94);}
+.ic.on{border-color:#FF6B9D;box-shadow:0 3px 14px rgba(255,107,157,0.3);background:rgba(255,107,157,0.06);}
+.ic img{width:100%;height:100%;object-fit:contain;pointer-events:none;padding:4px;}
+.ic .ck{position:absolute;top:4px;right:4px;background:#FF6B9D;color:#fff;font-size:10px;font-weight:900;padding:2px 6px;border-radius:6px;display:none;}
 .ic.on .ck{display:block;}
-.in{aspect-ratio:1;border-radius:14px;border:2px dashed rgba(255,107,157,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:rgba(255,107,157,0.3);}
+.in{aspect-ratio:1;border-radius:18px;border:3px dashed rgba(255,107,157,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:24px;color:rgba(255,107,157,0.3);}
 .in.on{border-color:#FF6B9D;color:#FF6B9D;}
 
 /* COLOR VARIANT ROW — inside grid area */
@@ -152,7 +152,7 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .app-body{flex-direction:row;flex:1;min-height:0;}
 .stage{flex:1;min-width:0;}
 .panel{width:360px;flex-shrink:0;height:auto;flex:none;border-top:none;border-left:2px solid rgba(255,107,157,0.2);}
-.isc{grid-template-columns:repeat(3,1fr);gap:10px;padding:10px 14px;}
+.isc{grid-template-columns:repeat(2,1fr);gap:10px;padding:10px 14px;}
 .cattabs{flex-wrap:wrap;gap:6px;padding:12px 10px 8px;justify-content:center;}
 .cattab{padding:10px 8px 6px;min-width:56px;min-height:58px;}
 .cattab .cicon{width:34px;height:34px;}
@@ -161,7 +161,7 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 
 @media(min-width:1024px){
 .panel{width:400px;}
-.isc{grid-template-columns:repeat(4,1fr);gap:10px;}
+.isc{grid-template-columns:repeat(3,1fr);gap:10px;}
 .cattab{padding:10px 10px 8px;min-width:62px;min-height:62px;}
 .cattab .cicon{width:38px;height:38px;}
 .cattab .cemoji{font-size:28px;}
@@ -173,7 +173,7 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .app{width:100%;height:100%;border-radius:0;box-shadow:none;}
 .app-body{flex-direction:column;}
 .panel{width:100%;height:40%;border-left:none;border-top:2px solid rgba(255,107,157,0.2);}
-.isc{grid-template-columns:repeat(4,1fr);gap:8px;padding:8px 12px;}
+.isc{grid-template-columns:repeat(3,1fr);gap:8px;padding:8px 12px;}
 .cattab{padding:6px 10px 5px;min-width:50px;min-height:48px;}
 .cattab .cicon{width:24px;height:24px;}
 .cattab .cemoji{font-size:22px;}
@@ -200,6 +200,7 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
     <input type="file" id="fp" accept=".json" style="display:none" onchange="handleFile(this)">
   </div>
   <div class="topbar"><h1 id="logoArea">✨ Starlet <span style="font-size:9px;opacity:0.7;font-weight:700;">by BrightBox</span></h1><div class="topbar-btns">
+    <button class="tbtn" onclick="goHome()" title="Home">🏠</button>
     <button class="tbtn" onclick="doSave()">📸</button>
     <button class="tbtn" onclick="showWardrobe()">👜</button>
     <button class="tbtn" onclick="showSet()">⚙️</button>
@@ -784,6 +785,15 @@ function startGame(){
   checkOnboard();
 }
 
+function goHome(){
+  // Pause music
+  if(bgMusic){bgMusic.pause();}
+  if(musInterval){clearInterval(musInterval);musInterval=null;}
+  // Show splash
+  document.getElementById('ls').classList.remove('hid');
+  if(gameReady) showPlayReady();
+}
+
 function toggleMusStart(){
   if(AUDIO_BUNDLE&&AUDIO_BUNDLE.music){
     if(!bgMusic){bgMusic=new Audio(AUDIO_BUNDLE.music);bgMusic.loop=true;bgMusic.volume=0.2;}
@@ -833,38 +843,58 @@ function tintDefault(sk){if(si===0&&defaultBodyImg)return defaultBodyImg;var ck=
 // RENDER
 // Draw a cute display podium/stand under character
 function drawPodium(){
-  var px=512, py=780; // center of podium — aligned with character feet
+  var px=512, py=820; // center of podium
   cx.save();
-  // Shadow
+  // Shadow on ground
   cx.beginPath();
-  cx.ellipse(px, py+18, 140, 20, 0, 0, Math.PI*2);
-  cx.fillStyle='rgba(0,0,0,0.08)';
+  cx.ellipse(px, py+30, 180, 28, 0, 0, Math.PI*2);
+  cx.fillStyle='rgba(0,0,0,0.1)';
   cx.fill();
-  // Podium base
+  // Podium body (3D cylinder look)
   cx.beginPath();
-  cx.ellipse(px, py, 130, 32, 0, 0, Math.PI*2);
-  var grd=cx.createRadialGradient(px, py-8, 10, px, py, 130);
-  grd.addColorStop(0,'#FFD4E8');
-  grd.addColorStop(0.6,'#FFB5C5');
-  grd.addColorStop(1,'#FF8CAD');
-  cx.fillStyle=grd;
+  cx.moveTo(px-170, py);
+  cx.lineTo(px-160, py+30);
+  cx.ellipse(px, py+30, 160, 26, 0, Math.PI, 0, true);
+  cx.lineTo(px+170, py);
+  cx.ellipse(px, py, 170, 30, 0, 0, Math.PI, true);
+  cx.closePath();
+  var sideGrd=cx.createLinearGradient(px-170, py, px+170, py);
+  sideGrd.addColorStop(0,'#F8A4C8');
+  sideGrd.addColorStop(0.5,'#FFCCE0');
+  sideGrd.addColorStop(1,'#F090B0');
+  cx.fillStyle=sideGrd;
   cx.fill();
-  // Podium rim highlight
-  cx.beginPath();
-  cx.ellipse(px, py-4, 120, 24, 0, Math.PI, Math.PI*2);
-  cx.fillStyle='rgba(255,255,255,0.35)';
-  cx.fill();
-  // Thin border
-  cx.beginPath();
-  cx.ellipse(px, py, 130, 32, 0, 0, Math.PI*2);
-  cx.strokeStyle='rgba(180,100,140,0.2)';
+  cx.strokeStyle='rgba(180,80,120,0.2)';
   cx.lineWidth=2;
   cx.stroke();
-  // Small star decoration
-  cx.font='18px serif';
+  // Top surface
+  cx.beginPath();
+  cx.ellipse(px, py, 170, 30, 0, 0, Math.PI*2);
+  var topGrd=cx.createRadialGradient(px, py-6, 20, px, py, 170);
+  topGrd.addColorStop(0,'#FFE4F0');
+  topGrd.addColorStop(0.5,'#FFCCE0');
+  topGrd.addColorStop(1,'#FFB0D0');
+  cx.fillStyle=topGrd;
+  cx.fill();
+  cx.strokeStyle='rgba(180,80,120,0.15)';
+  cx.lineWidth=2;
+  cx.stroke();
+  // Shine highlight
+  cx.beginPath();
+  cx.ellipse(px-30, py-8, 80, 12, -0.2, 0, Math.PI*2);
+  cx.fillStyle='rgba(255,255,255,0.3)';
+  cx.fill();
+  // Decorative gold trim
+  cx.beginPath();
+  cx.ellipse(px, py, 170, 30, 0, 0, Math.PI*2);
+  cx.strokeStyle='rgba(255,215,0,0.3)';
+  cx.lineWidth=3;
+  cx.stroke();
+  // Small star
+  cx.font='20px serif';
   cx.textAlign='center';
-  cx.fillStyle='rgba(255,215,0,0.5)';
-  cx.fillText('⭐', px, py+6);
+  cx.fillStyle='rgba(255,215,0,0.6)';
+  cx.fillText('⭐', px, py+8);
   cx.restore();
 }
 
