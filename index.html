@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>✨ Starlet v23 ✨</title>
+<title>✨ Starlet v24 ✨</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;}
@@ -55,12 +55,7 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .ic{border-radius:20px;border:3px solid rgba(255,107,157,0.12);background:#FFF5F8;overflow:hidden;cursor:pointer;position:relative;transition:0.15s;box-shadow:0 2px 8px rgba(0,0,0,0.06);aspect-ratio:1;}
 .ic:active{transform:scale(0.94);}
 .ic.on{border-color:#FF6B9D;box-shadow:0 3px 14px rgba(255,107,157,0.3);background:#FFE8EE;}
-.ic img{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;object-fit:contain;}
-/* Zoom into content area per category */
-.ic.cat-outfits img{transform:scale(3) translateY(10%);}
-.ic.cat-faces img{transform:scale(4.5) translateY(-5%);}
-.ic.cat-hairhats img{transform:scale(3.5) translateY(-15%);}
-.ic.cat-stickers img{transform:scale(1.8);}
+.ic img{width:100%;height:100%;pointer-events:none;object-fit:contain;}
 .ic .ck{position:absolute;top:4px;right:4px;background:#FF6B9D;color:#fff;font-size:10px;font-weight:900;padding:2px 6px;border-radius:6px;display:none;}
 .ic.on .ck{display:block;}
 .in{aspect-ratio:1;border-radius:18px;border:3px dashed rgba(255,107,157,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:24px;color:rgba(255,107,157,0.3);}
@@ -789,14 +784,36 @@ if(d.assets&&d.assets.hair&&!d.assets.hairhats){d.assets.hairhats=d.assets.hair;
 else if(d.assets&&d.assets.hair&&d.assets.hairhats){d.assets.hairhats=d.assets.hairhats.concat(d.assets.hair);delete d.assets.hair;}
 CS.forEach(function(c){(d.assets&&d.assets[c]||[]).forEach(function(it,i){p.push(ld(c+'_'+i,it.dataUrl))})});
 console.log('Starlet: Loading '+p.length+' images...');
+var THUMBS={};
 Promise.all(p).then(function(){
-  var imCount=Object.keys(IM).length;
-  console.log('Starlet: Loaded, IM has '+imCount+' images, '+loadFails.length+' failures');
-  if(loadFails.length>0) console.log('  Failures:',loadFails.slice(0,20).join(', '));
+  console.log('Starlet: All '+Object.keys(IM).length+' images loaded. Cropping thumbnails...');
+  // Crop thumbnails NOW while images are guaranteed loaded
   CS.forEach(function(c){
     var its=d.assets&&d.assets[c]||[];
-    var loaded=0;its.forEach(function(it,i){if(IM[c+'_'+i])loaded++;});
-    console.log('  '+c+': '+loaded+'/'+its.length+' loaded, dataUrl lengths: '+its.slice(0,3).map(function(it){return it.dataUrl?it.dataUrl.length:0;}).join(','));
+    its.forEach(function(it,i){
+      var key=c+'_'+i, im=IM[key];
+      if(!im) return;
+      try{
+        var w=im.naturalWidth, h=im.naturalHeight;
+        var sc=document.createElement('canvas');sc.width=w;sc.height=h;
+        var ctx=sc.getContext('2d');ctx.drawImage(im,0,0);
+        var data=ctx.getImageData(0,0,w,h).data;
+        var t=h,b=0,l=w,r=0;
+        for(var y=0;y<h;y+=3){for(var x=0;x<w;x+=3){
+          var a=data[(y*w+x)*4+3];
+          if(a>30){if(y<t)t=y;if(y>b)b=y;if(x<l)l=x;if(x>r)r=x;}
+        }}
+        if(b<=t||r<=l){console.log('  '+key+': no content found');return;}
+        var pad=30;t=Math.max(0,t-pad);b=Math.min(h,b+pad);l=Math.max(0,l-pad);r=Math.min(w,r+pad);
+        var cw=r-l,ch=b-t,sz=Math.max(cw,ch);
+        var cx=l+cw/2-sz/2,cy=t+ch/2-sz/2;
+        cx=Math.max(0,Math.min(w-sz,cx));cy=Math.max(0,Math.min(h-sz,cy));
+        var tc=document.createElement('canvas');tc.width=200;tc.height=200;
+        tc.getContext('2d').drawImage(im,cx,cy,Math.min(sz,w-cx),Math.min(sz,h-cy),0,0,200,200);
+        THUMBS[key]=tc.toDataURL('image/png');
+      }catch(e){console.log('  '+key+': crop failed:',e.message);}
+    });
+    console.log('  '+c+': '+Object.keys(THUMBS).filter(function(k){return k.startsWith(c+'_')}).length+'/'+its.length+' thumbnails created');
   });
   if(db)dbp('m',JSON.stringify(d));showPlayReady();bui();
 });}
@@ -975,9 +992,7 @@ function bCt(){
   document.getElementById('cattabs').innerHTML=h;
 }
 
-// THUMBNAIL — pure CSS approach, no canvas
-// For items that are mostly transparent with content in center,
-// we use background-image on the card div instead of img tag
+// THUMBNAIL — handled in proc() via canvas crop → THUMBS object
 
 function bIt(){
   var isc=document.getElementById('isc');
@@ -1018,10 +1033,9 @@ function bIt(){
     }
     h+='<div class="in'+(eq[c]===-1?' on':'')+'" onclick="eqp(\''+c+'\',-1)">✕</div>';
     its.forEach(function(it,i){
-      var im=IM[c+'_'+i];
-      var src=im?im.src:it.dataUrl;
-      if(!src) src='';
-      h+='<div class="ic cat-'+c+(eq[c]===i?' on':'')+'" onclick="eqp(\''+c+'\','+i+')"><img src="'+src+'" draggable="false"><span class="ck">✓</span></div>';
+      var key=c+'_'+i;
+      var src=THUMBS[key]||(IM[key]?IM[key].src:it.dataUrl)||'';
+      h+='<div class="ic'+(eq[c]===i?' on':'')+'" onclick="eqp(\''+c+'\','+i+')"><img src="'+src+'" draggable="false"><span class="ck">✓</span></div>';
     });
   }
   isc.innerHTML=h;
