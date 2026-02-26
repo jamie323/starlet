@@ -411,21 +411,23 @@ function seedUsedPrompts(){
 // SPLIT LINE
 // ================================================================
 var draggingSplit=false,splitLineVisible=false;
-cv.addEventListener('mousedown',function(e){if(!bodyFull||bodyLower)return;var r=cv.getBoundingClientRect();if(Math.abs((e.clientY-r.top)/r.height-splitY)<0.03){draggingSplit=true;cv.style.cursor='ns-resize';}});
-cv.addEventListener('mousemove',function(e){if(!bodyFull||bodyLower)return;var r=cv.getBoundingClientRect();var y=(e.clientY-r.top)/r.height;if(draggingSplit){splitY=Math.max(0.2,Math.min(0.6,y));render();drawSplitLine();}else cv.style.cursor=Math.abs(y-splitY)<0.03?'ns-resize':'default';});
+cv.addEventListener('mousedown',function(e){if(!bodyFull||bodyLower)return;var r=cv.getBoundingClientRect();if(Math.abs((e.clientY-r.top)/r.height-splitY)<0.08){draggingSplit=true;cv.style.cursor='ns-resize';}});
+cv.addEventListener('mousemove',function(e){if(!bodyFull||bodyLower)return;var r=cv.getBoundingClientRect();var y=(e.clientY-r.top)/r.height;if(draggingSplit){splitY=Math.max(0.2,Math.min(0.8,y));render();drawSplitLine();}else cv.style.cursor=Math.abs(y-splitY)<0.08?'ns-resize':'default';});
 cv.addEventListener('mouseup',function(){if(draggingSplit){draggingSplit=false;cv.style.cursor='default';}});
+cv.addEventListener('touchstart',function(e){if(!bodyFull||bodyLower)return;var r=cv.getBoundingClientRect();var t=e.touches[0];var y=(t.clientY-r.top)/r.height;if(Math.abs(y-splitY)<0.12){draggingSplit=true;e.preventDefault();}},{passive:false});
+cv.addEventListener('touchmove',function(e){if(!bodyFull||bodyLower)return;if(draggingSplit){var r=cv.getBoundingClientRect();var t=e.touches[0];splitY=Math.max(0.2,Math.min(0.8,(t.clientY-r.top)/r.height));render();drawSplitLine();e.preventDefault();}},{passive:false});
+cv.addEventListener('touchend',function(){draggingSplit=false;});
 cv.addEventListener('mouseleave',function(){draggingSplit=false;cv.style.cursor='default';});
-function drawSplitLine(){var ly=splitY*1024;ctx.save();ctx.strokeStyle='#f0a8d0';ctx.lineWidth=3;ctx.setLineDash([10,5]);ctx.beginPath();ctx.moveTo(0,ly);ctx.lineTo(1024,ly);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#f0a8d0';ctx.font='bold 20px Nunito';ctx.fillText('SPLIT — drag to adjust',20,ly-8);ctx.restore();}
+function drawSplitLine(){var ly=splitY*1024;ctx.save();ctx.strokeStyle='#ff0000';ctx.lineWidth=6;ctx.setLineDash([10,5]);ctx.beginPath();ctx.moveTo(0,ly);ctx.lineTo(1024,ly);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#ff0000';ctx.font='bold 24px Nunito';ctx.fillText('⬆ DRAG THIS LINE ⬇ — below chin, then click Split',20,ly-12);ctx.restore();}
 function initSplitLine(){if(!bodyFull)return;var b=scanBounds(bodyFull.img);splitY=b.top+(b.bot-b.top)*0.38;splitLineVisible=true;render();drawSplitLine();log('Drag the line, then click Split.');}
 
 function reSplit(){
   if(!bodyFull){alert('No body loaded');return;}
-  // Clear old split so drag is enabled
   bodyHead=null;bodyLower=null;
+  console.log('reSplit: bodyLower cleared, drag should work now');
   var b=scanBounds(bodyFull.img);
   splitY=b.top+(b.bot-b.top)*0.45;
-  log('Re-Split: body top='+Math.round(b.top*1024)+' bot='+Math.round(b.bot*1024)+' splitY='+Math.round(splitY*1024));
-  log('👆 Drag the pink line to sit just BELOW the chin/neck, then click Split');
+  log('Re-Split: splitY='+Math.round(splitY*1024)+' — drag the RED line below the chin, then click Split');
   splitLineVisible=true;render();drawSplitLine();
 }
 
