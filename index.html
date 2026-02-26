@@ -947,7 +947,8 @@ function autoFetch(){
   }).catch(function(){
     console.log('Starlet: Single file failed, trying multi-part...');
     // Try multi-part: body+meta, outfits, faces, hairhats+stickers
-    var parts=['starlet-v6-part1.json','starlet-v6-part2.json','starlet-v6-part3.json','starlet-v6-part4.json'];
+    // UPDATED: use -updated versions that include generated test assets
+    var parts=['starlet-v6-part1.json','starlet-v6-part2.json','starlet-v6-part3.json','starlet-v6-part4-final.json'];
     Promise.all(parts.map(function(p){return fetch(p).then(function(r){if(!r.ok)throw new Error(p);return r.json();})}))
     .then(function(results){
       // Merge: part1 has body/meta, parts 2-4 have assets
