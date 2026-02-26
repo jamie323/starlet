@@ -223,6 +223,7 @@ document.addEventListener('touchstart',function(){if(!acInited){ia();acInited=tr
 
 var M=null,IM={},TN={};
 var CS=['outfits','faces','hairhats','stickers'];
+var ASSET_H=1400,PAD_TOP=200; // Character assets are 1024x1400 with 200px top padding
 var TABS=[
   {id:'outfits',emoji:'👗',label:'Outfits'},
   {id:'faces',emoji:'😊',label:'Faces'},
@@ -700,7 +701,10 @@ initBgs();
 
 // DEFAULT BODY
 var defaultBodyImg=null;
-function buildDefaultBody(){var c=document.createElement('canvas');c.width=c.height=1024;var x=c.getContext('2d');var OL='#3D2B1F';x.lineCap='round';x.lineJoin='round';x.fillStyle='#F5CBA7';x.strokeStyle=OL;x.lineWidth=4;x.beginPath();x.ellipse(440,780,38,110,0,0,Math.PI*2);x.fill();x.stroke();x.beginPath();x.ellipse(584,780,38,110,0,0,Math.PI*2);x.fill();x.stroke();x.beginPath();x.ellipse(440,890,42,18,0,0,Math.PI*2);x.fill();x.stroke();x.beginPath();x.ellipse(584,890,42,18,0,0,Math.PI*2);x.fill();x.stroke();x.fillStyle='#6B9BD2';x.beginPath();x.moveTo(390,620);x.lineTo(390,720);x.quadraticCurveTo(400,740,440,740);x.lineTo(490,740);x.lineTo(490,650);x.closePath();x.fill();x.stroke();x.beginPath();x.moveTo(634,620);x.lineTo(634,720);x.quadraticCurveTo(624,740,584,740);x.lineTo(534,740);x.lineTo(534,650);x.closePath();x.fill();x.stroke();x.fillStyle='#5A89BD';x.beginPath();x.roundRect(388,610,248,30,6);x.fill();x.stroke();x.fillStyle='#FF8A80';x.beginPath();x.roundRect(388,430,248,200,12);x.fill();x.stroke();x.beginPath();x.moveTo(390,440);x.lineTo(330,470);x.lineTo(320,540);x.lineTo(370,550);x.lineTo(388,480);x.closePath();x.fill();x.stroke();x.beginPath();x.moveTo(634,440);x.lineTo(694,470);x.lineTo(704,540);x.lineTo(654,550);x.lineTo(636,480);x.closePath();x.fill();x.stroke();x.fillStyle='#F5CBA7';x.beginPath();x.moveTo(470,430);x.lineTo(512,470);x.lineTo(554,430);x.closePath();x.fill();x.stroke();x.fillStyle='#F5CBA7';x.strokeStyle=OL;x.beginPath();x.ellipse(310,565,28,30,0,0,Math.PI*2);x.fill();x.stroke();x.beginPath();x.ellipse(714,565,28,30,0,0,Math.PI*2);x.fill();x.stroke();x.beginPath();x.arc(305,598,20,0,Math.PI*2);x.fill();x.stroke();x.beginPath();x.arc(719,598,20,0,Math.PI*2);x.fill();x.stroke();defaultBodyImg=new Image();defaultBodyImg.src=c.toDataURL();}
+function buildDefaultBody(){var c=document.createElement('canvas');c.width=1024;c.height=1024;var x=c.getContext('2d');var OL='#3D2B1F';x.lineCap='round';x.lineJoin='round';x.fillStyle='#F5CBA7';x.strokeStyle=OL;x.lineWidth=4;x.beginPath();x.ellipse(440,780,38,110,0,0,Math.PI*2);x.fill();x.stroke();x.beginPath();x.ellipse(584,780,38,110,0,0,Math.PI*2);x.fill();x.stroke();x.beginPath();x.ellipse(440,890,42,18,0,0,Math.PI*2);x.fill();x.stroke();x.beginPath();x.ellipse(584,890,42,18,0,0,Math.PI*2);x.fill();x.stroke();x.fillStyle='#6B9BD2';x.beginPath();x.moveTo(390,620);x.lineTo(390,720);x.quadraticCurveTo(400,740,440,740);x.lineTo(490,740);x.lineTo(490,650);x.closePath();x.fill();x.stroke();x.beginPath();x.moveTo(634,620);x.lineTo(634,720);x.quadraticCurveTo(624,740,584,740);x.lineTo(534,740);x.lineTo(534,650);x.closePath();x.fill();x.stroke();x.fillStyle='#5A89BD';x.beginPath();x.roundRect(388,610,248,30,6);x.fill();x.stroke();x.fillStyle='#FF8A80';x.beginPath();x.roundRect(388,430,248,200,12);x.fill();x.stroke();x.beginPath();x.moveTo(390,440);x.lineTo(330,470);x.lineTo(320,540);x.lineTo(370,550);x.lineTo(388,480);x.closePath();x.fill();x.stroke();x.beginPath();x.moveTo(634,440);x.lineTo(694,470);x.lineTo(704,540);x.lineTo(654,550);x.lineTo(636,480);x.closePath();x.fill();x.stroke();x.fillStyle='#F5CBA7';x.beginPath();x.moveTo(470,430);x.lineTo(512,470);x.lineTo(554,430);x.closePath();x.fill();x.stroke();x.fillStyle='#F5CBA7';x.strokeStyle=OL;x.beginPath();x.ellipse(310,565,28,30,0,0,Math.PI*2);x.fill();x.stroke();x.beginPath();x.ellipse(714,565,28,30,0,0,Math.PI*2);x.fill();x.stroke();x.beginPath();x.arc(305,598,20,0,Math.PI*2);x.fill();x.stroke();x.beginPath();x.arc(719,598,20,0,Math.PI*2);x.fill();x.stroke();
+  // Pad to 1024x1400
+  var pc=document.createElement('canvas');pc.width=1024;pc.height=ASSET_H;pc.getContext('2d').drawImage(c,0,PAD_TOP);
+  defaultBodyImg=new Image();defaultBodyImg.src=pc.toDataURL();}
 buildDefaultBody();
 
 // EFFECTS
@@ -725,10 +729,10 @@ CS.forEach(function(c){(d.assets&&d.assets[c]||[]).forEach(function(it,i){p.push
 function getStyled(imgKey,hueIdx,skinTarget){
   var ck=imgKey+'_h'+hueIdx+'_s'+skinTarget.h;if(TN[ck])return TN[ck];
   var src=IM[imgKey];if(!src)return null;
-  var c=document.createElement('canvas');c.width=c.height=1024;var x=c.getContext('2d');
-  x.drawImage(src,0,0,1024,1024);
+  var c=document.createElement('canvas');c.width=1024;c.height=ASSET_H;var x=c.getContext('2d');
+  x.drawImage(src,0,0,1024,ASSET_H);
   if(hueIdx>0||si!==0){
-    var d=x.getImageData(0,0,1024,1024),px=d.data;
+    var d=x.getImageData(0,0,1024,ASSET_H),px=d.data;
     var rr=skinTarget.r/245,rg=skinTarget.g/203,rb=skinTarget.b/167;
     var hueShift=CLR_HUES[hueIdx]||0;
     for(var i=0;i<px.length;i+=4){if(px[i+3]<10)continue;var r=px[i],g=px[i+1],b=px[i+2],br=(r+g+b)/3;if(br<80||br>252)continue;
@@ -743,24 +747,24 @@ function getStyled(imgKey,hueIdx,skinTarget){
 }
 function tint(pk,sk){return getStyled(pk,0,sk);}
 var tintedDefaults={};
-function tintDefault(sk){if(si===0&&defaultBodyImg)return defaultBodyImg;var ck='def_'+sk.h;if(tintedDefaults[ck])return tintedDefaults[ck];if(!defaultBodyImg||!defaultBodyImg.complete)return defaultBodyImg;var c=document.createElement('canvas');c.width=c.height=1024;var x=c.getContext('2d');x.drawImage(defaultBodyImg,0,0,1024,1024);var d=x.getImageData(0,0,1024,1024),px=d.data;var rr=sk.r/245,rg=sk.g/203,rb=sk.b/167;for(var i=0;i<px.length;i+=4){if(px[i+3]<10)continue;var r=px[i],g=px[i+1],b=px[i+2];var dr=r-245,dg=g-203,db=b-167;if(Math.sqrt(dr*dr+dg*dg+db*db)>=55)continue;px[i]=Math.min(255,Math.round(r*rr));px[i+1]=Math.min(255,Math.round(g*rg));px[i+2]=Math.min(255,Math.round(b*rb));}x.putImageData(d,0,0);tintedDefaults[ck]=c;return c;}
+function tintDefault(sk){if(si===0&&defaultBodyImg)return defaultBodyImg;var ck='def_'+sk.h;if(tintedDefaults[ck])return tintedDefaults[ck];if(!defaultBodyImg||!defaultBodyImg.complete)return defaultBodyImg;var c=document.createElement('canvas');c.width=1024;c.height=ASSET_H;var x=c.getContext('2d');x.drawImage(defaultBodyImg,0,0,1024,ASSET_H);var d=x.getImageData(0,0,1024,ASSET_H),px=d.data;var rr=sk.r/245,rg=sk.g/203,rb=sk.b/167;for(var i=0;i<px.length;i+=4){if(px[i+3]<10)continue;var r=px[i],g=px[i+1],b=px[i+2];var dr=r-245,dg=g-203,db=b-167;if(Math.sqrt(dr*dr+dg*dg+db*db)>=55)continue;px[i]=Math.min(255,Math.round(r*rr));px[i+1]=Math.min(255,Math.round(g*rg));px[i+2]=Math.min(255,Math.round(b*rb));}x.putImageData(d,0,0);tintedDefaults[ck]=c;return c;}
 
 // RENDER
 function ren(){
   cx.clearRect(0,0,1024,1024);
   if(bgCanvases[bi])cx.drawImage(bgCanvases[bi],0,0,1024,1024);
   var sk=SK[si];
-  // Shift character down slightly and scale to 95% to leave headroom for hair
-  cx.save();cx.translate(512,580);cx.scale(0.68,0.68);cx.scale(1,1+breathPhase);cx.translate(-512,-512);
+  // Character transform: scale 68%, center on canvas, offset for PAD_TOP in asset
+  cx.save();cx.translate(512,550);cx.scale(0.55,0.55);cx.scale(1,1+breathPhase);cx.translate(-512,-(512+PAD_TOP));
   var oi=eq.outfits;
-  if(oi>=0&&IM['outfits_'+oi]){var styled=getStyled('outfits_'+oi,clrVar.outfits,sk);if(styled)cx.drawImage(styled,0,0,1024,1024);else cx.drawImage(IM['outfits_'+oi],0,0,1024,1024);}
-  else if(IM['bl']){var im=tint('bl',sk);if(im)cx.drawImage(im,0,0,1024,1024);else if(IM['bl'])cx.drawImage(IM['bl'],0,0,1024,1024);}
-  else{var defImg=tintDefault(sk);if(defImg)cx.drawImage(defImg,0,0,1024,1024);else if(defaultBodyImg)cx.drawImage(defaultBodyImg,0,0,1024,1024);}
-  var bh=tint('bh',sk);if(bh)cx.drawImage(bh,0,0,1024,1024);else if(IM['bh'])cx.drawImage(IM['bh'],0,0,1024,1024);
+  if(oi>=0&&IM['outfits_'+oi]){var styled=getStyled('outfits_'+oi,clrVar.outfits,sk);if(styled)cx.drawImage(styled,0,0,1024,ASSET_H);else cx.drawImage(IM['outfits_'+oi],0,0,1024,ASSET_H);}
+  else if(IM['bl']){var im=tint('bl',sk);if(im)cx.drawImage(im,0,0,1024,ASSET_H);else if(IM['bl'])cx.drawImage(IM['bl'],0,0,1024,ASSET_H);}
+  else{var defImg=tintDefault(sk);if(defImg)cx.drawImage(defImg,0,0,1024,ASSET_H);else if(defaultBodyImg)cx.drawImage(defaultBodyImg,0,0,1024,ASSET_H);}
+  var bh=tint('bh',sk);if(bh)cx.drawImage(bh,0,0,1024,ASSET_H);else if(IM['bh'])cx.drawImage(IM['bh'],0,0,1024,ASSET_H);
   var fi=eq.faces;
-  if(fi>=0&&IM['faces_'+fi]){if(clrVar.faces>0){var fc=getStyled('faces_'+fi,clrVar.faces,sk);if(fc)cx.drawImage(fc,0,0,1024,1024);else cx.drawImage(IM['faces_'+fi],0,0,1024,1024);}else cx.drawImage(IM['faces_'+fi],0,0,1024,1024);if(isBlinking){cx.fillStyle=sk.h;cx.globalAlpha=0.85;cx.fillRect(430,260,70,22);cx.fillRect(530,260,70,22);cx.globalAlpha=1;}}
+  if(fi>=0&&IM['faces_'+fi]){if(clrVar.faces>0){var fc=getStyled('faces_'+fi,clrVar.faces,sk);if(fc)cx.drawImage(fc,0,0,1024,ASSET_H);else cx.drawImage(IM['faces_'+fi],0,0,1024,ASSET_H);}else cx.drawImage(IM['faces_'+fi],0,0,1024,ASSET_H);if(isBlinking){cx.fillStyle=sk.h;cx.globalAlpha=0.85;cx.fillRect(430,260+PAD_TOP,70,22);cx.fillRect(530,260+PAD_TOP,70,22);cx.globalAlpha=1;}}
   var hi=eq.hairhats;
-  if(hi>=0&&IM['hairhats_'+hi]){if(clrVar.hairhats>0){var hc=getStyled('hairhats_'+hi,clrVar.hairhats,sk);if(hc)cx.drawImage(hc,0,0,1024,1024);else cx.drawImage(IM['hairhats_'+hi],0,0,1024,1024);}else cx.drawImage(IM['hairhats_'+hi],0,0,1024,1024);}
+  if(hi>=0&&IM['hairhats_'+hi]){if(clrVar.hairhats>0){var hc=getStyled('hairhats_'+hi,clrVar.hairhats,sk);if(hc)cx.drawImage(hc,0,0,1024,ASSET_H);else cx.drawImage(IM['hairhats_'+hi],0,0,1024,ASSET_H);}else cx.drawImage(IM['hairhats_'+hi],0,0,1024,ASSET_H);}
   cx.restore();
   st.forEach(function(s){var im=IM['stickers_'+s.idx];if(!im)return;var sz=s.scale||160;cx.save();cx.translate(s.x,s.y);if(s.rotation)cx.rotate(s.rotation*Math.PI/180);if(s.flipped)cx.scale(-1,1);cx.drawImage(im,-sz/2,-sz/2,sz,sz);cx.restore();});
 }
@@ -942,17 +946,16 @@ function log(s){console.log('Starlet:',s);}
 function autoFetch(){
   var cb='?t='+Date.now(); // cache-buster
   console.log('Starlet: Starting auto-fetch...');
-  // Try single assets file first, then multi-part fallback
-  fetch('starlet-v6.json'+cb).then(function(r){
-    if(!r.ok)throw new Error('No single file');
+  // Try v7 single file first, then v7 multi-part, then v6 fallback
+  fetch('starlet-v7.json'+cb).then(function(r){
+    if(!r.ok)throw new Error('No v7 single file');
     return r.json();
   }).then(function(d){
-    console.log('Starlet: Loaded single assets file');
+    console.log('Starlet: Loaded v7 single assets file');
     proc(d);
   }).catch(function(){
-    console.log('Starlet: Single file failed, trying multi-part...');
-    // Try multi-part: body+meta, outfits, faces, hairhats+stickers
-    var parts=['starlet-v6-part1.json','starlet-v6-part2.json','starlet-v6-part3.json','starlet-v6-part4.json'];
+    console.log('Starlet: v7 single file failed, trying v7 multi-part...');
+    var parts=['starlet-v7-part1.json','starlet-v7-part2.json','starlet-v7-part3.json','starlet-v7-part4.json'];
     Promise.all(parts.map(function(p){return fetch(p+cb).then(function(r){if(!r.ok)throw new Error(p);return r.json();})}))
     .then(function(results){
       // Merge: part1 has body/meta, parts 2-4 have assets

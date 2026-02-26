@@ -81,7 +81,7 @@
   <button class="btn btn-green" onclick="reSplit()" title="Recalculate split line for current body position">Re-Split</button>
   <button class="btn btn-dark" onclick="renderDebugZones()">Debug</button>
   <button class="btn btn-red" onclick="clearAll()">Reset</button>
-  <button class="btn btn-blue" onclick="shiftAllDown()" title="Move all assets down 200px for hat headroom">⬇️ Shift Down</button>
+  <!-- padding handles hat/shoe headroom now -->
   <button class="btn btn-dark" onclick="saveAll()">Save</button>
   <button class="btn btn-blue" onclick="exportAll()">Export</button>
   <button class="btn btn-dark" onclick="document.getElementById('importFile').click()">Import</button>
@@ -338,6 +338,7 @@ var cv=document.getElementById('cv'),ctx=cv.getContext('2d');
 var bodyFull=null,bodyHead=null,bodyLower=null;
 var splitY=0.33,anchors=null,slotBoxes={};
 var CATEGORIES=['outfits','faces','hairhats','stickers'];
+var EXPORT_H=1400,PAD_TOP=200; // Export at 1024x1400 with 200px top padding for hat headroom
 // Categories that use STANDALONE generation (not inpainting)
 var STANDALONE_CATS={faces:true,hairhats:true,stickers:true};
 var kept={};CATEGORIES.forEach(function(c){kept[c]=[];});
@@ -1166,16 +1167,15 @@ function renderPreviewAdj(item){
   if(bodyHead) ctx.drawImage(bodyHead.img,0,0,1024,1024);
   if(!showingOutfit&&item&&item.img) drawAdj(item);
 }
-function bakeItem(item){var a=item.adj||{dx:0,dy:0,scale:1.0};if(!a.dx&&!a.dy&&a.scale===1.0)return item.dataUrl;var bc=document.createElement('canvas');bc.width=bc.height=1024;var bx=bc.getContext('2d');
-  // Safety: check if content would clip above canvas, shift down if needed
-  var adjDy=a.dy;
-  if(item.category==='hairhats'){
-    var gb=scanBounds(item.img);
-    var topInSrc=gb.top*1024;
-    var finalTop=(topInSrc-512)*a.scale+512+a.dy;
-    if(finalTop<0) adjDy=a.dy-finalTop+10; // shift down to keep 10px margin
-  }
-  bx.translate(512+a.dx,512+adjDy);bx.scale(a.scale,a.scale);bx.translate(-512,-512);bx.drawImage(item.img,0,0,1024,1024);return bc.toDataURL('image/png');}
+function bakeItem(item){var a=item.adj||{dx:0,dy:0,scale:1.0};
+  var bc=document.createElement('canvas');bc.width=1024;bc.height=EXPORT_H;
+  var bx=bc.getContext('2d');
+  // Draw 1024x1024 source onto 1024x1400 canvas with PAD_TOP offset
+  bx.translate(512+a.dx, 512+PAD_TOP+a.dy);
+  bx.scale(a.scale, a.scale);
+  bx.translate(-512, -512);
+  bx.drawImage(item.img, 0, 0, 1024, 1024);
+  return bc.toDataURL('image/png');}
 function updateCounts(){var total=0;CATEGORIES.forEach(function(cat){var n=kept[cat].length;var el=document.getElementById('cnt-'+cat);if(el)el.textContent=n;total+=n;});document.getElementById('cnt-total').textContent=total;}
 
 // ================================================================
@@ -1277,10 +1277,11 @@ function renderPanel(){
 // ================================================================
 // EXPORT / IMPORT / RESET
 // ================================================================
+function padBody(img){if(!img)return null;var c=document.createElement('canvas');c.width=1024;c.height=EXPORT_H;c.getContext('2d').drawImage(img,0,PAD_TOP,1024,1024);return c.toDataURL('image/png');}
 function exportAll(){
-  var data={version:'6.0',body:{full:bodyFull?bodyFull.dataUrl:null,head:bodyHead?bodyHead.dataUrl:null,lower:bodyLower?bodyLower.dataUrl:null},splitY:splitY,anchors:anchors,slotBoxes:slotBoxes,assets:{}};
+  var data={version:'7.0',canvasHeight:EXPORT_H,padTop:PAD_TOP,body:{full:padBody(bodyFull?bodyFull.img:null),head:padBody(bodyHead?bodyHead.img:null),lower:padBody(bodyLower?bodyLower.img:null)},splitY:(splitY*1024+PAD_TOP)/EXPORT_H,anchors:anchors,slotBoxes:slotBoxes,assets:{}};
   CATEGORIES.forEach(function(cat){data.assets[cat]=[];kept[cat].forEach(function(item){data.assets[cat].push({name:item.name,dataUrl:bakeItem(item)});});});
-  var blob=new Blob([JSON.stringify(data)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='starlet-v6.json';a.click();log('Exported.');
+  var blob=new Blob([JSON.stringify(data)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='starlet-v7.json';a.click();log('Exported (1024x'+EXPORT_H+').');
 }
 function importAll(input){
   if(!input.files||!input.files[0])return;var reader=new FileReader();
@@ -1407,16 +1408,16 @@ function pushToGitHub() {
   // Save config for next time
   try { localStorage.setItem('gh_repo', repo); localStorage.setItem('gh_token', token); } catch(e) {}
 
-  // Build full data (same as export)
-  var data = { version: '6.0', body: { full: bodyFull ? bodyFull.dataUrl : null, head: bodyHead ? bodyHead.dataUrl : null, lower: bodyLower ? bodyLower.dataUrl : null }, splitY: splitY, anchors: anchors, slotBoxes: slotBoxes, assets: {} };
+  // Build full data (padded to 1024xEXPORT_H)
+  var data = { version: '7.0', canvasHeight: EXPORT_H, padTop: PAD_TOP, body: { full: padBody(bodyFull?bodyFull.img:null), head: padBody(bodyHead?bodyHead.img:null), lower: padBody(bodyLower?bodyLower.img:null) }, splitY: (splitY*1024+PAD_TOP)/EXPORT_H, anchors: anchors, slotBoxes: slotBoxes, assets: {} };
   CATEGORIES.forEach(function(cat) { data.assets[cat] = []; kept[cat].forEach(function(item) { data.assets[cat].push({ name: item.name, dataUrl: bakeItem(item) }); }); });
 
   // Split into 4 parts
   var parts = {};
-  parts['starlet-v6-part1.json'] = JSON.stringify({ version: data.version, body: data.body, splitY: data.splitY, anchors: data.anchors, slotBoxes: data.slotBoxes, assets: {} });
-  parts['starlet-v6-part2.json'] = JSON.stringify({ assets: { outfits: data.assets.outfits } });
-  parts['starlet-v6-part3.json'] = JSON.stringify({ assets: { faces: data.assets.faces } });
-  parts['starlet-v6-part4.json'] = JSON.stringify({ assets: { hairhats: data.assets.hairhats, stickers: data.assets.stickers } });
+  parts['starlet-v7-part1.json'] = JSON.stringify({ version: data.version, canvasHeight: EXPORT_H, padTop: PAD_TOP, body: data.body, splitY: data.splitY, anchors: data.anchors, slotBoxes: data.slotBoxes, assets: {} });
+  parts['starlet-v7-part2.json'] = JSON.stringify({ assets: { outfits: data.assets.outfits } });
+  parts['starlet-v7-part3.json'] = JSON.stringify({ assets: { faces: data.assets.faces } });
+  parts['starlet-v7-part4.json'] = JSON.stringify({ assets: { hairhats: data.assets.hairhats, stickers: data.assets.stickers } });
 
   var fileNames = Object.keys(parts);
   var totalFiles = fileNames.length;
@@ -1495,13 +1496,25 @@ function curatorAutoFetch(){
   if(bodyFull) return Promise.resolve();
   log('No local data — trying to auto-fetch from repo...');
   
-  // Try single file first
-  return fetch('starlet-v6.json').then(function(r){
-    if(!r.ok) throw new Error('no single file');
+  // Unpad: convert 1024x1400 padded image back to 1024x1024 for internal use
+  function unpadDataUrl(dataUrl){
+    return new Promise(function(res){
+      var img=new Image();img.onload=function(){
+        if(img.height<=1024){res({img:img,dataUrl:dataUrl});return;}
+        var c=document.createElement('canvas');c.width=1024;c.height=1024;
+        c.getContext('2d').drawImage(img, 0,PAD_TOP,1024,1024, 0,0,1024,1024);
+        var u=c.toDataURL('image/png');
+        var out=new Image();out.onload=function(){res({img:out,dataUrl:u});};out.src=u;
+      };img.src=dataUrl;
+    });
+  }
+  
+  // Try v7 first, then v6 fallback
+  return fetch('starlet-v7.json').then(function(r){
+    if(!r.ok) throw new Error('no v7 single file');
     return r.json();
   }).catch(function(){
-    // Try multi-part
-    var parts=['starlet-v6-part1.json','starlet-v6-part2.json','starlet-v6-part3.json','starlet-v6-part4.json'];
+    var parts=['starlet-v7-part1.json','starlet-v7-part2.json','starlet-v7-part3.json','starlet-v7-part4.json'];
     return Promise.all(parts.map(function(p){
       return fetch(p).then(function(r){if(!r.ok)throw new Error(p);return r.json();});
     })).then(function(results){
@@ -1510,8 +1523,9 @@ function curatorAutoFetch(){
       for(var i=1;i<results.length;i++){
         if(results[i].assets){
           Object.keys(results[i].assets).forEach(function(k){
-            if(!merged.assets[k])merged.assets[k]=[];
-            merged.assets[k]=merged.assets[k].concat(results[i].assets[k]);
+            var nk=k==='hair'?'hairhats':k;
+            if(!merged.assets[nk])merged.assets[nk]=[];
+            merged.assets[nk]=merged.assets[nk].concat(results[i].assets[k]);
           });
         }
       }
@@ -1519,20 +1533,32 @@ function curatorAutoFetch(){
     });
   }).then(function(data){
     if(!data) return;
-    log('Auto-fetched assets! Loading...');
+    var isV7=data.version==='7.0'||data.canvasHeight===1400;
+    log('Auto-fetched '+(isV7?'v7 (padded)':'v6')+' assets! Loading...');
     var bp=[];
-    if(data.body&&data.body.full)bp.push(loadImg(data.body.full).then(function(img){bodyFull={img:img,dataUrl:data.body.full};}));
-    if(data.body&&data.body.head)bp.push(loadImg(data.body.head).then(function(img){bodyHead={img:img,dataUrl:data.body.head};}));
-    if(data.body&&data.body.lower)bp.push(loadImg(data.body.lower).then(function(img){bodyLower={img:img,dataUrl:data.body.lower};}));
+    function loadBody(key,dataUrl){
+      if(!dataUrl)return Promise.resolve();
+      var p=isV7?unpadDataUrl(dataUrl):loadImg(dataUrl).then(function(img){return{img:img,dataUrl:dataUrl};});
+      return p.then(function(r){
+        if(key==='full')bodyFull=r;
+        else if(key==='head')bodyHead=r;
+        else bodyLower=r;
+      });
+    }
+    if(data.body&&data.body.full)bp.push(loadBody('full',data.body.full));
+    if(data.body&&data.body.head)bp.push(loadBody('head',data.body.head));
+    if(data.body&&data.body.lower)bp.push(loadBody('lower',data.body.lower));
     return Promise.all(bp).then(function(){
-      if(data.splitY)splitY=data.splitY;
+      if(isV7&&data.splitY){splitY=(data.splitY*EXPORT_H-PAD_TOP)/1024;}
+      else if(data.splitY)splitY=data.splitY;
       if(data.anchors)anchors=data.anchors;
       if(data.slotBoxes)slotBoxes=data.slotBoxes;
       var ap=[];
       CATEGORIES.forEach(function(cat){
         (data.assets&&data.assets[cat]||[]).forEach(function(item){
-          ap.push(loadImg(item.dataUrl).then(function(img){
-            kept[cat].push({name:item.name,img:img,dataUrl:item.dataUrl,category:cat});
+          var p=isV7?unpadDataUrl(item.dataUrl):loadImg(item.dataUrl).then(function(img){return{img:img,dataUrl:item.dataUrl};});
+          ap.push(p.then(function(r){
+            kept[cat].push({name:item.name,img:r.img,dataUrl:r.dataUrl,category:cat});
           }));
         });
       });
@@ -1548,7 +1574,7 @@ function curatorAutoFetch(){
   });
 }
 
-dbOpen().then(function(){log('v6 ready — 4 categories: outfits, faces, hair/hats, stickers');return loadSaved();}).then(function(){return curatorAutoFetch();}).then(function(){render();renderPanel();}).catch(function(e){log('DB: '+e);render();renderPanel();});
+dbOpen().then(function(){log('v7 ready — exports at 1024×'+EXPORT_H+' with '+PAD_TOP+'px hat headroom');return loadSaved();}).then(function(){return curatorAutoFetch();}).then(function(){render();renderPanel();}).catch(function(e){log('DB: '+e);render();renderPanel();});
 </script>
 </body>
 </html>
