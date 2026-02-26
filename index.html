@@ -49,16 +49,16 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .cattab.on .cemoji{transform:scale(1.15);}
 .cattab:active{transform:scale(0.92);}
 
-/* ITEM GRID — big friendly cards, 2 per row */
-.isc{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:10px 14px;overflow-y:auto;overflow-x:hidden;flex:1;-webkit-overflow-scrolling:touch;align-content:start;}
+/* ITEM GRID — 3 columns, scrollable */
+.isc{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:8px 12px;overflow-y:auto;overflow-x:hidden;flex:1;-webkit-overflow-scrolling:touch;align-content:start;}
 .isc::-webkit-scrollbar{width:3px;}.isc::-webkit-scrollbar-thumb{background:rgba(255,107,157,0.3);border-radius:4px;}
-.ic{aspect-ratio:1;border-radius:18px;border:3px solid rgba(255,107,157,0.12);background:#fff;overflow:hidden;cursor:pointer;position:relative;transition:0.15s;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+.ic{aspect-ratio:1;border-radius:14px;border:3px solid rgba(255,107,157,0.12);background:linear-gradient(135deg,#FFF8FA,#FFF0F5);overflow:hidden;cursor:pointer;position:relative;transition:0.15s;box-shadow:0 2px 6px rgba(0,0,0,0.05);}
 .ic:active{transform:scale(0.94);}
-.ic.on{border-color:#FF6B9D;box-shadow:0 3px 14px rgba(255,107,157,0.3);background:rgba(255,107,157,0.06);}
-.ic img{width:100%;height:100%;object-fit:cover;pointer-events:none;border-radius:15px;}
-.ic .ck{position:absolute;top:4px;right:4px;background:#FF6B9D;color:#fff;font-size:10px;font-weight:900;padding:2px 6px;border-radius:6px;display:none;}
+.ic.on{border-color:#FF6B9D;box-shadow:0 3px 14px rgba(255,107,157,0.3);background:linear-gradient(135deg,#FFE8EE,#FFD6E0);}
+.ic img{width:100%;height:100%;object-fit:contain;pointer-events:none;}
+.ic .ck{position:absolute;top:3px;right:3px;background:#FF6B9D;color:#fff;font-size:9px;font-weight:900;padding:2px 5px;border-radius:5px;display:none;}
 .ic.on .ck{display:block;}
-.in{aspect-ratio:1;border-radius:18px;border:3px dashed rgba(255,107,157,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:24px;color:rgba(255,107,157,0.3);}
+.in{aspect-ratio:1;border-radius:14px;border:3px dashed rgba(255,107,157,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;color:rgba(255,107,157,0.3);}
 .in.on{border-color:#FF6B9D;color:#FF6B9D;}
 
 /* COLOR VARIANT ROW — inside grid area */
@@ -153,8 +153,8 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 /* TABLET / LANDSCAPE — side-by-side layout (default for iPad) */
 .app-body{flex-direction:row;flex:1;min-height:0;}
 .stage{flex:1;min-width:0;}
-.panel{width:360px;flex-shrink:0;height:auto;flex:none;border-top:none;border-left:2px solid rgba(255,107,157,0.2);}
-.isc{grid-template-columns:repeat(2,1fr);gap:10px;padding:10px 14px;}
+.panel{width:400px;flex-shrink:0;height:auto;flex:none;border-top:none;border-left:2px solid rgba(255,107,157,0.2);}
+.isc{grid-template-columns:repeat(3,1fr);gap:10px;padding:12px 14px;}
 .cattabs{flex-wrap:wrap;gap:6px;padding:12px 10px 8px;justify-content:center;}
 .cattab{padding:12px 10px 8px;min-width:62px;min-height:66px;}
 .cattab .cicon{width:40px;height:40px;}
@@ -768,7 +768,10 @@ function proc(d){M=d;IM={};TN={};thumbCache={};var p=[];function ld(k,s){return 
 // Normalize: 'hair' → 'hairhats'
 if(d.assets&&d.assets.hair&&!d.assets.hairhats){d.assets.hairhats=d.assets.hair;delete d.assets.hair;}
 else if(d.assets&&d.assets.hair&&d.assets.hairhats){d.assets.hairhats=d.assets.hairhats.concat(d.assets.hair);delete d.assets.hair;}
-CS.forEach(function(c){(d.assets&&d.assets[c]||[]).forEach(function(it,i){p.push(ld(c+'_'+i,it.dataUrl))})});Promise.all(p).then(function(){if(db)dbp('m',JSON.stringify(d));showPlayReady();bui();});}
+CS.forEach(function(c){(d.assets&&d.assets[c]||[]).forEach(function(it,i){p.push(ld(c+'_'+i,it.dataUrl))})});Promise.all(p).then(function(){if(db)dbp('m',JSON.stringify(d));showPlayReady();bui();
+  // Rebuild grid again after short delay to ensure all thumbs generate
+  setTimeout(function(){thumbCache={};bui();},200);
+});}
 
 var gameReady=false;
 function showPlayReady(){
@@ -944,29 +947,30 @@ function bCt(){
 }
 
 // THUMBNAIL CROP — zoom into relevant area for each category
+// Images are 1024x1400 with PAD_TOP=200, so add 200 to all Y values
 var thumbCache={};
 var CROP={
-  outfits: {x:200, y:300, w:624, h:750},  // torso + legs area
-  faces:   {x:340, y:320, w:344, h:280},   // face area
-  hairhats:{x:200, y:50,  w:624, h:550},   // head + hat area
-  stickers:{x:0,   y:0,   w:1024,h:1024}   // full (already standalone)
+  outfits: {x:200, y:500, w:624, h:700},   // torso + legs in 1400-space
+  faces:   {x:340, y:480, w:344, h:300},    // face area in 1400-space
+  hairhats:{x:200, y:180, w:624, h:600},    // head + hat area in 1400-space
+  stickers:{x:0,   y:0,   w:1024,h:1400}    // full
 };
 function getThumb(cat, idx){
   var ck=cat+'_'+idx;
   if(thumbCache[ck]) return thumbCache[ck];
   var im=IM[ck];
-  if(!im) return null;
+  if(!im||!im.complete||!im.naturalWidth) return null;
   var cr=CROP[cat]||CROP.stickers;
   var tc=document.createElement('canvas');
-  tc.width=200;tc.height=200;
+  tc.width=256;tc.height=256;
   var tx=tc.getContext('2d');
-  // Draw cropped region scaled to fill 200x200
+  // Draw cropped region scaled to fill 256x256
   var srcAspect=cr.w/cr.h;
   var sw,sh,sx,sy;
   if(srcAspect>1){sh=cr.h;sw=cr.h;sx=cr.x+(cr.w-sw)/2;sy=cr.y;}
   else{sw=cr.w;sh=cr.w;sx=cr.x;sy=cr.y+(cr.h-sh)/2;}
-  tx.drawImage(im, sx, sy, sw, sh, 0, 0, 200, 200);
-  thumbCache[ck]=tc.toDataURL('image/png');
+  tx.drawImage(im, sx, sy, sw, sh, 0, 0, 256, 256);
+  thumbCache[ck]=tc.toDataURL('image/jpeg',0.85);
   return thumbCache[ck];
 }
 
