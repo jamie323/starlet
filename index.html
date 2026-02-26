@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>✨ Starlet v25 ✨</title>
+<title>✨ Starlet v26 ✨</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;}
@@ -1038,6 +1038,8 @@ function bIt(){
     });
   }
   isc.innerHTML=h;
+  // Outfits get 2 columns, everything else gets 3
+  isc.style.gridTemplateColumns=c==='outfits'?'repeat(2,1fr)':'repeat(3,1fr)';
   if(c==='stickers')document.querySelectorAll('[data-s]').forEach(function(el){el.addEventListener('click',grabSticker)});
 }
 
