@@ -101,7 +101,18 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 @keyframes lsFloat{0%{transform:translateY(0) rotate(-5deg);}50%{transform:translateY(-15px) rotate(5deg);}100%{transform:translateY(0) rotate(-5deg);}}
 .ls-title{font-size:36px;font-weight:900;background:linear-gradient(135deg,#FF6B9D,#FFD700,#C850C0,#6C63FF,#FF6B9D);background-size:300% 300%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:lsGrad 4s ease-in-out infinite;text-shadow:none;position:relative;z-index:2;}
 @keyframes lsGrad{0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
-.ls-sub{color:rgba(100,70,130,0.7);font-size:13px;font-weight:700;margin-top:6px;position:relative;z-index:2;text-align:center;max-width:260px;line-height:1.5;}
+.ls-sub{color:rgba(255,255,255,0.85);font-size:14px;font-weight:700;margin-top:6px;position:relative;z-index:2;text-align:center;max-width:280px;line-height:1.5;text-shadow:0 1px 4px rgba(0,0,0,0.15);}
+.ls-btns{display:flex;flex-direction:column;align-items:center;gap:10px;position:relative;z-index:2;}
+.ls-play{background:linear-gradient(135deg,#FF6B9D,#C850C0);color:#fff;border:none;padding:18px 56px;border-radius:50px;font-family:inherit;font-weight:900;font-size:20px;cursor:pointer;box-shadow:0 6px 28px rgba(255,107,157,0.5),0 0 0 4px rgba(255,255,255,0.3);position:relative;overflow:hidden;animation:lsPlayPulse 2s ease-in-out infinite;letter-spacing:1px;transition:transform 0.15s;}
+.ls-play:active{transform:scale(0.95);}
+@keyframes lsPlayPulse{0%,100%{box-shadow:0 6px 28px rgba(255,107,157,0.5),0 0 0 4px rgba(255,255,255,0.3);}50%{box-shadow:0 6px 36px rgba(255,107,157,0.7),0 0 0 8px rgba(255,255,255,0.2);}}
+.ls-play::after{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:linear-gradient(45deg,transparent,rgba(255,255,255,0.15),transparent);animation:sh 3s infinite;}
+.ls-load{background:rgba(255,255,255,0.2);backdrop-filter:blur(4px);color:rgba(255,255,255,0.9);border:2px solid rgba(255,255,255,0.3);padding:10px 24px;border-radius:30px;font-family:inherit;font-weight:700;font-size:12px;cursor:pointer;transition:all 0.2s;}
+.ls-load:hover{background:rgba(255,255,255,0.35);}
+.ls-bottom{position:absolute;bottom:20px;left:0;right:0;display:flex;align-items:center;justify-content:center;gap:16px;z-index:2;}
+.ls-credit{font-size:11px;color:rgba(255,255,255,0.6);font-weight:700;}
+.ls-set-btn{width:40px;height:40px;border-radius:50%;border:2px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.15);backdrop-filter:blur(4px);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
+.ls-set-btn:active{transform:scale(0.9);background:rgba(255,255,255,0.3);}
 .ls-char{position:relative;z-index:2;width:140px;height:140px;margin:20px 0 16px;background:radial-gradient(circle,rgba(255,107,157,0.15) 0%,transparent 70%);border-radius:50%;display:flex;align-items:center;justify-content:center;}
 .ls-char-inner{font-size:80px;animation:lsCharBounce 2s ease-in-out infinite;}
 @keyframes lsCharBounce{0%,100%{transform:translateY(0) scale(1);}30%{transform:translateY(-10px) scale(1.05);}60%{transform:translateY(3px) scale(0.98);}}
@@ -185,10 +196,16 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
     <div class="ls-char"><div class="ls-sparkle-ring"></div><div class="ls-char-inner">👧</div></div>
     <div class="ls-title" id="splashLogo">✨ Starlet ✨</div>
     <div class="ls-sub">Your dress-up adventure awaits!</div>
-    <div style="height:20px"></div>
-    <button class="lb" onclick="pickFile()">🎨 Load Assets</button>
+    <div style="height:24px"></div>
+    <div id="splashButtons" class="ls-btns">
+      <p id="lst" style="font-size:12px;color:rgba(255,255,255,0.8);min-height:16px;margin:0 0 8px;">Loading...</p>
+    </div>
+    <div class="ls-bottom">
+      <button class="ls-set-btn" onclick="showSet()">⚙️</button>
+      <span class="ls-credit">by BrightBox Studio</span>
+      <button class="ls-set-btn" onclick="toggleSplashMute()" id="splashMuteBtn">🔊</button>
+    </div>
     <input type="file" id="fp" accept=".json" style="display:none" onchange="handleFile(this)">
-    <p id="lst" style="font-size:11px;color:#FF6B9D;min-height:16px;margin-top:8px;"></p>
   </div>
   <div class="topbar"><h1 id="logoArea">✨ Starlet <span style="font-size:9px;opacity:0.7;font-weight:700;">by BrightBox</span></h1><div class="topbar-btns">
     <button class="tbtn" onclick="doSave()">📸</button>
@@ -215,7 +232,7 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
   <!-- MODALS -->
   <div class="mb" id="setM"><div class="md"><h3>⚙️ Settings</h3>
     <div class="snd-toggle"><label>🔊 Sound</label><input type="checkbox" id="sndOn" checked onchange="toggleSnd()"></div>
-    <div class="snd-toggle"><label>🎵 Music</label><input type="checkbox" id="musOn" onchange="toggleMus()"></div>
+    <div class="snd-toggle"><label>🎵 Music</label><input type="checkbox" id="musOn" checked onchange="toggleMus()"></div>
     <button class="mbt" onclick="pickFile()">📦 Load New Assets</button><br>
     <button class="mbt" onclick="pickSounds()">🔊 Load Sounds</button><br>
     <input type="file" id="sfp" accept=".json" style="display:none" onchange="handleSoundFile(this)">
@@ -254,7 +271,7 @@ var clrVar={outfits:0,faces:0,hairhats:0};
 var CLR_HUES=[0,40,120,200,280,330];
 var CLR_DOTS=['linear-gradient(135deg,#ccc,#999)','linear-gradient(135deg,#FFB347,#FF6B00)','linear-gradient(135deg,#66BB6A,#2E7D32)','linear-gradient(135deg,#42A5F5,#1565C0)','linear-gradient(135deg,#AB47BC,#6A1B9A)','linear-gradient(135deg,#FF69B4,#C2185B)'];
 var CLR_NAMES=['Original','Warm','Forest','Ocean','Royal','Rose'];
-var sndEnabled=true,musEnabled=false,musInterval=null;
+var sndEnabled=true,musEnabled=true,musInterval=null;
 var POSES=[{name:'Neutral',ox:0,oy:0,rot:0,sx:1,sy:1},{name:'Sassy',ox:15,oy:0,rot:-3,sx:1,sy:1},{name:'Excited',ox:0,oy:-10,rot:0,sx:1.04,sy:1.04},{name:'Shy',ox:-10,oy:8,rot:2,sx:0.97,sy:0.97},{name:'Dance',ox:20,oy:-5,rot:-5,sx:1,sy:1},{name:'Curtsy',ox:0,oy:12,rot:0,sx:1.02,sy:0.96}];
 var bgCanvases=[];
 var UI_ASSETS=null; // loaded from starlet-ui.json
@@ -756,7 +773,46 @@ function proc(d){M=d;IM={};TN={};var p=[];function ld(k,s){return new Promise(fu
 // Normalize: 'hair' → 'hairhats'
 if(d.assets&&d.assets.hair&&!d.assets.hairhats){d.assets.hairhats=d.assets.hair;delete d.assets.hair;}
 else if(d.assets&&d.assets.hair&&d.assets.hairhats){d.assets.hairhats=d.assets.hairhats.concat(d.assets.hair);delete d.assets.hair;}
-CS.forEach(function(c){(d.assets&&d.assets[c]||[]).forEach(function(it,i){p.push(ld(c+'_'+i,it.dataUrl))})});Promise.all(p).then(function(){if(db)dbp('m',JSON.stringify(d));document.getElementById('ls').classList.add('hid');document.getElementById('lst').textContent='';hideSet();bui();checkOnboard();});}
+CS.forEach(function(c){(d.assets&&d.assets[c]||[]).forEach(function(it,i){p.push(ld(c+'_'+i,it.dataUrl))})});Promise.all(p).then(function(){if(db)dbp('m',JSON.stringify(d));showPlayReady();bui();});}
+
+var gameReady=false;
+function showPlayReady(){
+  gameReady=true;
+  var el=document.getElementById('splashButtons');
+  el.innerHTML='<button class="ls-play" onclick="startGame()">✨ Play! ✨</button><button class="ls-load" onclick="pickFile()">📦 Load Different Assets</button>';
+  document.getElementById('lst').textContent='';
+}
+
+function startGame(){
+  document.getElementById('ls').classList.add('hid');
+  // Start music on user interaction
+  if(musEnabled){
+    toggleMusStart();
+  }
+  checkOnboard();
+}
+
+function toggleMusStart(){
+  if(AUDIO_BUNDLE&&AUDIO_BUNDLE.music){
+    if(!bgMusic){bgMusic=new Audio(AUDIO_BUNDLE.music);bgMusic.loop=true;bgMusic.volume=0.2;}
+    bgMusic.play().catch(function(){});
+  }else if(!musInterval){
+    musInterval=setInterval(playMusNote,450);
+  }
+  var cb=document.getElementById('musOn');
+  if(cb)cb.checked=true;
+}
+
+function toggleSplashMute(){
+  sndEnabled=!sndEnabled;
+  document.getElementById('splashMuteBtn').textContent=sndEnabled?'🔊':'🔇';
+}
+
+function showSplashLoad(){
+  var el=document.getElementById('splashButtons');
+  el.innerHTML='<button class="ls-play" onclick="pickFile()" style="font-size:16px;padding:14px 40px;">📦 Load Assets</button>';
+  document.getElementById('lst').textContent='';
+}
 
 // TINT + COLOR VARIANTS
 function getStyled(imgKey,hueIdx,skinTarget){
@@ -1053,9 +1109,9 @@ function autoFetch(){
     }).catch(function(e){
       console.log('Starlet: Multi-part failed:', e.message, '- trying IndexedDB');
       dbg('m').then(function(s){
-        if(s){try{proc(JSON.parse(s));console.log('Starlet: Loaded from IndexedDB');}catch(e2){document.getElementById('ls').classList.remove('hid');}}
-        else{console.log('Starlet: No IDB data, showing splash');document.getElementById('ls').classList.remove('hid');}
-      }).catch(function(){document.getElementById('ls').classList.remove('hid');});
+        if(s){try{proc(JSON.parse(s));console.log('Starlet: Loaded from IndexedDB');}catch(e2){showSplashLoad();}}
+        else{console.log('Starlet: No IDB data, showing splash');showSplashLoad();}
+      }).catch(function(){showSplashLoad();});
     });
   });
   // Try sounds
