@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>✨ Starlet v24 ✨</title>
+<title>✨ Starlet v25 ✨</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;}
@@ -50,7 +50,7 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .cattab:active{transform:scale(0.92);}
 
 /* ITEM GRID — 3 columns, scrollable */
-.isc{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:12px 16px;overflow-y:auto;overflow-x:hidden;flex:1;-webkit-overflow-scrolling:touch;align-content:start;}
+.isc{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:10px 12px;overflow-y:auto;overflow-x:hidden;flex:1;-webkit-overflow-scrolling:touch;align-content:start;}
 .isc::-webkit-scrollbar{width:3px;}.isc::-webkit-scrollbar-thumb{background:rgba(255,107,157,0.3);border-radius:4px;}
 .ic{border-radius:20px;border:3px solid rgba(255,107,157,0.12);background:#FFF5F8;overflow:hidden;cursor:pointer;position:relative;transition:0.15s;box-shadow:0 2px 8px rgba(0,0,0,0.06);aspect-ratio:1;}
 .ic:active{transform:scale(0.94);}
@@ -163,8 +163,8 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 /* TABLET / LANDSCAPE — side-by-side layout (default for iPad) */
 .app-body{flex-direction:row;flex:1;min-height:0;}
 .stage{flex:1;min-width:0;}
-.panel{width:440px;flex-shrink:0;height:auto;flex:none;border-top:none;border-left:2px solid rgba(255,107,157,0.2);}
-.isc{grid-template-columns:repeat(2,1fr);gap:12px;padding:12px 16px;}
+.panel{width:380px;flex-shrink:0;height:auto;flex:none;border-top:none;border-left:2px solid rgba(255,107,157,0.2);}
+.isc{grid-template-columns:repeat(3,1fr);gap:10px;padding:10px 12px;}
 .cattabs{flex-wrap:wrap;gap:6px;padding:12px 10px 8px;justify-content:center;}
 .cattab{padding:12px 10px 8px;min-width:62px;min-height:66px;}
 .cattab .cicon{width:40px;height:40px;}
@@ -172,8 +172,8 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .cattab .clabel{font-size:11px;}
 
 @media(min-width:1024px){
-.panel{width:480px;}
-.isc{grid-template-columns:repeat(2,1fr);gap:14px;padding:14px 18px;}
+.panel{width:400px;}
+.isc{grid-template-columns:repeat(3,1fr);gap:10px;padding:10px 14px;}
 .cattab{padding:12px 12px 8px;min-width:66px;min-height:68px;}
 .cattab .cicon{width:42px;height:42px;}
 .cattab .cemoji{font-size:32px;}
@@ -185,7 +185,7 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .app{width:100%;height:100%;border-radius:0;box-shadow:none;}
 .app-body{flex-direction:column;}
 .panel{width:100%;height:40%;border-left:none;border-top:2px solid rgba(255,107,157,0.2);}
-.isc{grid-template-columns:repeat(2,1fr);gap:10px;padding:10px 12px;}
+.isc{grid-template-columns:repeat(3,1fr);gap:8px;padding:8px 10px;}
 .cattab{padding:6px 10px 5px;min-width:50px;min-height:48px;}
 .cattab .cicon{width:24px;height:24px;}
 .cattab .cemoji{font-size:22px;}
@@ -262,7 +262,7 @@ var acInited=false;
 document.addEventListener('click',function(){if(!acInited){ia();acInited=true;}},{once:false});
 document.addEventListener('touchstart',function(){if(!acInited){ia();acInited=true;}},{once:false});
 
-var M=null,IM={},TN={};
+var M=null,IM={},TN={},THUMBS={};
 var CS=['outfits','faces','hairhats','stickers'];
 var ASSET_H=1400,PAD_TOP=200; // Character assets are 1024x1400 with 200px top padding
 var TABS=[
@@ -784,7 +784,6 @@ if(d.assets&&d.assets.hair&&!d.assets.hairhats){d.assets.hairhats=d.assets.hair;
 else if(d.assets&&d.assets.hair&&d.assets.hairhats){d.assets.hairhats=d.assets.hairhats.concat(d.assets.hair);delete d.assets.hair;}
 CS.forEach(function(c){(d.assets&&d.assets[c]||[]).forEach(function(it,i){p.push(ld(c+'_'+i,it.dataUrl))})});
 console.log('Starlet: Loading '+p.length+' images...');
-var THUMBS={};
 Promise.all(p).then(function(){
   console.log('Starlet: All '+Object.keys(IM).length+' images loaded. Cropping thumbnails...');
   // Crop thumbnails NOW while images are guaranteed loaded
