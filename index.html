@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>✨ Starlet v16 ✨</title>
+<title>✨ Starlet v17 ✨</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;}
@@ -50,12 +50,12 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .cattab:active{transform:scale(0.92);}
 
 /* ITEM GRID — 3 columns, scrollable */
-.isc{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:8px 12px;overflow-y:auto;overflow-x:hidden;flex:1;-webkit-overflow-scrolling:touch;align-content:start;}
+.isc{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:10px 14px;overflow-y:auto;overflow-x:hidden;flex:1;-webkit-overflow-scrolling:touch;align-content:start;}
 .isc::-webkit-scrollbar{width:3px;}.isc::-webkit-scrollbar-thumb{background:rgba(255,107,157,0.3);border-radius:4px;}
 .ic{aspect-ratio:1;border-radius:18px;border:3px solid rgba(255,107,157,0.12);background:#FFF5F8;overflow:hidden;cursor:pointer;position:relative;transition:0.15s;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
 .ic:active{transform:scale(0.94);}
 .ic.on{border-color:#FF6B9D;box-shadow:0 3px 14px rgba(255,107,157,0.3);background:#FFE8EE;}
-.ic img{width:100%;height:100%;pointer-events:none;}
+.ic img{width:100%;height:100%;pointer-events:none;padding:8px;box-sizing:border-box;}
 .ic .ck{position:absolute;top:4px;right:4px;background:#FF6B9D;color:#fff;font-size:10px;font-weight:900;padding:2px 6px;border-radius:6px;display:none;}
 .ic.on .ck{display:block;}
 .in{aspect-ratio:1;border-radius:18px;border:3px dashed rgba(255,107,157,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:24px;color:rgba(255,107,157,0.3);}
@@ -986,7 +986,7 @@ function makeThumb(cat, idx){
       if(d[(y*w+x)*4+3]>25){if(y<top)top=y;if(y>bot)bot=y;if(x<left)left=x;if(x>right)right=x;}
     }}
     if(bot<=top||right<=left) return null;
-    var pad=15;
+    var pad=40;
     top=Math.max(0,top-pad);bot=Math.min(h,bot+pad);
     left=Math.max(0,left-pad);right=Math.min(w,right+pad);
     var cw=right-left,ch=bot-top;
