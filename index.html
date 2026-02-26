@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>✨ Starlet ✨</title>
+<title>✨ Starlet v13 ✨</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;}
@@ -52,13 +52,13 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 /* ITEM GRID — 3 columns, scrollable */
 .isc{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:8px 12px;overflow-y:auto;overflow-x:hidden;flex:1;-webkit-overflow-scrolling:touch;align-content:start;}
 .isc::-webkit-scrollbar{width:3px;}.isc::-webkit-scrollbar-thumb{background:rgba(255,107,157,0.3);border-radius:4px;}
-.ic{aspect-ratio:1;border-radius:14px;border:3px solid rgba(255,107,157,0.12);background:linear-gradient(135deg,#FFF8FA,#FFF0F5);overflow:hidden;cursor:pointer;position:relative;transition:0.15s;box-shadow:0 2px 6px rgba(0,0,0,0.05);}
+.ic{aspect-ratio:1;border-radius:18px;border:3px solid rgba(255,107,157,0.12);background:#FFF5F8;overflow:hidden;cursor:pointer;position:relative;transition:0.15s;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
 .ic:active{transform:scale(0.94);}
-.ic.on{border-color:#FF6B9D;box-shadow:0 3px 14px rgba(255,107,157,0.3);background:linear-gradient(135deg,#FFE8EE,#FFD6E0);}
-.ic img{width:100%;height:100%;object-fit:contain;pointer-events:none;}
-.ic .ck{position:absolute;top:3px;right:3px;background:#FF6B9D;color:#fff;font-size:9px;font-weight:900;padding:2px 5px;border-radius:5px;display:none;}
+.ic.on{border-color:#FF6B9D;box-shadow:0 3px 14px rgba(255,107,157,0.3);background:#FFE8EE;}
+.ic img{width:100%;height:100%;pointer-events:none;}
+.ic .ck{position:absolute;top:4px;right:4px;background:#FF6B9D;color:#fff;font-size:10px;font-weight:900;padding:2px 6px;border-radius:6px;display:none;}
 .ic.on .ck{display:block;}
-.in{aspect-ratio:1;border-radius:14px;border:3px dashed rgba(255,107,157,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;color:rgba(255,107,157,0.3);}
+.in{aspect-ratio:1;border-radius:18px;border:3px dashed rgba(255,107,157,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:24px;color:rgba(255,107,157,0.3);}
 .in.on{border-color:#FF6B9D;color:#FF6B9D;}
 
 /* COLOR VARIANT ROW — inside grid area */
@@ -764,21 +764,19 @@ function dbp(k,v){return new Promise(function(r){var t=db.transaction('d','readw
 function dbg(k){return new Promise(function(r){var t=db.transaction('d','readonly');var q=t.objectStore('d').get(k);q.onsuccess=function(){r(q.result)}});}
 function pickFile(){document.getElementById('fp').click();}
 function handleFile(inp){if(!inp.files||!inp.files[0])return;document.getElementById('lst').textContent='Loading...';var r=new FileReader();r.onload=function(e){try{proc(JSON.parse(e.target.result))}catch(er){document.getElementById('lst').textContent='Error: '+er.message}};r.readAsText(inp.files[0]);inp.value='';}
-function proc(d){M=d;IM={};TN={};thumbCache={};var p=[];function ld(k,s){return new Promise(function(r){if(!s){r();return;}var i=new Image();i.onload=function(){IM[k]=i;r()};i.onerror=r;i.src=s})}if(d.body){if(d.body.head)p.push(ld('bh',d.body.head));if(d.body.lower)p.push(ld('bl',d.body.lower));if(d.body.full)p.push(ld('bf',d.body.full));}
+function proc(d){M=d;IM={};TN={};var p=[];function ld(k,s){return new Promise(function(r){if(!s){r();return;}var i=new Image();i.onload=function(){IM[k]=i;r()};i.onerror=r;i.src=s})}if(d.body){if(d.body.head)p.push(ld('bh',d.body.head));if(d.body.lower)p.push(ld('bl',d.body.lower));if(d.body.full)p.push(ld('bf',d.body.full));}
 // Normalize: 'hair' → 'hairhats'
 if(d.assets&&d.assets.hair&&!d.assets.hairhats){d.assets.hairhats=d.assets.hair;delete d.assets.hair;}
 else if(d.assets&&d.assets.hair&&d.assets.hairhats){d.assets.hairhats=d.assets.hairhats.concat(d.assets.hair);delete d.assets.hair;}
-CS.forEach(function(c){(d.assets&&d.assets[c]||[]).forEach(function(it,i){p.push(ld(c+'_'+i,it.dataUrl))})});Promise.all(p).then(function(){if(db)dbp('m',JSON.stringify(d));showPlayReady();bui();
-  // Rebuild grid again after short delay to ensure all thumbs generate
-  setTimeout(function(){thumbCache={};bui();},200);
-});}
+CS.forEach(function(c){(d.assets&&d.assets[c]||[]).forEach(function(it,i){p.push(ld(c+'_'+i,it.dataUrl))})});Promise.all(p).then(function(){if(db)dbp('m',JSON.stringify(d));showPlayReady();bui();});}
 
 var gameReady=false;
 function showPlayReady(){
   gameReady=true;
   var el=document.getElementById('splashButtons');
-  el.innerHTML='<button class="ls-play" onclick="startGame()">✨ Play! ✨</button><button class="ls-load" onclick="pickFile()">📦 Load Different Assets</button>';
-  document.getElementById('lst').textContent='';
+  if(el) el.innerHTML='<button class="ls-play" onclick="startGame()">✨ Play! ✨</button><button class="ls-load" onclick="pickFile()">📦 Load Different Assets</button>';
+  var lst=document.getElementById('lst');
+  if(lst) lst.textContent='';
 }
 
 function startGame(){
@@ -946,33 +944,14 @@ function bCt(){
   document.getElementById('cattabs').innerHTML=h;
 }
 
-// THUMBNAIL CROP — zoom into relevant area for each category
-// Images are 1024x1400 with PAD_TOP=200, so add 200 to all Y values
-var thumbCache={};
-var CROP={
-  outfits: {x:200, y:500, w:624, h:700},   // torso + legs in 1400-space
-  faces:   {x:340, y:480, w:344, h:300},    // face area in 1400-space
-  hairhats:{x:200, y:180, w:624, h:600},    // head + hat area in 1400-space
-  stickers:{x:0,   y:0,   w:1024,h:1400}    // full
+// THUMBNAIL — use CSS object-position to show content area (no canvas needed)
+// Images are 1024x1400 with PAD_TOP=200
+var THUMB_CSS={
+  outfits: 'object-fit:cover;object-position:center 55%;',
+  faces:   'object-fit:cover;object-position:center 38%;',
+  hairhats:'object-fit:cover;object-position:center 25%;',
+  stickers:'object-fit:contain;'
 };
-function getThumb(cat, idx){
-  var ck=cat+'_'+idx;
-  if(thumbCache[ck]) return thumbCache[ck];
-  var im=IM[ck];
-  if(!im||!im.complete||!im.naturalWidth) return null;
-  var cr=CROP[cat]||CROP.stickers;
-  var tc=document.createElement('canvas');
-  tc.width=256;tc.height=256;
-  var tx=tc.getContext('2d');
-  // Draw cropped region scaled to fill 256x256
-  var srcAspect=cr.w/cr.h;
-  var sw,sh,sx,sy;
-  if(srcAspect>1){sh=cr.h;sw=cr.h;sx=cr.x+(cr.w-sw)/2;sy=cr.y;}
-  else{sw=cr.w;sh=cr.w;sx=cr.x;sy=cr.y+(cr.h-sh)/2;}
-  tx.drawImage(im, sx, sy, sw, sh, 0, 0, 256, 256);
-  thumbCache[ck]=tc.toDataURL('image/jpeg',0.85);
-  return thumbCache[ck];
-}
 
 function bIt(){
   var isc=document.getElementById('isc');
@@ -1013,9 +992,9 @@ function bIt(){
     }
     h+='<div class="in'+(eq[c]===-1?' on':'')+'" onclick="eqp(\''+c+'\',-1)">✕</div>';
     its.forEach(function(it,i){
-      var thumb=getThumb(c,i);
-      var src=thumb||(IM[c+'_'+i]?IM[c+'_'+i].src:it.dataUrl);
-      h+='<div class="ic'+(eq[c]===i?' on':'')+'" onclick="eqp(\''+c+'\','+i+')"><img src="'+src+'" draggable="false"><span class="ck">✓</span></div>';
+      var src=IM[c+'_'+i]?IM[c+'_'+i].src:it.dataUrl;
+      var css=THUMB_CSS[c]||'object-fit:contain;';
+      h+='<div class="ic'+(eq[c]===i?' on':'')+'" onclick="eqp(\''+c+'\','+i+')"><img src="'+src+'" style="'+css+'" draggable="false"><span class="ck">✓</span></div>';
     });
   }
   isc.innerHTML=h;
