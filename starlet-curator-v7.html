@@ -80,6 +80,7 @@
   <button class="btn btn-green" onclick="splitBody()">Split</button>
   <button class="btn btn-dark" onclick="renderDebugZones()">Debug</button>
   <button class="btn btn-red" onclick="clearAll()">Reset</button>
+  <button class="btn btn-blue" onclick="shiftAllDown()" title="Move all assets down 200px for hat headroom">⬇️ Shift Down</button>
   <button class="btn btn-dark" onclick="saveAll()">Save</button>
   <button class="btn btn-blue" onclick="exportAll()">Export</button>
   <button class="btn btn-dark" onclick="document.getElementById('importFile').click()">Import</button>
@@ -1269,6 +1270,83 @@ function importAll(input){
   return Promise.all(ap);}).then(function(){seedUsedPrompts();updateCounts();render();renderPanel();log('Done!');});}catch(err){log('Error: '+err.message);}};
   reader.readAsText(input.files[0]);input.value='';
 }
+function shiftAllDown(){
+  if(!bodyFull){alert('No body loaded');return;}
+  if(!confirm('This will reposition ALL assets to create ~200px headroom for hats/hair. Your outfits, faces, and stickers are preserved. Continue?'))return;
+  
+  log('⬇️ Repositioning all assets...');
+  
+  // Scan body to calculate safe transform
+  var bb=scanBounds(bodyFull.img);
+  var bodyTop=bb.top*1024, bodyBot=bb.bot*1024;
+  var bodyH=bodyBot-bodyTop;
+  var bodyCy=(bodyTop+bodyBot)/2;
+  
+  // Target: head top at y=250 (leaving 250px headroom), scale to fit within canvas
+  var targetTop=250;
+  var targetBot=1000; // leave 24px bottom margin
+  var targetH=targetBot-targetTop;
+  var scale=Math.min(targetH/bodyH, 1.0); // don't scale up
+  var targetCy=(targetTop+targetBot)/2;
+  var shiftY=targetCy-bodyCy*scale;
+  
+  log('Body: top='+Math.round(bodyTop)+' bot='+Math.round(bodyBot)+' → scale='+scale.toFixed(2)+' shift='+Math.round(shiftY)+'px');
+  log('New head top will be ~'+Math.round(bodyTop*scale+shiftY)+'px ('+Math.round(bodyTop*scale+shiftY)+'px headroom)');
+  
+  function transformImage(img){
+    return new Promise(function(resolve){
+      var c=document.createElement('canvas');c.width=c.height=1024;
+      var x=c.getContext('2d');
+      x.translate(512, 512+shiftY);
+      x.scale(scale, scale);
+      x.translate(-512, -512);
+      x.drawImage(img,0,0,1024,1024);
+      var url=c.toDataURL('image/png');
+      loadImg(url).then(function(newImg){resolve({img:newImg,dataUrl:url});});
+    });
+  }
+  
+  var promises=[];
+  
+  // Transform body parts
+  if(bodyFull) promises.push(transformImage(bodyFull.img).then(function(r){bodyFull=r;}));
+  if(bodyHead) promises.push(transformImage(bodyHead.img).then(function(r){bodyHead=r;}));
+  if(bodyLower) promises.push(transformImage(bodyLower.img).then(function(r){bodyLower=r;}));
+  
+  // Update splitY
+  splitY=splitY*scale + shiftY/1024;
+  
+  // Transform all kept assets (outfits, faces, stickers — NOT hairhats)
+  CATEGORIES.forEach(function(cat){
+    if(cat==='hairhats') return;
+    kept[cat].forEach(function(item){
+      promises.push(transformImage(item.img).then(function(r){
+        item.img=r.img;item.dataUrl=r.dataUrl;
+        item.adj={dx:0,dy:0,scale:1.0};
+      }));
+    });
+  });
+  
+  Promise.all(promises).then(function(){
+    // Recalculate slot boxes from new body position
+    if(bodyFull){
+      var b=scanBounds(bodyFull.img);
+      var headH=splitY-b.top;
+      var fullW=b.right-b.left;
+      var midX=b.cx;
+      slotBoxes={
+        outfit:{x:Math.max(0,midX-fullW*1.0),y:splitY-0.15,w:Math.min(1.0,fullW*2.0),h:Math.min(1.0-splitY+0.15,(b.bot-splitY)+0.25)},
+        hairhat:{x:Math.max(0,midX-fullW*0.8),y:Math.max(0,b.top-0.20),w:Math.min(1.0,fullW*1.6),h:headH+0.20}
+      };
+    }
+    
+    updateCounts();saveAll();render();renderPanel();
+    var newBB=scanBounds(bodyFull.img);
+    log('✅ Done! Head now at y='+Math.round(newBB.top*1024)+' with '+Math.round(newBB.top*1024)+'px of headroom');
+    log('👉 Delete old hair/hats in Library tab, then generate fresh ones');
+  });
+}
+
 function clearAll(){if(!confirm('Reset everything?'))return;bodyFull=bodyHead=bodyLower=null;anchors=null;slotBoxes={};CATEGORIES.forEach(function(c){kept[c]=[];});pending=[];CATEGORIES.forEach(function(c){usedPromptIdx[c]=new Set();});updateCounts();render();renderPanel();if(db)dbClear().then(function(){log('Reset.');});else log('Reset.');}
 
 // ================================================================
