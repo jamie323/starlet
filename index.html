@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>✨ Starlet v20 ✨</title>
+<title>✨ Starlet v21-debug ✨</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;}
@@ -778,11 +778,23 @@ function dbp(k,v){return new Promise(function(r){var t=db.transaction('d','readw
 function dbg(k){return new Promise(function(r){var t=db.transaction('d','readonly');var q=t.objectStore('d').get(k);q.onsuccess=function(){r(q.result)}});}
 function pickFile(){document.getElementById('fp').click();}
 function handleFile(inp){if(!inp.files||!inp.files[0])return;document.getElementById('lst').textContent='Loading...';var r=new FileReader();r.onload=function(e){try{proc(JSON.parse(e.target.result))}catch(er){document.getElementById('lst').textContent='Error: '+er.message}};r.readAsText(inp.files[0]);inp.value='';}
-function proc(d){M=d;IM={};TN={};var p=[];function ld(k,s){return new Promise(function(r){if(!s){r();return;}var i=new Image();i.onload=function(){IM[k]=i;r()};i.onerror=r;i.src=s})}if(d.body){if(d.body.head)p.push(ld('bh',d.body.head));if(d.body.lower)p.push(ld('bl',d.body.lower));if(d.body.full)p.push(ld('bf',d.body.full));}
+function proc(d){M=d;IM={};TN={};var p=[];var loadFails=[];function ld(k,s){return new Promise(function(r){if(!s){loadFails.push(k+':no-src');r();return;}var i=new Image();i.onload=function(){IM[k]=i;r()};i.onerror=function(){loadFails.push(k+':error');r()};i.src=s})}if(d.body){if(d.body.head)p.push(ld('bh',d.body.head));if(d.body.lower)p.push(ld('bl',d.body.lower));if(d.body.full)p.push(ld('bf',d.body.full));}
 // Normalize: 'hair' → 'hairhats'
 if(d.assets&&d.assets.hair&&!d.assets.hairhats){d.assets.hairhats=d.assets.hair;delete d.assets.hair;}
 else if(d.assets&&d.assets.hair&&d.assets.hairhats){d.assets.hairhats=d.assets.hairhats.concat(d.assets.hair);delete d.assets.hair;}
-CS.forEach(function(c){(d.assets&&d.assets[c]||[]).forEach(function(it,i){p.push(ld(c+'_'+i,it.dataUrl))})});Promise.all(p).then(function(){if(db)dbp('m',JSON.stringify(d));showPlayReady();bui();});}
+CS.forEach(function(c){(d.assets&&d.assets[c]||[]).forEach(function(it,i){p.push(ld(c+'_'+i,it.dataUrl))})});
+console.log('Starlet: Loading '+p.length+' images...');
+Promise.all(p).then(function(){
+  var imCount=Object.keys(IM).length;
+  console.log('Starlet: Loaded, IM has '+imCount+' images, '+loadFails.length+' failures');
+  if(loadFails.length>0) console.log('  Failures:',loadFails.slice(0,20).join(', '));
+  CS.forEach(function(c){
+    var its=d.assets&&d.assets[c]||[];
+    var loaded=0;its.forEach(function(it,i){if(IM[c+'_'+i])loaded++;});
+    console.log('  '+c+': '+loaded+'/'+its.length+' loaded, dataUrl lengths: '+its.slice(0,3).map(function(it){return it.dataUrl?it.dataUrl.length:0;}).join(','));
+  });
+  if(db)dbp('m',JSON.stringify(d));showPlayReady();bui();
+});}
 
 var gameReady=false;
 function showPlayReady(){
@@ -1000,14 +1012,17 @@ function bIt(){
       h+='</div>';
     }
     h+='<div class="in'+(eq[c]===-1?' on':'')+'" onclick="eqp(\''+c+'\',-1)">✕</div>';
-    // Zoom levels per category to show content area
-    var zoom={outfits:'250%',faces:'350%',hairhats:'280%',stickers:'100%'};
-    var pos={outfits:'center 58%',faces:'center 38%',hairhats:'center 22%',stickers:'center center'};
+    var dbgLoaded=0,dbgFallback=0,dbgMissing=0;
     its.forEach(function(it,i){
-      var src=IM[c+'_'+i]?IM[c+'_'+i].src:it.dataUrl;
-      var z=zoom[c]||'100%', p=pos[c]||'center center';
-      h+='<div class="ic'+(eq[c]===i?' on':'')+'" onclick="eqp(\''+c+'\','+i+')" style="background-image:url('+src+');background-size:'+z+';background-position:'+p+';background-repeat:no-repeat;"><span class="ck">✓</span></div>';
+      var im=IM[c+'_'+i];
+      var src=im?im.src:it.dataUrl;
+      if(im) dbgLoaded++;
+      else if(it.dataUrl) dbgFallback++;
+      else dbgMissing++;
+      if(!src) src='';
+      h+='<div class="ic'+(eq[c]===i?' on':'')+'" onclick="eqp(\''+c+'\','+i+')"><img src="'+src+'" draggable="false"><span class="ck">✓</span></div>';
     });
+    console.log('Grid['+c+']: '+its.length+' items, '+dbgLoaded+' in IM, '+dbgFallback+' fallback, '+dbgMissing+' missing');
   }
   isc.innerHTML=h;
   if(c==='stickers')document.querySelectorAll('[data-s]').forEach(function(el){el.addEventListener('click',grabSticker)});
