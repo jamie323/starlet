@@ -78,6 +78,7 @@
   <input type="password" id="apiKey" placeholder="OpenAI API Key">
   <button class="btn btn-pink" onclick="genBody()">Generate Body</button>
   <button class="btn btn-green" onclick="splitBody()">Split</button>
+  <button class="btn btn-green" onclick="reSplit()" title="Recalculate split line for current body position">Re-Split</button>
   <button class="btn btn-dark" onclick="renderDebugZones()">Debug</button>
   <button class="btn btn-red" onclick="clearAll()">Reset</button>
   <button class="btn btn-blue" onclick="shiftAllDown()" title="Move all assets down 200px for hat headroom">⬇️ Shift Down</button>
@@ -417,6 +418,16 @@ cv.addEventListener('mouseleave',function(){draggingSplit=false;cv.style.cursor=
 function drawSplitLine(){var ly=splitY*1024;ctx.save();ctx.strokeStyle='#f0a8d0';ctx.lineWidth=3;ctx.setLineDash([10,5]);ctx.beginPath();ctx.moveTo(0,ly);ctx.lineTo(1024,ly);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#f0a8d0';ctx.font='bold 20px Nunito';ctx.fillText('SPLIT — drag to adjust',20,ly-8);ctx.restore();}
 function initSplitLine(){if(!bodyFull)return;var b=scanBounds(bodyFull.img);splitY=b.top+(b.bot-b.top)*0.38;splitLineVisible=true;render();drawSplitLine();log('Drag the line, then click Split.');}
 
+function reSplit(){
+  if(!bodyFull){alert('No body loaded');return;}
+  // Recalculate splitY from current body bounds
+  var b=scanBounds(bodyFull.img);
+  splitY=b.top+(b.bot-b.top)*0.38;
+  log('Re-Split: body top='+Math.round(b.top*1024)+' bot='+Math.round(b.bot*1024)+' splitY='+Math.round(splitY*1024));
+  // Re-do the actual split
+  splitBody();
+}
+
 // ================================================================
 // BODY GENERATION
 // ================================================================
@@ -519,8 +530,8 @@ function computeAnchors(){
   var b=scanBounds(bodyFull.img);var headH=splitY-b.top;var fullW=b.right-b.left;var midX=b.cx;var bodySpan=b.bot-splitY;
   anchors={bounds:b};
   slotBoxes={
-    // OUTFIT: starts 25% above split for full collar/shoulder/neck coverage
-    outfit:{x:Math.max(0,midX-fullW*1.0),y:splitY-0.25,w:Math.min(1.0,fullW*2.0),h:Math.min(1.0-splitY+0.25, bodySpan+0.35)},
+    // OUTFIT: starts 15% above split for collar/shoulder coverage
+    outfit:{x:Math.max(0,midX-fullW*1.0),y:splitY-0.15,w:Math.min(1.0,fullW*2.0),h:Math.min(1.0-splitY+0.15, bodySpan+0.25)},
     // HAIRHAT: covers full head area — hair sits on top, hat+hair combos need full zone
     hairhat:{x:Math.max(0,midX-fullW*0.8),y:Math.max(0,b.top-0.12),w:Math.min(1.0,fullW*1.6),h:headH*0.85}
   };
@@ -746,7 +757,7 @@ function cropBelowSplit(resultDataUrl){
 
     // STEP 3: Apply — trust flood-fill completely
     var splitPx=Math.round(splitY*1024);
-    var cropAbove=splitPx-200;
+    var cropAbove=splitPx-90;
     var out=new ImageData(1024,1024);var outd=out.data;
     for(var y3=0;y3<1024;y3++){
       for(var x3=0;x3<1024;x3++){
@@ -1346,7 +1357,7 @@ function shiftAllDown(){
       var fullW=b.right-b.left;
       var midX=b.cx;
       slotBoxes={
-        outfit:{x:Math.max(0,midX-fullW*1.0),y:splitY-0.25,w:Math.min(1.0,fullW*2.0),h:Math.min(1.0-splitY+0.25,(b.bot-splitY)+0.35)},
+        outfit:{x:Math.max(0,midX-fullW*1.0),y:splitY-0.15,w:Math.min(1.0,fullW*2.0),h:Math.min(1.0-splitY+0.15,(b.bot-splitY)+0.25)},
         hairhat:{x:Math.max(0,midX-fullW*0.8),y:Math.max(0,b.top-0.20),w:Math.min(1.0,fullW*1.6),h:headH+0.20}
       };
     }
@@ -1516,7 +1527,9 @@ function curatorAutoFetch(){
       return Promise.all(ap);
     }).then(function(){
       seedUsedPrompts();updateCounts();saveAll();
+      var loadedBB=scanBounds(bodyFull.img);
       log('✅ Loaded body + '+kept.outfits.length+' outfits, '+kept.faces.length+' faces, '+kept.hairhats.length+' hair/hats, '+kept.stickers.length+' stickers');
+      log('📐 Body: top='+Math.round(loadedBB.top*1024)+' bot='+Math.round(loadedBB.bot*1024)+' splitY='+Math.round(splitY*1024)+' headroom='+Math.round(loadedBB.top*1024)+'px');
     });
   }).catch(function(e){
     log('No auto-fetch available ('+e.message+') — generate a body to start fresh');
