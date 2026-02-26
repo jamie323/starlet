@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>✨ Starlet v26 ✨</title>
+<title>✨ Starlet v27 ✨</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;}
@@ -52,13 +52,14 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 /* ITEM GRID — 3 columns, scrollable */
 .isc{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:10px 12px;overflow-y:auto;overflow-x:hidden;flex:1;-webkit-overflow-scrolling:touch;align-content:start;}
 .isc::-webkit-scrollbar{width:3px;}.isc::-webkit-scrollbar-thumb{background:rgba(255,107,157,0.3);border-radius:4px;}
-.ic{border-radius:20px;border:3px solid rgba(255,107,157,0.12);background:#FFF5F8;overflow:hidden;cursor:pointer;position:relative;transition:0.15s;box-shadow:0 2px 8px rgba(0,0,0,0.06);aspect-ratio:1;}
+.ic{border-radius:16px;border:2px solid rgba(255,107,157,0.12);background:#FFF5F8;overflow:hidden;cursor:pointer;position:relative;transition:0.15s;box-shadow:0 2px 6px rgba(0,0,0,0.05);padding-bottom:100%;}
 .ic:active{transform:scale(0.94);}
-.ic.on{border-color:#FF6B9D;box-shadow:0 3px 14px rgba(255,107,157,0.3);background:#FFE8EE;}
-.ic img{width:100%;height:100%;pointer-events:none;object-fit:contain;}
+.ic.on{border-color:#FF6B9D;box-shadow:0 3px 12px rgba(255,107,157,0.3);background:#FFE8EE;}
+.ic img{position:absolute;top:4px;left:4px;right:4px;bottom:4px;width:calc(100% - 8px);height:calc(100% - 8px);pointer-events:none;object-fit:contain;display:block;}
 .ic .ck{position:absolute;top:4px;right:4px;background:#FF6B9D;color:#fff;font-size:10px;font-weight:900;padding:2px 6px;border-radius:6px;display:none;}
 .ic.on .ck{display:block;}
-.in{aspect-ratio:1;border-radius:18px;border:3px dashed rgba(255,107,157,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:24px;color:rgba(255,107,157,0.3);}
+.in{border-radius:16px;border:2px dashed rgba(255,107,157,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;color:rgba(255,107,157,0.3);padding-bottom:100%;position:relative;}
+.in>*{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);}
 .in.on{border-color:#FF6B9D;color:#FF6B9D;}
 
 /* COLOR VARIANT ROW — inside grid area */
@@ -1030,7 +1031,7 @@ function bIt(){
       CLR_DOTS.forEach(function(bg,i){h+='<div class="cd'+(i===cur?' on':'')+'" style="background:'+bg+'" onclick="pClr('+i+')" title="'+CLR_NAMES[i]+'"></div>';});
       h+='</div>';
     }
-    h+='<div class="in'+(eq[c]===-1?' on':'')+'" onclick="eqp(\''+c+'\',-1)">✕</div>';
+    h+='<div class="in'+(eq[c]===-1?' on':'')+'" onclick="eqp(\''+c+'\',-1)"><span>✕</span></div>';
     its.forEach(function(it,i){
       var key=c+'_'+i;
       var src=THUMBS[key]||(IM[key]?IM[key].src:it.dataUrl)||'';
@@ -1038,7 +1039,6 @@ function bIt(){
     });
   }
   isc.innerHTML=h;
-  // Outfits get 2 columns, everything else gets 3
   isc.style.gridTemplateColumns=c==='outfits'?'repeat(2,1fr)':'repeat(3,1fr)';
   if(c==='stickers')document.querySelectorAll('[data-s]').forEach(function(el){el.addEventListener('click',grabSticker)});
 }
