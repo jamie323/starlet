@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Starlet Curator v7</title>
+<title>Starlet Curator v7.1 — build 2026-02-26-diffExtract</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap');
   *{margin:0;padding:0;box-sizing:border-box;}
@@ -74,7 +74,7 @@
 </head>
 <body>
 <div class="topbar">
-  <h1>✨ Starlet v7</h1>
+  <h1>✨ Starlet v7.1 <span style="font-size:11px;color:#888;">build 2026-02-26 diffExtract + padCanvas</span></h1>
   <input type="password" id="apiKey" placeholder="OpenAI API Key">
   <button class="btn btn-pink" onclick="genBody()">Generate Body</button>
   <button class="btn btn-green" onclick="splitBody()">Split</button>
@@ -724,6 +724,7 @@ function createMaskBlob(maskType){
 // DIFF-BASED outfit extraction — compares inpainted result vs original body
 // Keeps pixels that CHANGED (= the outfit). Immune to white outfits.
 function extractOutfitDiff(resultDataUrl){
+  console.log('🟢 extractOutfitDiff called (v7.1 diffExtract)');
   return loadImg(resultDataUrl).then(function(resImg){
     // Get original body pixels
     var oc=document.createElement('canvas');oc.width=oc.height=1024;
@@ -1643,7 +1644,7 @@ function curatorAutoFetch(){
   });
 }
 
-dbOpen().then(function(){log('v7 ready — exports at 1024×'+EXPORT_H+' with '+PAD_TOP+'px hat headroom');return loadSaved();}).then(function(){return curatorAutoFetch();}).then(function(){render();renderPanel();}).catch(function(e){log('DB: '+e);render();renderPanel();});
+dbOpen().then(function(){log('v7.1 (build 2026-02-26 diffExtract) — exports 1024×'+EXPORT_H+', cropAbove=splitY-180, diff-based extraction');return loadSaved();}).then(function(){return curatorAutoFetch();}).then(function(){render();renderPanel();}).catch(function(e){log('DB: '+e);render();renderPanel();});
 </script>
 </body>
 </html>
