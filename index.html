@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>✨ Starlet v14 ✨</title>
+<title>✨ Starlet v15 ✨</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;}
@@ -950,12 +950,12 @@ function bCt(){
   document.getElementById('cattabs').innerHTML=h;
 }
 
-// THUMBNAIL — use CSS object-position to show content area (no canvas needed)
-// Images are 1024x1400 with PAD_TOP=200
+// THUMBNAIL — CSS transform zoom into content area per category
+// Images are 1024x1400, content is small within that canvas
 var THUMB_CSS={
-  outfits: 'object-fit:cover;object-position:center 55%;',
-  faces:   'object-fit:cover;object-position:center 38%;',
-  hairhats:'object-fit:cover;object-position:center 25%;',
+  outfits: 'object-fit:contain;transform:scale(2.8) translateY(8%);',
+  faces:   'object-fit:contain;transform:scale(4) translateY(-5%);',
+  hairhats:'object-fit:contain;transform:scale(3) translateY(-15%);',
   stickers:'object-fit:contain;'
 };
 
