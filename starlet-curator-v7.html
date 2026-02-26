@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Starlet Curator v7.1 — build 2026-02-26-diffExtract</title>
+<title>Starlet Curator v7.3 pureDiff — zero flood fill</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap');
   *{margin:0;padding:0;box-sizing:border-box;}
@@ -74,7 +74,7 @@
 </head>
 <body>
 <div class="topbar">
-  <h1>✨ Starlet v7.1 <span style="font-size:11px;color:#888;">build 2026-02-26 diffExtract + padCanvas</span></h1>
+  <h1>✨ Starlet v7.3 <span style="font-size:11px;color:#888;">pureDiff — zero flood fill</span></h1>
   <input type="password" id="apiKey" placeholder="OpenAI API Key">
   <button class="btn btn-pink" onclick="genBody()">Generate Body</button>
   <button class="btn btn-green" onclick="splitBody()">Split</button>
@@ -724,7 +724,7 @@ function createMaskBlob(maskType){
 // DIFF-BASED outfit extraction — compares inpainted result vs original body
 // Keeps pixels that CHANGED (= the outfit). Immune to white outfits.
 function extractOutfitDiff(resultDataUrl){
-  console.log('🟢 extractOutfitDiff called (v7.1 diffExtract)');
+  console.log('🟢 extractOutfitDiff v7.3 — PURE DIFF, zero flood fill');
   return loadImg(resultDataUrl).then(function(resImg){
     // Get original body pixels
     var oc=document.createElement('canvas');oc.width=oc.height=1024;
@@ -734,56 +734,41 @@ function extractOutfitDiff(resultDataUrl){
     // Get inpainted result pixels
     var rc=document.createElement('canvas');rc.width=rc.height=1024;
     rc.getContext('2d').drawImage(resImg,0,0,1024,1024);
+    var d=rc.getContext('2d').getImageData(0,0,1024,1024).data;
 
-    // Flood-fill from edges to find background (but with tighter threshold)
-    var rd=rc.getContext('2d').getImageData(0,0,1024,1024);
-    var d=rd.data;
-    var bg=new Uint8Array(1024*1024);
-    var queue=[];
-    var WHITE_T=250; // tighter — only truly white
-    for(var ex=0;ex<1024;ex++){queue.push(ex);queue.push(ex+1023*1024);}
-    for(var ey=0;ey<1024;ey++){queue.push(ey*1024);queue.push(ey*1024+1023);}
-    var qi=0;
-    while(qi<queue.length){
-      var idx=queue[qi++];
-      if(idx<0||idx>=1024*1024||bg[idx])continue;
-      var pi=idx*4;
-      if(d[pi+3]<30||(d[pi]>WHITE_T&&d[pi+1]>WHITE_T&&d[pi+2]>WHITE_T)){
-        bg[idx]=1;
-        var px2=idx%1024,py2=Math.floor(idx/1024);
-        if(px2>0)queue.push(idx-1);
-        if(px2<1023)queue.push(idx+1);
-        if(py2>0)queue.push(idx-1024);
-        if(py2<1023)queue.push(idx+1024);
-      }
-    }
-
-    // Build output: keep pixels that EITHER changed from body OR are not background
+    // Pure diff — no flood fill at all
     var splitPx=Math.round(splitY*1024);
-    var cropAbove=splitPx-180; // generous — allow collar/neckline well above split
+    var cropAbove=splitPx-180;
     var out=new ImageData(1024,1024);var outd=out.data;
+    var keptPx=0,diffPx=0;
 
     for(var y=0;y<1024;y++){
       for(var x=0;x<1024;x++){
-        if(y<cropAbove)continue; // above outfit zone entirely
+        if(y<cropAbove)continue;
         var i=(y*1024+x)*4;
-        if(bg[y*1024+x])continue; // confirmed background via flood
+        if(d[i+3]<10)continue; // transparent — skip
 
         // Check if pixel changed from original body
         var dr=Math.abs(d[i]-od[i]),dg=Math.abs(d[i+1]-od[i+1]),db=Math.abs(d[i+2]-od[i+2]);
         var diff=dr+dg+db;
+        var changed=(diff>30);
 
-        if(diff>30){
-          // Pixel changed — this IS outfit
+        if(changed){
+          // Pixel CHANGED — this is outfit (works for any color including white)
           outd[i]=d[i];outd[i+1]=d[i+1];outd[i+2]=d[i+2];outd[i+3]=d[i+3];
+          diffPx++;
         } else if(y>=splitPx){
-          // Below split, keep even unchanged pixels (legs/shoes area)
+          // Unchanged below split — keep UNLESS it's near-white background
+          var r=d[i],g=d[i+1],b=d[i+2];
+          if(r>248&&g>248&&b>248)continue; // pure white bg — skip
           outd[i]=d[i];outd[i+1]=d[i+1];outd[i+2]=d[i+2];outd[i+3]=d[i+3];
+          keptPx++;
         }
-        // Above split + unchanged = bare skin/head — skip (body_head covers this)
+        // Unchanged above split = bare skin/head — body_head covers this
       }
     }
 
+    console.log('🟢 extractOutfitDiff done — diffPx='+diffPx+' keptPx='+keptPx+' splitPx='+splitPx);
     var fc=document.createElement('canvas');fc.width=fc.height=1024;
     fc.getContext('2d').putImageData(out,0,0);
     return fc.toDataURL('image/png');
@@ -1228,6 +1213,20 @@ function closeEdit(){editingItem=null;render();renderPanel();}
 function adjChange(prop,val){if(!editingItem)return;var item=kept[editingItem.cat][editingItem.idx];if(!item.adj)item.adj={dx:0,dy:0,scale:1.0};item.adj[prop]=prop==='scale'?parseFloat(val):parseInt(val);renderPreviewAdj(item);var el=document.getElementById('adj-val-'+prop);if(el)el.textContent=prop==='scale'?parseFloat(val).toFixed(2):val+'px';}
 function adjReset(){if(!editingItem)return;kept[editingItem.cat][editingItem.idx].adj={dx:0,dy:0,scale:1.0};renderPreviewAdj(kept[editingItem.cat][editingItem.idx]);renderPanel();}
 function adjSave(){if(!editingItem)return;saveAll();log('Saved adjustments.');}
+function previewBaked(){
+  if(!editingItem)return;
+  var item=kept[editingItem.cat][editingItem.idx];
+  var a=item.adj||{dx:0,dy:0,scale:1.0};
+  log('🔍 Preview Baked — adj: dx='+a.dx+' dy='+a.dy+' scale='+a.scale.toFixed(2));
+  var bakedUrl=bakeItem(item);
+  // Show in a popup window
+  var w=window.open('','_blank','width=540,height=750');
+  w.document.write('<html><head><title>Baked Preview: '+item.name+'</title></head><body style="margin:0;background:#222;display:flex;align-items:center;justify-content:center;flex-direction:column;">');
+  w.document.write('<div style="color:#f0a8d0;font-family:monospace;padding:12px;font-size:13px;">'+editingItem.cat+'['+editingItem.idx+'] adj: dx='+a.dx+' dy='+a.dy+' scale='+a.scale.toFixed(2)+'<br>Canvas: 1024×'+EXPORT_H+' PAD_TOP='+PAD_TOP+'</div>');
+  w.document.write('<img src="'+bakedUrl+'" style="max-width:512px;max-height:700px;border:1px solid #555;background:repeating-conic-gradient(#333 0% 25%,#444 0% 50%) 50%/16px 16px;">');
+  w.document.write('</body></html>');
+  w.document.close();
+}
 function renderPreviewAdj(item){
   ctx.clearRect(0,0,1024,1024);
   for(var ry=0;ry<1024;ry+=32) for(var rx=0;rx<1024;rx+=32){ctx.fillStyle=((rx+ry)/32)%2===0?'#3a3a4e':'#2e2e42';ctx.fillRect(rx,ry,32,32);}
@@ -1285,7 +1284,7 @@ function renderPanel(){
       html+='<div class="slider-row"><label>X</label><input type="range" min="-300" max="300" value="'+a.dx+'" oninput="adjChange(\'dx\',this.value)"><span class="val" id="adj-val-dx">'+a.dx+'px</span></div>';
       html+='<div class="slider-row"><label>Y</label><input type="range" min="-300" max="300" value="'+a.dy+'" oninput="adjChange(\'dy\',this.value)"><span class="val" id="adj-val-dy">'+a.dy+'px</span></div>';
       html+='<div class="slider-row"><label>Scale</label><input type="range" min="0.2" max="2.5" step="0.01" value="'+a.scale+'" oninput="adjChange(\'scale\',this.value)"><span class="val" id="adj-val-scale">'+a.scale.toFixed(2)+'</span></div>';
-      html+='<div class="adj-btns"><button class="btn btn-green" onclick="adjSave()">Save</button><button class="btn btn-dark" onclick="adjReset()">Reset</button><button class="btn btn-red" onclick="closeEdit()">Close</button></div></div>';
+      html+='<div class="adj-btns"><button class="btn btn-green" onclick="adjSave()">Save</button><button class="btn btn-dark" onclick="adjReset()">Reset</button><button class="btn btn-dark" onclick="previewBaked()">🔍 Preview Baked</button><button class="btn btn-red" onclick="closeEdit()">Close</button></div></div>';
     }
     CATEGORIES.forEach(function(cat){
       html+='<div class="section-title">'+cat.charAt(0).toUpperCase()+cat.slice(1)+' ('+kept[cat].length+')</div>';
@@ -1480,7 +1479,11 @@ function pushToGitHub() {
 
   // Build full data (padded to 1024xEXPORT_H)
   var data = { version: '7.0', canvasHeight: EXPORT_H, padTop: PAD_TOP, body: { full: padBody(bodyFull?bodyFull.img:null), head: padBody(bodyHead?bodyHead.img:null), lower: padBody(bodyLower?bodyLower.img:null) }, splitY: (splitY*1024+PAD_TOP)/EXPORT_H, anchors: anchors, slotBoxes: slotBoxes, assets: {} };
-  CATEGORIES.forEach(function(cat) { data.assets[cat] = []; kept[cat].forEach(function(item) { data.assets[cat].push({ name: item.name, dataUrl: bakeItem(item) }); }); });
+  CATEGORIES.forEach(function(cat) { data.assets[cat] = []; kept[cat].forEach(function(item, idx) {
+    var a = item.adj || {dx:0, dy:0, scale:1.0};
+    log('📐 Baking ' + cat + '[' + idx + '] "' + item.name.substring(0,30) + '" adj: dx=' + a.dx + ' dy=' + a.dy + ' scale=' + (a.scale||1).toFixed(2));
+    data.assets[cat].push({ name: item.name, dataUrl: bakeItem(item) });
+  }); });
 
   // Split into 4 parts
   var parts = {};
@@ -1644,7 +1647,7 @@ function curatorAutoFetch(){
   });
 }
 
-dbOpen().then(function(){log('v7.1 (build 2026-02-26 diffExtract) — exports 1024×'+EXPORT_H+', cropAbove=splitY-180, diff-based extraction');return loadSaved();}).then(function(){return curatorAutoFetch();}).then(function(){render();renderPanel();}).catch(function(e){log('DB: '+e);render();renderPanel();});
+dbOpen().then(function(){log('v7.3 (pureDiff) — ZERO flood fill, pure diff extraction, shoes safe');return loadSaved();}).then(function(){return curatorAutoFetch();}).then(function(){render();renderPanel();}).catch(function(e){log('DB: '+e);render();renderPanel();});
 </script>
 </body>
 </html>
