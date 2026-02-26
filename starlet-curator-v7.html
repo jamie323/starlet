@@ -420,12 +420,12 @@ function initSplitLine(){if(!bodyFull)return;var b=scanBounds(bodyFull.img);spli
 
 function reSplit(){
   if(!bodyFull){alert('No body loaded');return;}
-  // Recalculate splitY from current body bounds
   var b=scanBounds(bodyFull.img);
-  splitY=b.top+(b.bot-b.top)*0.38;
+  // Use 45% — places split at neck level, not mid-face
+  splitY=b.top+(b.bot-b.top)*0.45;
   log('Re-Split: body top='+Math.round(b.top*1024)+' bot='+Math.round(b.bot*1024)+' splitY='+Math.round(splitY*1024));
-  // Re-do the actual split
-  splitBody();
+  log('👆 Drag the pink line to sit just BELOW the chin/neck, then click Split');
+  splitLineVisible=true;render();drawSplitLine();
 }
 
 // ================================================================
