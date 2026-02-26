@@ -134,7 +134,7 @@
 // STICKERS: Standalone generation (drag-drop accessories for game)
 // ================================================================
 
-var STYLE = "Children's mobile game character. THICK dark chocolate brown outlines (#3D2B1F, 3-4px, NOT black). Clean vector shapes. Flat bold colors, ZERO gradients, ZERO shading, ZERO shadows. Rounded forms. Professional quality. ";
+var STYLE = "Children's mobile game character. Dark chocolate brown outlines (#3D2B1F, thin 1-2px, NOT black). Clean vector shapes. Flat bold colors, ZERO gradients, ZERO shading, ZERO shadows. Rounded forms. Professional quality. ";
 
 var PROMPTS = {
   outfits: [
@@ -431,7 +431,7 @@ function genBody(){
     "Small TEARDROP ears (slightly pointed at top). "+
     "Wearing a plain light GREY t-shirt and light grey shorts — simple flat colour fills. "+
     "COMPLETELY BLANK FACE — no eyes, no mouth, no nose, no eyebrows, no features at all. Smooth peach skin (#F5CBA7). "+
-    "ALL outlines DARK CHOCOLATE BROWN (#3D2B1F, 3-4px, NOT black). Clean vector look. Transparent background.";
+    "ALL outlines DARK CHOCOLATE BROWN (#3D2B1F, thin 1-2px, NOT black). Clean vector look. Transparent background.";
   apiGenerate(prompt).then(function(dataUrl){return loadImg(dataUrl).then(function(img){bodyFull={img:img,dataUrl:dataUrl};initSplitLine();});}).catch(function(e){log('Error: '+e);});
 }
 
@@ -527,6 +527,24 @@ function computeAnchors(){
 }
 
 function scanBounds(img){var c=document.createElement('canvas');c.width=c.height=1024;c.getContext('2d').drawImage(img,0,0,1024,1024);var d=c.getContext('2d').getImageData(0,0,1024,1024).data;var tY=1024,bY=0,lX=1024,rX=0;for(var y=0;y<1024;y++) for(var x=0;x<1024;x++){if(d[(y*1024+x)*4+3]<50) continue;if(y<tY)tY=y;if(y>bY)bY=y;if(x<lX)lX=x;if(x>rX)rX=x;}return{top:tY/1024,bot:bY/1024,left:lX/1024,right:rX/1024,cx:(lX+rX)/2/1024,cy:(tY+bY)/2/1024};}
+
+// Post-process hair: clear face area to remove AI-generated face outlines
+function cleanHairFace(result){
+  if(!bodyHead) return Promise.resolve(result);
+  var hb=scanBounds(bodyHead.img);
+  var fc=document.createElement('canvas');fc.width=fc.height=1024;
+  var fx=fc.getContext('2d');fx.drawImage(result.img,0,0,1024,1024);
+  var faceCx=hb.cx*1024, faceCy=(hb.top+hb.bot)*0.5*1024;
+  var faceRx=(hb.right-hb.left)*0.38*1024, faceRy=(hb.bot-hb.top)*0.38*1024;
+  var fd=fx.getImageData(0,0,1024,1024),px=fd.data;
+  for(var py=0;py<1024;py++){for(var px2=0;px2<1024;px2++){
+    var dx2=(px2-faceCx)/faceRx,dy2=(py-faceCy)/faceRy;
+    if(dx2*dx2+dy2*dy2<1){px[(py*1024+px2)*4+3]=0;}
+  }}
+  fx.putImageData(fd,0,0);
+  var cleanUrl=fc.toDataURL('image/png');
+  return loadImg(cleanUrl).then(function(ci){result.img=ci;result.dataUrl=cleanUrl;return result;});
+}
 
 function autoFitItem(genImg,cat){
   var gb=scanBounds(genImg);
@@ -956,9 +974,9 @@ function getMaskType(cat){return{outfits:'outfit'}[cat]||null;}
 function getCatInstruction(cat){
   return{
     outfits:'Dress this character in the following COMPLETE outfit. Replace ALL the grey clothing. The outfit should have a proper COLLAR or NECKLINE that sits naturally on the neck. Include shoes on the feet. KEEP the round ball hands — do NOT add fingers. Do NOT change the head or face. ',
-    faces:'ONLY the facial features of a cute cartoon character on a TRANSPARENT 1024x1024 background. Draw centered in the UPPER THIRD of the canvas (around y=250 to y=400). NOTHING else — no head outline, no skin fill, no head shape, no body, no hair. Just the floating facial features with thick dark brown outlines on pure transparency. Features: ',
-    hairhats:'A HAIR WIG / HAIRPIECE item on a TRANSPARENT 1024x1024 background. This is ONLY the hair — imagine a wig sitting on an invisible mannequin head. CRITICAL RULES: There must be ABSOLUTELY ZERO facial features — no eyes, no nose, no mouth, no face outline, no skin, no head shape visible whatsoever. Only hair strands and any hat/headwear on pure transparent background. The hair should be positioned CENTERED on the canvas (around y=300 to y=600) as if sitting on top of an invisible head — leave plenty of space above for tall hair and hats. Thick dark chocolate brown outlines (#3D2B1F). Description: ',
-    stickers:'A cute accessory/prop item for a children\'s dress-up game on a TRANSPARENT 1024x1024 background. Centered. Front-facing. Thick dark chocolate brown outlines (#3D2B1F). Clean vector style. Item: '
+    faces:'ONLY the facial features of a cute cartoon character on a TRANSPARENT 1024x1024 background. Draw centered in the UPPER THIRD of the canvas (around y=250 to y=400). NOTHING else — no head outline, no skin fill, no head shape, no body, no hair. Just the floating facial features with dark brown outlines on pure transparency. Features: ',
+    hairhats:'A HAIR WIG or HAT item ONLY on a TRANSPARENT 1024x1024 background. Think of this as a wig on a mannequin stand — there is NO HEAD underneath. ABSOLUTE HARD RULES: 1) ZERO face shape or head outline of any kind — no circle, no oval, no egg shape. 2) ZERO facial features — no eyes, no nose, no mouth, no cheeks, no skin color. 3) ZERO neck or body parts. 4) The ONLY visible thing is hair strands and/or headwear material. 5) Where the face would be must be 100% TRANSPARENT/EMPTY. Position the hair CENTERED on canvas (y=300 to y=600). Leave space above for tall hats. Dark brown outlines (#3D2B1F, thin). Description: ',
+    stickers:'A cute accessory/prop item for a children\'s dress-up game on a TRANSPARENT 1024x1024 background. Centered. Front-facing. Dark chocolate brown outlines (#3D2B1F, thin). Clean vector style. Item: '
   }[cat]||'';
 }
 
@@ -1005,13 +1023,13 @@ function generateFromList(cat,promptList,onDone){
     updateProgress(done,total,errors);
     var genPromise;
     if(STANDALONE_CATS[cat]){
-      var fullPrompt=STYLE+getCatInstruction(cat)+promptText+'. Thick dark chocolate brown outlines (#3D2B1F). Flat bold colors, ZERO gradients.';
+      var fullPrompt=STYLE+getCatInstruction(cat)+promptText+'. Dark chocolate brown outlines (#3D2B1F). Flat bold colors, ZERO gradients.';
       genPromise=apiGenerate(fullPrompt).then(function(dataUrl){
         return loadImg(dataUrl).then(function(img){return{img:img,dataUrl:dataUrl};});
       });
     } else {
       var maskType=getMaskType(cat);
-      var outfitPrompt=getCatInstruction(cat)+promptText+'. Flat colors, thick dark brown outlines. Cute children\'s game style.';
+      var outfitPrompt=getCatInstruction(cat)+promptText+'. Flat colors, dark brown outlines. Cute children\'s game style.';
       genPromise=apiInpaint(bodyFull.dataUrl,maskType,outfitPrompt).then(function(resultUrl){
         return cropBelowSplit(resultUrl).then(function(croppedUrl){
           return loadImg(croppedUrl).then(function(img){return{img:img,dataUrl:croppedUrl};});
@@ -1019,6 +1037,9 @@ function generateFromList(cat,promptList,onDone){
       });
     }
     genPromise.then(function(result){
+      if(cat==='hairhats') return cleanHairFace(result);
+      return result;
+    }).then(function(result){
       var defaultAdj=STANDALONE_CATS[cat]?autoFitItem(result.img,cat):null;
       pending.push({name:promptText.substring(0,40),img:result.img,dataUrl:result.dataUrl,category:cat,status:'pending',adj:defaultAdj});
       done++;updateProgress(done,total,errors);renderPanel();renderPreview(pending[pending.length-1]);
@@ -1049,7 +1070,7 @@ function generateBatch(cat,count,onDone){
 
     if(STANDALONE_CATS[cat]){
       // Standalone: generate item on transparent background
-      var fullPrompt=STYLE+getCatInstruction(cat)+p.text+'. Thick dark chocolate brown outlines (#3D2B1F). Flat bold colors, ZERO gradients.';
+      var fullPrompt=STYLE+getCatInstruction(cat)+p.text+'. Dark chocolate brown outlines (#3D2B1F). Flat bold colors, ZERO gradients.';
       genPromise=apiGenerate(fullPrompt).then(function(dataUrl){
         return loadImg(dataUrl).then(function(img){return{img:img,dataUrl:dataUrl};});
       });
@@ -1057,7 +1078,7 @@ function generateBatch(cat,count,onDone){
       // OUTFITS: inpaint onto body, then crop below split line
       // The result IS the character wearing the outfit — no extraction needed
       var maskType=getMaskType(cat);
-      var outfitPrompt=getCatInstruction(cat)+p.text+'. Flat colors, thick dark brown outlines. Cute children\'s game style.';
+      var outfitPrompt=getCatInstruction(cat)+p.text+'. Flat colors, dark brown outlines. Cute children\'s game style.';
       genPromise=apiInpaint(bodyFull.dataUrl,maskType,outfitPrompt).then(function(resultUrl){
         return cropBelowSplit(resultUrl).then(function(croppedUrl){
           return loadImg(croppedUrl).then(function(img){return{img:img,dataUrl:croppedUrl};});
@@ -1066,6 +1087,9 @@ function generateBatch(cat,count,onDone){
     }
 
     genPromise.then(function(result){
+      if(cat==='hairhats') return cleanHairFace(result);
+      return result;
+    }).then(function(result){
       var defaultAdj=STANDALONE_CATS[cat]?autoFitItem(result.img,cat):null;
       pending.push({name:p.text.substring(0,40),img:result.img,dataUrl:result.dataUrl,category:cat,status:'pending',adj:defaultAdj});
       done++;updateProgress(done,total,errors);renderPanel();renderPreview(pending[pending.length-1]);
