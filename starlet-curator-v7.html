@@ -574,6 +574,26 @@ function autoFitItem(genImg,cat){
   var dx=Math.round(targetX - 512 - (gb.cx*1024 - 512)*scale);
   var dy=Math.round(targetY - 512 - (gb.cy*1024 - 512)*scale);
 
+  // Safety: ensure hair doesn't clip above canvas (y=0)
+  if(cat==='hairhats'){
+    var topInSrc=gb.top*1024;
+    var finalTop=(topInSrc-512)*scale+512+dy;
+    if(finalTop<10){
+      dy=dy+(10-Math.round(finalTop));
+      log('Auto-fit hair: shifted down '+(10-Math.round(finalTop))+'px to prevent top clipping');
+    }
+    // Also check bottom doesn't go too far
+    var botInSrc=gb.bot*1024;
+    var finalBot=(botInSrc-512)*scale+512+dy;
+    if(finalBot>1014){
+      var excess=Math.round(finalBot-1014);
+      scale=scale*0.9;
+      dx=Math.round(targetX - 512 - (gb.cx*1024 - 512)*scale);
+      dy=Math.round(targetY - 512 - (gb.cy*1024 - 512)*scale);
+      log('Auto-fit hair: scaled down to '+scale.toFixed(2)+' to prevent bottom clipping');
+    }
+  }
+
   log('Auto-fit '+cat+': scale='+scale.toFixed(2)+' dx='+dx+' dy='+dy);
   return{dx:dx,dy:dy,scale:parseFloat(scale.toFixed(3))};
 }
@@ -870,7 +890,13 @@ function renderPreview(item){
   if(item&&item.img&&!showingOutfit) drawAdj(item);
 }
 
-function drawAdj(item){var a=item.adj||{dx:0,dy:0,scale:1.0};ctx.save();ctx.translate(512+a.dx,512+a.dy);ctx.scale(a.scale,a.scale);ctx.translate(-512,-512);ctx.drawImage(item.img,0,0,1024,1024);ctx.restore();}
+function drawAdj(item){var a=item.adj||{dx:0,dy:0,scale:1.0};var adjDy=a.dy;
+  if(item.category==='hairhats'&&item.img){
+    var gb=scanBounds(item.img);var topInSrc=gb.top*1024;
+    var finalTop=(topInSrc-512)*a.scale+512+a.dy;
+    if(finalTop<0) adjDy=a.dy-finalTop+10;
+  }
+  ctx.save();ctx.translate(512+a.dx,512+adjDy);ctx.scale(a.scale,a.scale);ctx.translate(-512,-512);ctx.drawImage(item.img,0,0,1024,1024);ctx.restore();}
 
 function renderDebugZones(){
   render();
