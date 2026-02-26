@@ -519,8 +519,8 @@ function computeAnchors(){
   var b=scanBounds(bodyFull.img);var headH=splitY-b.top;var fullW=b.right-b.left;var midX=b.cx;var bodySpan=b.bot-splitY;
   anchors={bounds:b};
   slotBoxes={
-    // OUTFIT: starts 15% above split for full collar/shoulder coverage, extends well past feet
-    outfit:{x:Math.max(0,midX-fullW*1.0),y:splitY-0.15,w:Math.min(1.0,fullW*2.0),h:Math.min(1.0-splitY+0.15, bodySpan+0.25)},
+    // OUTFIT: starts 25% above split for full collar/shoulder/neck coverage
+    outfit:{x:Math.max(0,midX-fullW*1.0),y:splitY-0.25,w:Math.min(1.0,fullW*2.0),h:Math.min(1.0-splitY+0.25, bodySpan+0.35)},
     // HAIRHAT: covers full head area — hair sits on top, hat+hair combos need full zone
     hairhat:{x:Math.max(0,midX-fullW*0.8),y:Math.max(0,b.top-0.12),w:Math.min(1.0,fullW*1.6),h:headH*0.85}
   };
@@ -746,7 +746,7 @@ function cropBelowSplit(resultDataUrl){
 
     // STEP 3: Apply — trust flood-fill completely
     var splitPx=Math.round(splitY*1024);
-    var cropAbove=splitPx-90;
+    var cropAbove=splitPx-200;
     var out=new ImageData(1024,1024);var outd=out.data;
     for(var y3=0;y3<1024;y3++){
       for(var x3=0;x3<1024;x3++){
@@ -1346,7 +1346,7 @@ function shiftAllDown(){
       var fullW=b.right-b.left;
       var midX=b.cx;
       slotBoxes={
-        outfit:{x:Math.max(0,midX-fullW*1.0),y:splitY-0.15,w:Math.min(1.0,fullW*2.0),h:Math.min(1.0-splitY+0.15,(b.bot-splitY)+0.25)},
+        outfit:{x:Math.max(0,midX-fullW*1.0),y:splitY-0.25,w:Math.min(1.0,fullW*2.0),h:Math.min(1.0-splitY+0.25,(b.bot-splitY)+0.35)},
         hairhat:{x:Math.max(0,midX-fullW*0.8),y:Math.max(0,b.top-0.20),w:Math.min(1.0,fullW*1.6),h:headH+0.20}
       };
     }
