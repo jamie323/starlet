@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>✨ Starlet v19 ✨</title>
+<title>✨ Starlet v20 ✨</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;}
@@ -55,7 +55,7 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .ic{aspect-ratio:1;border-radius:20px;border:3px solid rgba(255,107,157,0.12);background:#FFF5F8;overflow:hidden;cursor:pointer;position:relative;transition:0.15s;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
 .ic:active{transform:scale(0.94);}
 .ic.on{border-color:#FF6B9D;box-shadow:0 3px 14px rgba(255,107,157,0.3);background:#FFE8EE;}
-.ic img{width:100%;height:100%;pointer-events:none;padding:12px;box-sizing:border-box;}
+.ic img{width:100%;height:100%;pointer-events:none;object-fit:contain;}
 .ic .ck{position:absolute;top:4px;right:4px;background:#FF6B9D;color:#fff;font-size:10px;font-weight:900;padding:2px 6px;border-radius:6px;display:none;}
 .ic.on .ck{display:block;}
 .in{aspect-ratio:1;border-radius:18px;border:3px dashed rgba(255,107,157,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:24px;color:rgba(255,107,157,0.3);}
@@ -782,10 +782,7 @@ function proc(d){M=d;IM={};TN={};var p=[];function ld(k,s){return new Promise(fu
 // Normalize: 'hair' → 'hairhats'
 if(d.assets&&d.assets.hair&&!d.assets.hairhats){d.assets.hairhats=d.assets.hair;delete d.assets.hair;}
 else if(d.assets&&d.assets.hair&&d.assets.hairhats){d.assets.hairhats=d.assets.hairhats.concat(d.assets.hair);delete d.assets.hair;}
-CS.forEach(function(c){(d.assets&&d.assets[c]||[]).forEach(function(it,i){p.push(ld(c+'_'+i,it.dataUrl))})});Promise.all(p).then(function(){if(db)dbp('m',JSON.stringify(d));thumbCache={};showPlayReady();bui();
-  // Rebuild after delay to catch any late-loading images
-  setTimeout(function(){thumbCache={};bui();},500);
-});}
+CS.forEach(function(c){(d.assets&&d.assets[c]||[]).forEach(function(it,i){p.push(ld(c+'_'+i,it.dataUrl))})});Promise.all(p).then(function(){if(db)dbp('m',JSON.stringify(d));showPlayReady();bui();});}
 
 var gameReady=false;
 function showPlayReady(){
@@ -961,46 +958,9 @@ function bCt(){
   document.getElementById('cattabs').innerHTML=h;
 }
 
-// THUMBNAIL — auto-crop via canvas (works for data URL images)
-var thumbCache={};
-var THUMB_CSS_FALLBACK={
-  outfits: 'object-fit:contain;transform:scale(2.8) translateY(8%);',
-  faces:   'object-fit:contain;transform:scale(4) translateY(-5%);',
-  hairhats:'object-fit:contain;transform:scale(3) translateY(-15%);',
-  stickers:'object-fit:contain;'
-};
-function makeThumb(cat, idx){
-  var ck=cat+'_'+idx;
-  if(thumbCache[ck]) return thumbCache[ck];
-  var im=IM[ck];
-  if(!im) return null;
-  try {
-    var w=im.naturalWidth||im.width, h=im.naturalHeight||im.height;
-    if(!w||!h) return null;
-    var sc=document.createElement('canvas');sc.width=w;sc.height=h;
-    var sx=sc.getContext('2d');sx.drawImage(im,0,0);
-    var d=sx.getImageData(0,0,w,h).data;
-    var top=h,bot=0,left=w,right=0;
-    // Scan every 4th pixel for speed
-    for(var y=0;y<h;y+=4){for(var x=0;x<w;x+=4){
-      if(d[(y*w+x)*4+3]>25){if(y<top)top=y;if(y>bot)bot=y;if(x<left)left=x;if(x>right)right=x;}
-    }}
-    if(bot<=top||right<=left) return null;
-    var pad=40;
-    top=Math.max(0,top-pad);bot=Math.min(h,bot+pad);
-    left=Math.max(0,left-pad);right=Math.min(w,right+pad);
-    var cw=right-left,ch=bot-top;
-    var size=Math.max(cw,ch);
-    var cx=left+cw/2-size/2, cy=top+ch/2-size/2;
-    cx=Math.max(0,Math.min(w-size,cx));
-    cy=Math.max(0,Math.min(h-size,cy));
-    var aW=Math.min(size,w-cx),aH=Math.min(size,h-cy);
-    var tc=document.createElement('canvas');tc.width=200;tc.height=200;
-    tc.getContext('2d').drawImage(im,cx,cy,aW,aH,0,0,200,200);
-    thumbCache[ck]=tc.toDataURL('image/png');
-    return thumbCache[ck];
-  } catch(e){console.log('Thumb failed for '+ck+':',e.message);return null;}
-}
+// THUMBNAIL — pure CSS approach, no canvas
+// For items that are mostly transparent with content in center,
+// we use background-image on the card div instead of img tag
 
 function bIt(){
   var isc=document.getElementById('isc');
@@ -1040,15 +1000,13 @@ function bIt(){
       h+='</div>';
     }
     h+='<div class="in'+(eq[c]===-1?' on':'')+'" onclick="eqp(\''+c+'\',-1)">✕</div>';
+    // Zoom levels per category to show content area
+    var zoom={outfits:'250%',faces:'350%',hairhats:'280%',stickers:'100%'};
+    var pos={outfits:'center 58%',faces:'center 38%',hairhats:'center 22%',stickers:'center center'};
     its.forEach(function(it,i){
       var src=IM[c+'_'+i]?IM[c+'_'+i].src:it.dataUrl;
-      var thumb=makeThumb(c,i);
-      if(thumb){
-        h+='<div class="ic'+(eq[c]===i?' on':'')+'" onclick="eqp(\''+c+'\','+i+')"><img src="'+thumb+'" style="object-fit:contain;" draggable="false"><span class="ck">✓</span></div>';
-      } else {
-        var css=THUMB_CSS_FALLBACK[c]||'object-fit:contain;';
-        h+='<div class="ic'+(eq[c]===i?' on':'')+'" onclick="eqp(\''+c+'\','+i+')"><img src="'+src+'" style="'+css+'" draggable="false"><span class="ck">✓</span></div>';
-      }
+      var z=zoom[c]||'100%', p=pos[c]||'center center';
+      h+='<div class="ic'+(eq[c]===i?' on':'')+'" onclick="eqp(\''+c+'\','+i+')" style="background-image:url('+src+');background-size:'+z+';background-position:'+p+';background-repeat:no-repeat;"><span class="ck">✓</span></div>';
     });
   }
   isc.innerHTML=h;
