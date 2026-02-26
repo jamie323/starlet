@@ -940,9 +940,10 @@ function log(s){console.log('Starlet:',s);}
 // INIT
 // AUTO-FETCH: try loading JSON files from same directory (for GitHub Pages hosting)
 function autoFetch(){
+  var cb='?t='+Date.now(); // cache-buster
   console.log('Starlet: Starting auto-fetch...');
   // Try single assets file first, then multi-part fallback
-  fetch('starlet-v6.json').then(function(r){
+  fetch('starlet-v6.json'+cb).then(function(r){
     if(!r.ok)throw new Error('No single file');
     return r.json();
   }).then(function(d){
@@ -952,7 +953,7 @@ function autoFetch(){
     console.log('Starlet: Single file failed, trying multi-part...');
     // Try multi-part: body+meta, outfits, faces, hairhats+stickers
     var parts=['starlet-v6-part1.json','starlet-v6-part2.json','starlet-v6-part3.json','starlet-v6-part4.json'];
-    Promise.all(parts.map(function(p){return fetch(p).then(function(r){if(!r.ok)throw new Error(p);return r.json();})}))
+    Promise.all(parts.map(function(p){return fetch(p+cb).then(function(r){if(!r.ok)throw new Error(p);return r.json();})}))
     .then(function(results){
       // Merge: part1 has body/meta, parts 2-4 have assets
       var merged=results[0];
@@ -977,7 +978,7 @@ function autoFetch(){
     });
   });
   // Try sounds
-  fetch('starlet-sounds.json').then(function(r){
+  fetch('starlet-sounds.json'+cb).then(function(r){
     if(!r.ok)throw new Error('No sounds file');
     return r.json();
   }).then(function(d){
