@@ -7,8 +7,8 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;}
-html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background:#FFF0F5;}
-.app{display:flex;flex-direction:column;height:100%;max-width:430px;margin:0 auto;position:relative;overflow:hidden;background:#FFF0F5;}
+html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background:#2a2035;display:flex;align-items:center;justify-content:center;}
+.app{display:flex;flex-direction:column;width:1194px;height:834px;max-width:100vw;max-height:100vh;position:relative;overflow:hidden;background:#FFF0F5;border-radius:0;box-shadow:0 0 60px rgba(0,0,0,0.3);}
 
 /* TOPBAR — minimal */
 .topbar{background:linear-gradient(135deg,#FF6B9D,#FF8C69,#FFB347);padding:5px 12px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;z-index:10;box-shadow:0 2px 10px rgba(255,107,157,0.25);}
@@ -92,17 +92,15 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 
 /* LOAD SCREEN — dress-up themed splash */
 .ls{position:absolute;inset:0;background:linear-gradient(160deg,#FFB5C5 0%,#FF8C69 40%,#FFD700 70%,#FFB347 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;gap:0;overflow:hidden;}
-.ls-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0.35;filter:blur(3px) saturate(1.3);}
+.ls-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0.45;filter:blur(2px) saturate(1.2);}
 .ls.hid{display:none;}
 .ls-stars{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
 .ls-star{position:absolute;width:4px;height:4px;border-radius:50%;background:#FFD700;animation:lsStar 3s ease-in-out infinite;}
 @keyframes lsStar{0%,100%{opacity:0.2;transform:scale(0.8);}50%{opacity:1;transform:scale(1.3);}}
-.ls-float{position:absolute;pointer-events:none;font-size:32px;animation:lsFloat 4s ease-in-out infinite;filter:drop-shadow(0 2px 8px rgba(0,0,0,0.3));}
-@keyframes lsFloat{0%{transform:translateY(0) rotate(-5deg);}50%{transform:translateY(-15px) rotate(5deg);}100%{transform:translateY(0) rotate(-5deg);}}
 .ls-title{font-size:36px;font-weight:900;background:linear-gradient(135deg,#FF6B9D,#FFD700,#C850C0,#6C63FF,#FF6B9D);background-size:300% 300%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:lsGrad 4s ease-in-out infinite;text-shadow:none;position:relative;z-index:2;}
 @keyframes lsGrad{0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
-.ls-sub{color:rgba(255,255,255,0.85);font-size:14px;font-weight:700;margin-top:6px;position:relative;z-index:2;text-align:center;max-width:280px;line-height:1.5;text-shadow:0 1px 4px rgba(0,0,0,0.15);}
-.ls-btns{display:flex;flex-direction:column;align-items:center;gap:10px;position:relative;z-index:2;}
+.ls-sub{color:rgba(255,255,255,0.85);font-size:14px;font-weight:700;margin-top:10px;position:relative;z-index:2;text-align:center;max-width:280px;line-height:1.5;text-shadow:0 1px 4px rgba(0,0,0,0.15);}
+.ls-btns{display:flex;flex-direction:column;align-items:center;gap:12px;position:relative;z-index:2;}
 .ls-play{background:linear-gradient(135deg,#FF6B9D,#C850C0);color:#fff;border:none;padding:18px 56px;border-radius:50px;font-family:inherit;font-weight:900;font-size:20px;cursor:pointer;box-shadow:0 6px 28px rgba(255,107,157,0.5),0 0 0 4px rgba(255,255,255,0.3);position:relative;overflow:hidden;animation:lsPlayPulse 2s ease-in-out infinite;letter-spacing:1px;transition:transform 0.15s;}
 .ls-play:active{transform:scale(0.95);}
 @keyframes lsPlayPulse{0%,100%{box-shadow:0 6px 28px rgba(255,107,157,0.5),0 0 0 4px rgba(255,255,255,0.3);}50%{box-shadow:0 6px 36px rgba(255,107,157,0.7),0 0 0 8px rgba(255,255,255,0.2);}}
@@ -113,11 +111,6 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .ls-credit{font-size:11px;color:rgba(255,255,255,0.6);font-weight:700;}
 .ls-set-btn{width:40px;height:40px;border-radius:50%;border:2px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.15);backdrop-filter:blur(4px);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
 .ls-set-btn:active{transform:scale(0.9);background:rgba(255,255,255,0.3);}
-.ls-char{position:relative;z-index:2;width:140px;height:140px;margin:20px 0 16px;background:radial-gradient(circle,rgba(255,107,157,0.15) 0%,transparent 70%);border-radius:50%;display:flex;align-items:center;justify-content:center;}
-.ls-char-inner{font-size:80px;animation:lsCharBounce 2s ease-in-out infinite;}
-@keyframes lsCharBounce{0%,100%{transform:translateY(0) scale(1);}30%{transform:translateY(-10px) scale(1.05);}60%{transform:translateY(3px) scale(0.98);}}
-.ls-sparkle-ring{position:absolute;inset:-10px;border:2px dashed rgba(255,107,157,0.3);border-radius:50%;animation:lsRing 8s linear infinite;}
-@keyframes lsRing{to{transform:rotate(360deg);}}
 .ls p{color:rgba(140,100,160,0.6);font-size:13px;max-width:280px;text-align:center;line-height:1.5;position:relative;z-index:2;}
 .lb{background:linear-gradient(135deg,#FF6B9D,#C850C0);color:#fff;border:none;padding:14px 36px;border-radius:50px;font-family:inherit;font-weight:800;font-size:15px;cursor:pointer;box-shadow:0 4px 20px rgba(255,107,157,0.4);position:relative;overflow:hidden;}
 .lb:active{transform:scale(0.96);}
@@ -155,28 +148,36 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 @keyframes obPulse2{0%,100%{opacity:0.5;}50%{opacity:1;}}
 .ob-arrow{font-size:28px;margin-top:6px;animation:obArrow 1s ease-in-out infinite;color:#FF6B9D;}
 @keyframes obArrow{0%,100%{transform:translateY(0);}50%{transform:translateY(8px);}}
-/* TABLET / LANDSCAPE — side-by-side layout */
-@media(min-width:700px){
-.app{max-width:100%;flex-direction:column;}
-.app-body{flex-direction:row;}
+/* TABLET / LANDSCAPE — side-by-side layout (default for iPad) */
+.app-body{flex-direction:row;flex:1;min-height:0;}
 .stage{flex:1;min-width:0;}
-.panel{width:320px;flex-shrink:0;height:auto;flex:none;border-top:none;border-left:2px solid rgba(255,107,157,0.3);}
+.panel{width:360px;flex-shrink:0;height:auto;flex:none;border-top:none;border-left:2px solid rgba(255,107,157,0.2);}
 .isc{grid-template-columns:repeat(3,1fr);gap:10px;padding:10px 14px;}
-.cattabs{flex-wrap:wrap;gap:4px;padding:10px 8px 8px;}
-.cattab{padding:8px 6px 6px;min-width:50px;min-height:54px;}
-.cattab .cicon{width:32px;height:32px;}
+.cattabs{flex-wrap:wrap;gap:6px;padding:12px 10px 8px;justify-content:center;}
+.cattab{padding:10px 8px 6px;min-width:56px;min-height:58px;}
+.cattab .cicon{width:34px;height:34px;}
 .cattab .cemoji{font-size:26px;}
 .cattab .clabel{font-size:10px;}
-.ic,.in{width:auto;aspect-ratio:1;}
-.ic img{border-radius:10px;}
-}
+
 @media(min-width:1024px){
-.panel{width:420px;}
+.panel{width:400px;}
 .isc{grid-template-columns:repeat(4,1fr);gap:10px;}
-.cattab{padding:10px 8px 8px;min-width:60px;min-height:60px;}
-.cattab .cicon{width:36px;height:36px;}
+.cattab{padding:10px 10px 8px;min-width:62px;min-height:62px;}
+.cattab .cicon{width:38px;height:38px;}
 .cattab .cemoji{font-size:28px;}
 .cattab .clabel{font-size:11px;}
+}
+
+/* Phone — stack vertically */
+@media(max-width:699px){
+.app{width:100%;height:100%;border-radius:0;box-shadow:none;}
+.app-body{flex-direction:column;}
+.panel{width:100%;height:40%;border-left:none;border-top:2px solid rgba(255,107,157,0.2);}
+.isc{grid-template-columns:repeat(4,1fr);gap:8px;padding:8px 12px;}
+.cattab{padding:6px 10px 5px;min-width:50px;min-height:48px;}
+.cattab .cicon{width:24px;height:24px;}
+.cattab .cemoji{font-size:22px;}
+.cattab .clabel{font-size:9px;}
 }
 </style>
 </head>
@@ -185,15 +186,6 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
   <div class="ls" id="ls">
     <div class="ls-bg" id="lsBg"></div>
     <div class="ls-stars" id="lsStars"></div>
-    <div class="ls-float" style="top:8%;left:12%;animation-delay:0s;">👗</div>
-    <div class="ls-float" style="top:15%;right:15%;animation-delay:0.7s;">👑</div>
-    <div class="ls-float" style="top:65%;left:8%;animation-delay:1.4s;">🎀</div>
-    <div class="ls-float" style="top:72%;right:10%;animation-delay:2.1s;">💄</div>
-    <div class="ls-float" style="top:38%;left:6%;animation-delay:0.3s;font-size:24px;">✨</div>
-    <div class="ls-float" style="top:42%;right:8%;animation-delay:1.8s;font-size:24px;">💎</div>
-    <div class="ls-float" style="bottom:18%;left:20%;animation-delay:1s;font-size:24px;">🌸</div>
-    <div class="ls-float" style="bottom:22%;right:18%;animation-delay:2.5s;font-size:24px;">⭐</div>
-    <div class="ls-char"><div class="ls-sparkle-ring"></div><div class="ls-char-inner">👧</div></div>
     <div class="ls-title" id="splashLogo">✨ Starlet ✨</div>
     <div class="ls-sub">Your dress-up adventure awaits!</div>
     <div style="height:24px"></div>
@@ -1149,7 +1141,7 @@ function autoFetch(){
     if(d.ui&&d.ui.logo){
       document.getElementById('logoArea').innerHTML='<img class="topbar-logo" src="'+d.ui.logo+'"> <span style="font-size:9px;opacity:0.7;font-weight:700;">by BrightBox</span>';
       var sl=document.getElementById('splashLogo');
-      if(sl)sl.innerHTML='<img src="'+d.ui.logo+'" style="height:80px;object-fit:contain;filter:drop-shadow(0 4px 12px rgba(255,107,157,0.4));">';
+      if(sl)sl.innerHTML='<img src="'+d.ui.logo+'" style="height:120px;object-fit:contain;filter:drop-shadow(0 6px 20px rgba(255,107,157,0.5));">';
     }
     // Rebuild tabs with icons
     bCt();
@@ -1165,7 +1157,7 @@ function autoFetch(){
         if(UI_ASSETS.ui&&UI_ASSETS.ui.logo){
           document.getElementById('logoArea').innerHTML='<img class="topbar-logo" src="'+UI_ASSETS.ui.logo+'"> <span style="font-size:9px;opacity:0.7;font-weight:700;">by BrightBox</span>';
           var sl=document.getElementById('splashLogo');
-          if(sl)sl.innerHTML='<img src="'+UI_ASSETS.ui.logo+'" style="height:80px;object-fit:contain;filter:drop-shadow(0 4px 12px rgba(255,107,157,0.4));">';
+          if(sl)sl.innerHTML='<img src="'+UI_ASSETS.ui.logo+'" style="height:120px;object-fit:contain;filter:drop-shadow(0 6px 20px rgba(255,107,157,0.5));">';
         }
         bCt();
       }catch(e){}}
