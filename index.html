@@ -40,6 +40,9 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .cattabs{display:flex;gap:6px;padding:8px 10px 6px;flex-shrink:0;justify-content:center;}
 .cattab{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 10px 5px;border-radius:16px;border:2px solid transparent;background:rgba(255,107,157,0.06);cursor:pointer;transition:all 0.2s;min-width:60px;min-height:48px;}
 .cattab .cemoji{font-size:22px;line-height:1;transition:transform 0.2s;}
+.cattab .cicon{width:28px;height:28px;object-fit:contain;transition:transform 0.2s;}
+.cattab.on .cicon{transform:scale(1.15);}
+.topbar-logo{height:28px;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.2));}
 .cattab .clabel{font-size:9px;font-weight:800;color:rgba(180,100,140,0.5);transition:color 0.2s;}
 .cattab.on{border-color:#FF6B9D;background:rgba(255,107,157,0.12);box-shadow:0 2px 8px rgba(255,107,157,0.15);}
 .cattab.on .clabel{color:#FF6B9D;}
@@ -168,14 +171,14 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
     <div class="ls-float" style="bottom:18%;left:20%;animation-delay:1s;font-size:24px;">🌸</div>
     <div class="ls-float" style="bottom:22%;right:18%;animation-delay:2.5s;font-size:24px;">⭐</div>
     <div class="ls-char"><div class="ls-sparkle-ring"></div><div class="ls-char-inner">👧</div></div>
-    <div class="ls-title">✨ Starlet ✨</div>
+    <div class="ls-title" id="splashLogo">✨ Starlet ✨</div>
     <div class="ls-sub">Your dress-up adventure awaits!</div>
     <div style="height:20px"></div>
     <button class="lb" onclick="pickFile()">🎨 Load Assets</button>
     <input type="file" id="fp" accept=".json" style="display:none" onchange="handleFile(this)">
     <p id="lst" style="font-size:11px;color:#FF6B9D;min-height:16px;margin-top:8px;"></p>
   </div>
-  <div class="topbar"><h1>✨ Starlet <span style="font-size:9px;opacity:0.7;font-weight:700;">by BrightBox</span></h1><div class="topbar-btns">
+  <div class="topbar"><h1 id="logoArea">✨ Starlet <span style="font-size:9px;opacity:0.7;font-weight:700;">by BrightBox</span></h1><div class="topbar-btns">
     <button class="tbtn" onclick="doSave()">📸</button>
     <button class="tbtn" onclick="showWardrobe()">👜</button>
     <button class="tbtn" onclick="showSet()">⚙️</button>
@@ -242,6 +245,7 @@ var CLR_NAMES=['Original','Warm','Forest','Ocean','Royal','Rose'];
 var sndEnabled=true,musEnabled=false,musInterval=null;
 var POSES=[{name:'Neutral',ox:0,oy:0,rot:0,sx:1,sy:1},{name:'Sassy',ox:15,oy:0,rot:-3,sx:1,sy:1},{name:'Excited',ox:0,oy:-10,rot:0,sx:1.04,sy:1.04},{name:'Shy',ox:-10,oy:8,rot:2,sx:0.97,sy:0.97},{name:'Dance',ox:20,oy:-5,rot:-5,sx:1,sy:1},{name:'Curtsy',ox:0,oy:12,rot:0,sx:1.02,sy:0.96}];
 var bgCanvases=[];
+var UI_ASSETS=null; // loaded from starlet-ui.json
 var cv=document.getElementById('cv'),cx=cv.getContext('2d'),db=null;
 var undoStack=[],stkHintShown=false;
 function pushUndo(){undoStack.push({eq:JSON.parse(JSON.stringify(eq)),si:si,bi:bi,poseIdx:poseIdx,st:JSON.parse(JSON.stringify(st)),clrVar:JSON.parse(JSON.stringify(clrVar))});if(undoStack.length>30)undoStack.shift();}
@@ -294,7 +298,7 @@ function initBgs(){
   var fns=[drawBgStage,drawBgBedroom,drawBgGarden,drawBgBeach,drawBgSky,drawBgNight,drawBgCandy,drawBgSnow];
   fns.forEach(function(fn){var c=document.createElement('canvas');c.width=c.height=1024;fn(c.getContext('2d'));bgCanvases.push(c);});
 }
-var BG_NAMES=['Stage','Bedroom','Garden','Beach','Sky','Night','Candy','Snow'];
+var BG_NAMES=['Dance Party','Stage Show','Bedroom','Sunny Park','Beach','City','Autumn','Space'];
 
 function drawBgStage(x){
   // Rich theatre with velvet curtains, ornate details, warm lighting
@@ -699,6 +703,23 @@ function drawBgSnow(x){
 
 initBgs();
 
+// Replace procedural BGs with illustrated images when UI assets are loaded
+function loadUIBgs(){
+  if(!UI_ASSETS||!UI_ASSETS.backgrounds)return;
+  var loaded=0,total=Object.keys(UI_ASSETS.backgrounds).length;
+  Object.keys(UI_ASSETS.backgrounds).forEach(function(idx){
+    var img=new Image();
+    img.onload=function(){
+      var c=document.createElement('canvas');c.width=c.height=1024;
+      c.getContext('2d').drawImage(img,0,0,1024,1024);
+      bgCanvases[parseInt(idx)]=c;
+      loaded++;
+      if(loaded>=total){console.log('Starlet: Replaced '+total+' BGs with illustrated art');bui();}
+    };
+    img.src=UI_ASSETS.backgrounds[idx];
+  });
+}
+
 // DEFAULT BODY
 var defaultBodyImg=null;
 function buildDefaultBody(){var c=document.createElement('canvas');c.width=1024;c.height=1024;var x=c.getContext('2d');var OL='#3D2B1F';x.lineCap='round';x.lineJoin='round';x.fillStyle='#F5CBA7';x.strokeStyle=OL;x.lineWidth=4;x.beginPath();x.ellipse(440,780,38,110,0,0,Math.PI*2);x.fill();x.stroke();x.beginPath();x.ellipse(584,780,38,110,0,0,Math.PI*2);x.fill();x.stroke();x.beginPath();x.ellipse(440,890,42,18,0,0,Math.PI*2);x.fill();x.stroke();x.beginPath();x.ellipse(584,890,42,18,0,0,Math.PI*2);x.fill();x.stroke();x.fillStyle='#6B9BD2';x.beginPath();x.moveTo(390,620);x.lineTo(390,720);x.quadraticCurveTo(400,740,440,740);x.lineTo(490,740);x.lineTo(490,650);x.closePath();x.fill();x.stroke();x.beginPath();x.moveTo(634,620);x.lineTo(634,720);x.quadraticCurveTo(624,740,584,740);x.lineTo(534,740);x.lineTo(534,650);x.closePath();x.fill();x.stroke();x.fillStyle='#5A89BD';x.beginPath();x.roundRect(388,610,248,30,6);x.fill();x.stroke();x.fillStyle='#FF8A80';x.beginPath();x.roundRect(388,430,248,200,12);x.fill();x.stroke();x.beginPath();x.moveTo(390,440);x.lineTo(330,470);x.lineTo(320,540);x.lineTo(370,550);x.lineTo(388,480);x.closePath();x.fill();x.stroke();x.beginPath();x.moveTo(634,440);x.lineTo(694,470);x.lineTo(704,540);x.lineTo(654,550);x.lineTo(636,480);x.closePath();x.fill();x.stroke();x.fillStyle='#F5CBA7';x.beginPath();x.moveTo(470,430);x.lineTo(512,470);x.lineTo(554,430);x.closePath();x.fill();x.stroke();x.fillStyle='#F5CBA7';x.strokeStyle=OL;x.beginPath();x.ellipse(310,565,28,30,0,0,Math.PI*2);x.fill();x.stroke();x.beginPath();x.ellipse(714,565,28,30,0,0,Math.PI*2);x.fill();x.stroke();x.beginPath();x.arc(305,598,20,0,Math.PI*2);x.fill();x.stroke();x.beginPath();x.arc(719,598,20,0,Math.PI*2);x.fill();x.stroke();
@@ -776,10 +797,15 @@ function bui(){bCt();bIt();}
 
 function bCt(){
   var h='';
+  var iconKeys={outfits:'outfits',faces:'faces',hairhats:'hair',stickers:'stickers',scene:'scene'};
   TABS.forEach(function(t){
     var isOn=cc===t.id;
     h+='<div class="cattab'+(isOn?' on':'')+'" onclick="sCat(\''+t.id+'\')">';
-    h+='<span class="cemoji">'+t.emoji+'</span>';
+    if(UI_ASSETS&&UI_ASSETS.icons&&UI_ASSETS.icons[iconKeys[t.id]]){
+      h+='<img class="cicon" src="'+UI_ASSETS.icons[iconKeys[t.id]]+'">';
+    } else {
+      h+='<span class="cemoji">'+t.emoji+'</span>';
+    }
     h+='<span class="clabel">'+t.label+'</span>';
     h+='</div>';
   });
@@ -997,6 +1023,41 @@ function autoFetch(){
   }).catch(function(){
     // Try IndexedDB
     dbg('sounds').then(function(s){if(s){try{AUDIO_BUNDLE=JSON.parse(s);activateRealAudio();}catch(e){}}});
+  });
+  // Try UI assets (illustrated backgrounds, icons, logo)
+  fetch('starlet-ui.json'+cb).then(function(r){
+    if(!r.ok)throw new Error('No UI assets');
+    return r.json();
+  }).then(function(d){
+    UI_ASSETS=d;
+    console.log('Starlet: Loaded UI assets (illustrated BGs, icons, logo)');
+    // Replace procedural backgrounds with illustrated ones
+    loadUIBgs();
+    // Update logo
+    if(d.ui&&d.ui.logo){
+      document.getElementById('logoArea').innerHTML='<img class="topbar-logo" src="'+d.ui.logo+'"> <span style="font-size:9px;opacity:0.7;font-weight:700;">by BrightBox</span>';
+      var sl=document.getElementById('splashLogo');
+      if(sl)sl.innerHTML='<img src="'+d.ui.logo+'" style="height:80px;object-fit:contain;filter:drop-shadow(0 4px 12px rgba(255,107,157,0.4));">';
+    }
+    // Rebuild tabs with icons
+    bCt();
+    // Cache in IDB
+    if(db)dbp('ui_assets',JSON.stringify(d));
+  }).catch(function(){
+    // Try IndexedDB fallback
+    dbg('ui_assets').then(function(s){
+      if(s){try{
+        UI_ASSETS=JSON.parse(s);
+        console.log('Starlet: Loaded UI assets from IndexedDB cache');
+        loadUIBgs();
+        if(UI_ASSETS.ui&&UI_ASSETS.ui.logo){
+          document.getElementById('logoArea').innerHTML='<img class="topbar-logo" src="'+UI_ASSETS.ui.logo+'"> <span style="font-size:9px;opacity:0.7;font-weight:700;">by BrightBox</span>';
+          var sl=document.getElementById('splashLogo');
+          if(sl)sl.innerHTML='<img src="'+UI_ASSETS.ui.logo+'" style="height:80px;object-fit:contain;filter:drop-shadow(0 4px 12px rgba(255,107,157,0.4));">';
+        }
+        bCt();
+      }catch(e){}}
+    });
   });
 }
 
