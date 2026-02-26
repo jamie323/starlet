@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>✨ Starlet v13 ✨</title>
+<title>✨ Starlet v14 ✨</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;}
@@ -92,28 +92,32 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .stk-tb:active{transform:scale(0.88);background:rgba(255,107,157,0.4);}
 .stk-tb.del{color:#FF6B9D;}
 
-/* LOAD SCREEN — dress-up themed splash */
-.ls{position:absolute;inset:0;background:linear-gradient(160deg,#FFB5C5 0%,#FF8C69 40%,#FFD700 70%,#FFB347 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;gap:0;overflow:hidden;}
-.ls-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0.45;filter:blur(2px) saturate(1.2);}
+/* LOAD SCREEN — premium splash matching mockup */
+.ls{position:absolute;inset:0;background:linear-gradient(160deg,#FFD4E0 0%,#FFBBA8 40%,#FFD4A8 70%,#FFE8C0 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;gap:0;overflow:hidden;}
+.ls-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0.85;}
+.ls-overlay{position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(255,220,230,0.3) 0%,rgba(255,180,160,0.15) 50%,rgba(255,200,160,0.4) 100%);pointer-events:none;}
 .ls.hid{display:none;}
 .ls-stars{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
-.ls-star{position:absolute;width:4px;height:4px;border-radius:50%;background:#FFD700;animation:lsStar 3s ease-in-out infinite;}
-@keyframes lsStar{0%,100%{opacity:0.2;transform:scale(0.8);}50%{opacity:1;transform:scale(1.3);}}
-.ls-title{font-size:36px;font-weight:900;background:linear-gradient(135deg,#FF6B9D,#FFD700,#C850C0,#6C63FF,#FF6B9D);background-size:300% 300%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:lsGrad 4s ease-in-out infinite;text-shadow:none;position:relative;z-index:2;}
+.ls-star{position:absolute;width:5px;height:5px;border-radius:50%;background:rgba(255,215,0,0.9);box-shadow:0 0 6px rgba(255,215,0,0.5);animation:lsStar 3s ease-in-out infinite;}
+@keyframes lsStar{0%,100%{opacity:0.2;transform:scale(0.8);}50%{opacity:1;transform:scale(1.5);}}
+.ls-content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:0;padding:20px;max-width:500px;width:100%;}
+.ls-logo-wrap{margin-bottom:8px;filter:drop-shadow(0 4px 20px rgba(255,107,157,0.4));}
+.ls-logo-wrap img{height:140px;display:block;}
+.ls-title{font-size:42px;font-weight:900;background:linear-gradient(135deg,#FF6B9D,#FFD700,#FF8C69,#C850C0,#FF6B9D);background-size:300% 300%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:lsGrad 4s ease-in-out infinite;text-shadow:none;position:relative;z-index:2;letter-spacing:1px;}
 @keyframes lsGrad{0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
-.ls-sub{color:rgba(255,255,255,0.85);font-size:14px;font-weight:700;margin-top:10px;position:relative;z-index:2;text-align:center;max-width:280px;line-height:1.5;text-shadow:0 1px 4px rgba(0,0,0,0.15);}
-.ls-btns{display:flex;flex-direction:column;align-items:center;gap:12px;position:relative;z-index:2;}
-.ls-play{background:linear-gradient(135deg,#FF6B9D,#C850C0);color:#fff;border:none;padding:18px 56px;border-radius:50px;font-family:inherit;font-weight:900;font-size:20px;cursor:pointer;box-shadow:0 6px 28px rgba(255,107,157,0.5),0 0 0 4px rgba(255,255,255,0.3);position:relative;overflow:hidden;animation:lsPlayPulse 2s ease-in-out infinite;letter-spacing:1px;transition:transform 0.15s;}
+.ls-sub{color:rgba(255,255,255,0.95);font-size:16px;font-weight:700;margin-top:8px;position:relative;z-index:2;text-align:center;max-width:320px;line-height:1.5;text-shadow:0 2px 8px rgba(180,80,100,0.3);letter-spacing:0.3px;}
+.ls-btns{display:flex;flex-direction:column;align-items:center;gap:14px;position:relative;z-index:2;margin-top:24px;}
+.ls-play{background:linear-gradient(135deg,#FF6B9D 0%,#FF4081 50%,#E91E63 100%);color:#fff;border:none;padding:20px 64px;border-radius:60px;font-family:inherit;font-weight:900;font-size:22px;cursor:pointer;box-shadow:0 8px 32px rgba(255,64,129,0.5),0 0 0 4px rgba(255,255,255,0.35),inset 0 2px 0 rgba(255,255,255,0.3);position:relative;overflow:hidden;animation:lsPlayPulse 2s ease-in-out infinite;letter-spacing:1.5px;transition:transform 0.15s;text-transform:uppercase;}
 .ls-play:active{transform:scale(0.95);}
-@keyframes lsPlayPulse{0%,100%{box-shadow:0 6px 28px rgba(255,107,157,0.5),0 0 0 4px rgba(255,255,255,0.3);}50%{box-shadow:0 6px 36px rgba(255,107,157,0.7),0 0 0 8px rgba(255,255,255,0.2);}}
-.ls-play::after{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:linear-gradient(45deg,transparent,rgba(255,255,255,0.15),transparent);animation:sh 3s infinite;}
-.ls-load{background:rgba(255,255,255,0.2);backdrop-filter:blur(4px);color:rgba(255,255,255,0.9);border:2px solid rgba(255,255,255,0.3);padding:10px 24px;border-radius:30px;font-family:inherit;font-weight:700;font-size:12px;cursor:pointer;transition:all 0.2s;}
-.ls-load:hover{background:rgba(255,255,255,0.35);}
-.ls-bottom{position:absolute;bottom:20px;left:0;right:0;display:flex;align-items:center;justify-content:center;gap:16px;z-index:2;}
-.ls-credit{font-size:11px;color:rgba(255,255,255,0.6);font-weight:700;}
-.ls-set-btn{width:40px;height:40px;border-radius:50%;border:2px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.15);backdrop-filter:blur(4px);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
-.ls-set-btn:active{transform:scale(0.9);background:rgba(255,255,255,0.3);}
-.ls p{color:rgba(140,100,160,0.6);font-size:13px;max-width:280px;text-align:center;line-height:1.5;position:relative;z-index:2;}
+@keyframes lsPlayPulse{0%,100%{box-shadow:0 8px 32px rgba(255,64,129,0.5),0 0 0 4px rgba(255,255,255,0.35),inset 0 2px 0 rgba(255,255,255,0.3);}50%{box-shadow:0 8px 44px rgba(255,64,129,0.7),0 0 0 8px rgba(255,255,255,0.2),inset 0 2px 0 rgba(255,255,255,0.3);transform:scale(1.02);}}
+.ls-play::after{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:linear-gradient(45deg,transparent 30%,rgba(255,255,255,0.2) 50%,transparent 70%);animation:sh 3s infinite;}
+.ls-load{background:rgba(255,255,255,0.25);backdrop-filter:blur(8px);color:rgba(255,255,255,0.95);border:2px solid rgba(255,255,255,0.4);padding:12px 28px;border-radius:30px;font-family:inherit;font-weight:700;font-size:13px;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 12px rgba(0,0,0,0.06);}
+.ls-load:hover,.ls-load:active{background:rgba(255,255,255,0.4);transform:scale(0.97);}
+.ls-bottom{position:absolute;bottom:24px;left:0;right:0;display:flex;align-items:center;justify-content:center;gap:20px;z-index:2;}
+.ls-credit{font-size:12px;color:rgba(255,255,255,0.7);font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,0.1);}
+.ls-set-btn{width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,255,255,0.35);background:rgba(255,255,255,0.2);backdrop-filter:blur(6px);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+.ls-set-btn:active{transform:scale(0.9);background:rgba(255,255,255,0.35);}
+.ls p{color:rgba(255,255,255,0.8);font-size:13px;max-width:280px;text-align:center;line-height:1.5;position:relative;z-index:2;text-shadow:0 1px 4px rgba(0,0,0,0.1);}
 .lb{background:linear-gradient(135deg,#FF6B9D,#C850C0);color:#fff;border:none;padding:14px 36px;border-radius:50px;font-family:inherit;font-weight:800;font-size:15px;cursor:pointer;box-shadow:0 4px 20px rgba(255,107,157,0.4);position:relative;overflow:hidden;}
 .lb:active{transform:scale(0.96);}
 .lb::after{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:linear-gradient(45deg,transparent,rgba(255,255,255,0.1),transparent);animation:sh 3s infinite;}
@@ -187,12 +191,14 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 <div class="app">
   <div class="ls" id="ls">
     <div class="ls-bg" id="lsBg"></div>
+    <div class="ls-overlay"></div>
     <div class="ls-stars" id="lsStars"></div>
-    <div class="ls-title" id="splashLogo">✨ Starlet ✨</div>
-    <div class="ls-sub">Your dress-up adventure awaits!</div>
-    <div style="height:24px"></div>
-    <div id="splashButtons" class="ls-btns">
-      <p id="lst" style="font-size:12px;color:rgba(255,255,255,0.8);min-height:16px;margin:0 0 8px;">Loading...</p>
+    <div class="ls-content">
+      <div class="ls-logo-wrap" id="splashLogo"><span class="ls-title">✨ Starlet ✨</span></div>
+      <div class="ls-sub">Create Your Dream Look!</div>
+      <div id="splashButtons" class="ls-btns">
+        <p id="lst" style="font-size:13px;color:rgba(255,255,255,0.9);min-height:16px;margin:0 0 8px;">Loading...</p>
+      </div>
     </div>
     <div class="ls-bottom">
       <button class="ls-set-btn" onclick="showSet()">⚙️</button>
@@ -774,7 +780,7 @@ var gameReady=false;
 function showPlayReady(){
   gameReady=true;
   var el=document.getElementById('splashButtons');
-  if(el) el.innerHTML='<button class="ls-play" onclick="startGame()">✨ Play! ✨</button><button class="ls-load" onclick="pickFile()">📦 Load Different Assets</button>';
+  if(el) el.innerHTML='<button class="ls-play" onclick="startGame()">✨ Play Now ✨</button><button class="ls-load" onclick="pickFile()">📦 Load Different Assets</button>';
   var lst=document.getElementById('lst');
   if(lst) lst.textContent='';
 }
@@ -1186,7 +1192,7 @@ function autoFetch(){
     if(d.ui&&d.ui.logo){
       document.getElementById('logoArea').innerHTML='<img class="topbar-logo" src="'+d.ui.logo+'"> <span style="font-size:9px;opacity:0.7;font-weight:700;">by BrightBox</span>';
       var sl=document.getElementById('splashLogo');
-      if(sl)sl.innerHTML='<img src="'+d.ui.logo+'" style="height:120px;object-fit:contain;filter:drop-shadow(0 6px 20px rgba(255,107,157,0.5));">';
+      if(sl)sl.innerHTML='<img src="'+d.ui.logo+'" style="height:140px;object-fit:contain;">';
     }
     // Rebuild tabs with icons
     bCt();
@@ -1202,7 +1208,7 @@ function autoFetch(){
         if(UI_ASSETS.ui&&UI_ASSETS.ui.logo){
           document.getElementById('logoArea').innerHTML='<img class="topbar-logo" src="'+UI_ASSETS.ui.logo+'"> <span style="font-size:9px;opacity:0.7;font-weight:700;">by BrightBox</span>';
           var sl=document.getElementById('splashLogo');
-          if(sl)sl.innerHTML='<img src="'+UI_ASSETS.ui.logo+'" style="height:120px;object-fit:contain;filter:drop-shadow(0 6px 20px rgba(255,107,157,0.5));">';
+          if(sl)sl.innerHTML='<img src="'+UI_ASSETS.ui.logo+'" style="height:140px;object-fit:contain;">';
         }
         bCt();
       }catch(e){}}
