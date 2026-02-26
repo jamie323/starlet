@@ -1272,26 +1272,40 @@ function importAll(input){
 }
 function shiftAllDown(){
   if(!bodyFull){alert('No body loaded');return;}
-  if(!confirm('This will reposition ALL assets to create ~200px headroom for hats/hair. Your outfits, faces, and stickers are preserved. Continue?'))return;
+  if(!confirm('This will reposition ALL assets to create headroom for hats/hair. Your outfits, faces, and stickers are preserved. Continue?'))return;
   
   log('⬇️ Repositioning all assets...');
   
-  // Scan body to calculate safe transform
   var bb=scanBounds(bodyFull.img);
-  var bodyTop=bb.top*1024, bodyBot=bb.bot*1024;
-  var bodyH=bodyBot-bodyTop;
-  var bodyCy=(bodyTop+bodyBot)/2;
+  var bodyTopPx=bb.top*1024, bodyBotPx=bb.bot*1024;
+  var bodyHPx=bodyBotPx-bodyTopPx;
   
-  // Target: head top at y=250 (leaving 250px headroom), scale to fit within canvas
-  var targetTop=250;
-  var targetBot=1000; // leave 24px bottom margin
+  // Target positions in pixels
+  var targetTop=250; // head starts here — 250px headroom for hats
+  var targetBot=1000; // feet end here — 24px bottom margin
   var targetH=targetBot-targetTop;
-  var scale=Math.min(targetH/bodyH, 1.0); // don't scale up
-  var targetCy=(targetTop+targetBot)/2;
-  var shiftY=targetCy-bodyCy*scale;
   
-  log('Body: top='+Math.round(bodyTop)+' bot='+Math.round(bodyBot)+' → scale='+scale.toFixed(2)+' shift='+Math.round(shiftY)+'px');
-  log('New head top will be ~'+Math.round(bodyTop*scale+shiftY)+'px ('+Math.round(bodyTop*scale+shiftY)+'px headroom)');
+  // Scale to fit
+  var scale=Math.min(targetH/bodyHPx, 1.0);
+  
+  // Calculate shift using actual transform formula:
+  // newY = (oldY - 512) * scale + 512 + shiftY
+  // We want bodyTopPx → targetTop:
+  var shiftY = targetTop - (bodyTopPx - 512) * scale - 512;
+  
+  // Verify bottom fits
+  var newBot = (bodyBotPx - 512) * scale + 512 + shiftY;
+  log('Body: top='+Math.round(bodyTopPx)+' bot='+Math.round(bodyBotPx)+' h='+Math.round(bodyHPx));
+  log('Transform: scale='+scale.toFixed(3)+' shiftY='+Math.round(shiftY));
+  log('Result: top→'+targetTop+' bot→'+Math.round(newBot));
+  
+  if(newBot > 1020){
+    // Safety: scale down more
+    scale = scale * 0.92;
+    shiftY = targetTop - (bodyTopPx - 512) * scale - 512;
+    newBot = (bodyBotPx - 512) * scale + 512 + shiftY;
+    log('Adjusted: scale='+scale.toFixed(3)+' shiftY='+Math.round(shiftY)+' bot→'+Math.round(newBot));
+  }
   
   function transformImage(img){
     return new Promise(function(resolve){
@@ -1308,15 +1322,13 @@ function shiftAllDown(){
   
   var promises=[];
   
-  // Transform body parts
   if(bodyFull) promises.push(transformImage(bodyFull.img).then(function(r){bodyFull=r;}));
   if(bodyHead) promises.push(transformImage(bodyHead.img).then(function(r){bodyHead=r;}));
   if(bodyLower) promises.push(transformImage(bodyLower.img).then(function(r){bodyLower=r;}));
   
-  // Update splitY
-  splitY=splitY*scale + shiftY/1024;
+  // Update splitY through same transform
+  splitY = (splitY*1024 - 512) * scale / 1024 + 0.5 + shiftY/1024;
   
-  // Transform all kept assets (outfits, faces, stickers — NOT hairhats)
   CATEGORIES.forEach(function(cat){
     if(cat==='hairhats') return;
     kept[cat].forEach(function(item){
@@ -1328,7 +1340,6 @@ function shiftAllDown(){
   });
   
   Promise.all(promises).then(function(){
-    // Recalculate slot boxes from new body position
     if(bodyFull){
       var b=scanBounds(bodyFull.img);
       var headH=splitY-b.top;
@@ -1342,7 +1353,8 @@ function shiftAllDown(){
     
     updateCounts();saveAll();render();renderPanel();
     var newBB=scanBounds(bodyFull.img);
-    log('✅ Done! Head now at y='+Math.round(newBB.top*1024)+' with '+Math.round(newBB.top*1024)+'px of headroom');
+    log('✅ Done! Head at y='+Math.round(newBB.top*1024)+' feet at y='+Math.round(newBB.bot*1024));
+    log('Headroom: '+Math.round(newBB.top*1024)+'px — plenty for hats!');
     log('👉 Delete old hair/hats in Library tab, then generate fresh ones');
   });
 }
