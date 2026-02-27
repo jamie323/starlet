@@ -1,0 +1,1892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Starlet Curator v8 — 3 Body Types</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Nunito',sans-serif;background:#1a1625;color:#e0e0e0;min-height:100vh;}
+  .topbar{background:#231e30;padding:10px 16px;border-bottom:2px solid #3d3555;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .topbar h1{font-size:15px;font-weight:800;color:#f0a8d0;margin-right:8px;}
+  .topbar input[type=password]{background:#1a1625;border:1px solid #3d3555;color:#e0e0e0;padding:5px 10px;border-radius:6px;font-size:12px;width:220px;}
+  .btn{padding:7px 13px;border:none;border-radius:6px;font-family:inherit;font-weight:700;font-size:12px;cursor:pointer;transition:0.15s;white-space:nowrap;}
+  .btn:hover{filter:brightness(1.15);}
+  .btn:disabled{opacity:0.4;cursor:not-allowed;}
+  .btn-pink{background:#f0a8d0;color:#1a1625;}
+  .btn-green{background:#6ee7b7;color:#1a1625;}
+  .btn-blue{background:#5dade2;color:#1a1625;}
+  .btn-dark{background:#3d3555;color:#ccc;}
+  .btn-red{background:#e74c3c;color:#fff;}
+  .btn-orange{background:#f39c12;color:#1a1625;}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(110,231,183,0.4);}50%{box-shadow:0 0 12px 4px rgba(110,231,183,0.3);}}
+  .main{display:flex;height:calc(100vh - 50px);}
+  .left{flex:0 0 350px;display:flex;flex-direction:column;align-items:center;padding:12px;gap:10px;overflow-y:auto;}
+  .canvas-wrap{width:320px;height:320px;border-radius:12px;overflow:hidden;background:repeating-conic-gradient(#2d2640 0% 25%,#231e30 0% 50%) 50%/16px 16px;box-shadow:0 4px 24px rgba(0,0,0,0.3);position:relative;flex-shrink:0;}
+  .canvas-wrap canvas{width:320px;height:320px;display:block;}
+  .stats{background:#2a2240;border:1px solid #3d3555;border-radius:8px;padding:10px;font-size:11px;width:100%;}
+  .stats h3{color:#f0a8d0;font-size:13px;margin-bottom:6px;}
+  .stats .row{display:flex;justify-content:space-between;padding:2px 0;}
+  .stats .count{color:#6ee7b7;font-weight:800;}
+  .right{flex:1;overflow-y:auto;background:#231e30;border-left:1px solid #3d3555;}
+  .tab-bar{display:flex;background:#1e1932;border-bottom:1px solid #3d3555;position:sticky;top:0;z-index:10;}
+  .tab-btn{padding:10px 16px;background:none;border:none;border-bottom:3px solid transparent;color:#9890a8;font-family:inherit;font-weight:700;font-size:12px;cursor:pointer;}
+  .tab-btn.active{color:#f0a8d0;border-bottom-color:#f0a8d0;}
+  .tab-btn:hover{color:#e0e0e0;}
+  .panel{padding:12px;}
+  .gen-controls{background:#2a2240;border:1px solid #3d3555;border-radius:10px;padding:14px;margin-bottom:12px;}
+  .gen-controls h3{color:#f39c12;font-size:13px;margin-bottom:8px;}
+  .gen-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .gen-progress{font-size:12px;color:#9890a8;margin-top:8px;}
+  .gen-progress .bar{background:#3d3555;border-radius:4px;height:6px;margin-top:4px;overflow:hidden;}
+  .gen-progress .fill{background:#6ee7b7;height:100%;transition:width 0.3s;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-top:12px;}
+  .card{border-radius:10px;border:2px solid #3d3555;background:repeating-conic-gradient(#2d2640 0% 25%,#231e30 0% 50%) 50%/10px 10px;overflow:hidden;position:relative;}
+  .card img{width:100%;aspect-ratio:1;object-fit:contain;display:block;}
+  .card .name{padding:4px 8px;font-size:10px;font-weight:700;color:#ccc;background:#1a1625;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .card .actions{display:flex;gap:0;}
+  .card .actions button{flex:1;padding:6px;border:none;font-family:inherit;font-weight:700;font-size:11px;cursor:pointer;}
+  .card .keep-btn{background:#6ee7b7;color:#1a1625;}
+  .card .del-btn{background:#e74c3c;color:#fff;}
+  .card.kept{border-color:#6ee7b7;box-shadow:0 0 8px rgba(110,231,183,0.3);}
+  .card.kept .actions{display:none;}
+  .card.kept::after{content:'✓ KEPT';position:absolute;top:6px;right:6px;background:#6ee7b7;color:#1a1625;font-size:9px;font-weight:800;padding:2px 6px;border-radius:4px;}
+  .section-title{font-weight:800;font-size:14px;color:#a78bfa;margin:16px 0 8px;}
+  .kept-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:6px;margin-top:8px;}
+  .kept-card{border-radius:8px;border:2px solid #6ee7b7;overflow:hidden;position:relative;background:repeating-conic-gradient(#2d2640 0% 25%,#231e30 0% 50%) 50%/8px 8px;cursor:pointer;}
+  .kept-card img{width:100%;aspect-ratio:1;object-fit:contain;display:block;}
+  .kept-card .rm{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:#e74c3c;color:#fff;border:none;font-size:10px;cursor:pointer;display:none;align-items:center;justify-content:center;}
+  .kept-card:hover .rm{display:flex;}
+  .kept-card .klbl{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.7);font-size:8px;padding:2px;text-align:center;color:#6ee7b7;font-weight:700;}
+  .log-box{background:#0d0a14;border:1px solid #3d3555;border-radius:8px;padding:8px;font-size:10px;color:#666;max-height:100px;overflow-y:auto;width:100%;font-family:monospace;margin-top:8px;}
+  .empty-msg{text-align:center;color:#555;font-size:12px;padding:40px 20px;}
+  .adjust-panel{background:#2a2240;border:2px solid #f0a8d0;border-radius:10px;padding:14px;margin-bottom:14px;}
+  .adjust-panel h3{color:#f0a8d0;font-size:13px;margin-bottom:10px;}
+  .adjust-panel .slider-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+  .adjust-panel label{font-size:11px;font-weight:700;color:#9890a8;width:55px;text-align:right;}
+  .adjust-panel input[type=range]{flex:1;accent-color:#f0a8d0;}
+  .adjust-panel .val{font-size:11px;color:#6ee7b7;width:45px;text-align:center;font-weight:700;}
+  .adjust-panel .adj-btns{display:flex;gap:6px;margin-top:10px;}
+  .info-box{background:#1e1932;border:1px solid #3d3555;border-radius:8px;padding:10px;margin-bottom:12px;font-size:11px;color:#9890a8;line-height:1.5;}
+  .info-box strong{color:#f0a8d0;}
+  .bt-sel{display:flex;gap:0;border:2px solid #3d3555;border-radius:8px;overflow:hidden;margin:0 4px;}
+  .bt-btn{padding:6px 12px;border:none;background:#1a1625;color:#888;font-family:inherit;font-weight:700;font-size:11px;cursor:pointer;border-right:1px solid #3d3555;transition:0.15s;}
+  .bt-btn:last-child{border-right:none;}
+  .bt-btn.active{background:#f0a8d0;color:#1a1625;}
+  .bt-btn:hover:not(.active){background:#2d2640;color:#ccc;}
+  .bt-label{font-size:11px;color:#9890a8;font-weight:700;margin-right:2px;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <h1>✨ Starlet v8 <span style="font-size:11px;color:#888;">3 Body Types</span></h1>
+  <input type="password" id="apiKey" placeholder="OpenAI API Key">
+  <span class="bt-label">Body:</span>
+  <div class="bt-sel" id="btSel">
+    <button class="bt-btn active" onclick="switchBody('petite')">Petite</button>
+    <button class="bt-btn" onclick="switchBody('medium')">Medium</button>
+    <button class="bt-btn" onclick="switchBody('tall')">Tall</button>
+  </div>
+  <button class="btn btn-pink" onclick="genBody()">Generate Body</button>
+  <button class="btn btn-green" onclick="splitBody()">Split</button>
+  <button class="btn btn-green" onclick="reSplit()" title="Recalculate split line for current body position">Re-Split</button>
+  <button class="btn btn-dark" onclick="renderDebugZones()">Debug</button>
+  <button class="btn btn-red" onclick="clearAll()">Reset</button>
+  <!-- padding handles hat/shoe headroom now -->
+  <button class="btn btn-dark" onclick="saveAll()">Save</button>
+  <button class="btn btn-blue" onclick="exportAll()">Export</button>
+  <button class="btn btn-dark" onclick="document.getElementById('importFile').click()">Import</button>
+  <input type="file" id="importFile" accept=".json" style="display:none" onchange="importAll(this)">
+  <button class="btn btn-green" onclick="generateAllCategories()" style="font-size:14px;padding:9px 18px;animation:pulse 2s infinite;">🚀 Gen 5 Each</button>
+  <button class="btn btn-orange" onclick="generateBatch2()" style="font-size:14px;padding:9px 18px;animation:pulse 2s infinite;">🔥 Gen All 20 (Batch 2)</button>
+  <span style="border-left:2px solid #3d3555;height:28px;margin:0 6px;"></span>
+  <input type="text" id="ghRepo" placeholder="user/repo (e.g. jamie323/starlet)" style="background:#1a1625;border:1px solid #3d3555;color:#e0e0e0;padding:6px 10px;border-radius:6px;font-family:inherit;font-size:12px;width:180px;">
+  <input type="password" id="ghToken" placeholder="GitHub Token" style="background:#1a1625;border:1px solid #3d3555;color:#e0e0e0;padding:6px 10px;border-radius:6px;font-family:inherit;font-size:12px;width:140px;">
+  <button class="btn btn-green" onclick="pushToGitHub()" style="font-size:13px;">🚀 Push to Game</button>
+</div>
+<div class="main">
+  <div class="left">
+    <div class="canvas-wrap"><canvas id="cv" width="1024" height="1024"></canvas></div>
+    <div class="stats">
+      <h3>📦 Asset Library <span id="curBodyLabel" style="color:#f39c12;font-size:11px;">(Petite)</span></h3>
+      <div class="row"><span>Outfits (this body):</span><span class="count" id="cnt-outfits">0</span></div>
+      <div class="row"><span>Faces (shared):</span><span class="count" id="cnt-faces">0</span></div>
+      <div class="row"><span>Hair/Hats (shared):</span><span class="count" id="cnt-hairhats">0</span></div>
+      <div class="row"><span>Stickers (shared):</span><span class="count" id="cnt-stickers">0</span></div>
+      <div class="row"><span>-</span><span>-</span></div>
+      <div class="row"><span>All outfits (3 bodies):</span><span class="count" id="cnt-all-outfits">0</span></div>
+      <div class="row"><span><strong>Total:</strong></span><span class="count" id="cnt-total">0</span></div>
+    </div>
+    <div class="info-box">
+      <strong>v8 — 3 Body Types:</strong><br>
+      • Switch body type above → each gets its own body + outfits<br>
+      • Faces, hair/hats, stickers are shared across all 3 bodies<br>
+      • <strong>Gen 5 Each</strong> — outfits for current body only<br>
+      • <strong>Gen All 20 (Batch 2)</strong> — outfits for current body
+    </div>
+    <div class="log-box" id="logBox"></div>
+  </div>
+  <div class="right">
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="showTab('outfits')">👗 Outfits</button>
+      <button class="tab-btn" onclick="showTab('faces')">😊 Faces</button>
+      <button class="tab-btn" onclick="showTab('hairhats')">💇 Hair/Hats</button>
+      <button class="tab-btn" onclick="showTab('stickers')">⭐ Stickers</button>
+      <button class="tab-btn" onclick="showTab('play')" style="color:#6ee7b7;">🎮 Play</button>
+      <button class="tab-btn" onclick="showTab('library')">📚 Library</button>
+    </div>
+    <div class="panel" id="panelArea"></div>
+  </div>
+</div>
+
+<script>
+// ================================================================
+// v7 — BATCH 2 VOLUME GENERATION (20 new prompts per category)
+// ================================================================
+// OUTFITS: Inpainted onto body (full body mask below neck)
+// FACES: Standalone generation (some with glasses baked in)
+// HAIRHATS: Standalone generation (hair alone, or hair+hat combos)
+// STICKERS: Standalone generation (drag-drop accessories for game)
+// ================================================================
+
+var STYLE = "Children's mobile game character. Dark chocolate brown outlines (#3D2B1F, thin 1-2px, NOT black). Clean vector shapes. Flat bold colors, ZERO gradients, ZERO shading, ZERO shadows. Rounded forms. Professional quality. ";
+
+var PROMPTS = {
+  outfits: [
+    'A cute PINK DUNGAREE DRESS with a daisy flower on the front pocket, with SHORT SLEEVES, complete with PINK MARY JANE SHOES at the bottom. Front-facing, symmetrical.',
+    'A LAVENDER HOODIE with cute cat ears on the hood, matching LAVENDER JOGGER PANTS, and WHITE SNEAKERS. Front-facing, symmetrical.',
+    'A YELLOW short-sleeve BUTTON SHIRT over LIGHT BLUE DENIM OVERALLS with a small daisy patch, and BROWN LACE-UP BOOTS. Front-facing, symmetrical.',
+    'A GREEN AND WHITE PLAID SCHOOL UNIFORM: green plaid blazer over white shirt with red tie, plaid pleated skirt, NAVY BLUE KNEE SOCKS, and BROWN LOAFERS. Front-facing, symmetrical.',
+    'A BRIGHT RED full-body SUPERHERO COSTUME with a yellow star on the chest, matching red boots, and a small YELLOW CAPE flowing behind. Front-facing, symmetrical.',
+    'A PASTEL RAINBOW STRIPED long-sleeve TEE tucked into HIGH-WAISTED YELLOW SHORTS, with RAINBOW SNEAKERS. Front-facing, symmetrical.',
+    'An ORANGE TIGER-STRIPED ONESIE covering whole body, with a cute tiger tail, tiger paw SLIPPERS, and small rounded ears on the hood. Front-facing, symmetrical.',
+    'A MINT GREEN TUTU DRESS with sparkly bodice and fluffy layered tulle skirt, paired with SILVER BALLET FLATS. Front-facing, symmetrical.',
+    'A DENIM JACKET over a WHITE T-SHIRT with a small heart, paired with RED PANTS, and BLACK HIGH-TOP SNEAKERS. Front-facing, symmetrical.',
+    'A sparkly DEEP BLUE WIZARD ROBE covered in gold stars and moons, with a gold rope belt, and POINTED BLUE BOOTS. Front-facing, symmetrical.',
+    'A PINK FLUFFY BUNNY ONESIE with long floppy bunny ears on the hood, a fluffy cotton tail, and PINK BUNNY SLIPPERS. Front-facing, symmetrical.',
+    'A bright YELLOW RAINCOAT with toggle buttons, matching YELLOW RAIN PANTS, and RED WELLINGTON BOOTS. Front-facing, symmetrical.',
+    'A CHERRY BLOSSOM PINK KIMONO with a purple obi sash and floral pattern, paired with wooden GETA SANDALS. Front-facing, symmetrical.',
+    'A WHITE ASTRONAUT SPACESUIT with silver details, patches on the arms, a round helmet ring at the neck, and big WHITE SPACE BOOTS. Front-facing, symmetrical.',
+    'A BRIGHT GREEN DINOSAUR HOODIE with spikes down the back, matching GREEN SHORTS, and ORANGE SNEAKERS with dino feet design. Front-facing, symmetrical.',
+    'A CORAL SUMMER DRESS with white daisy print, spaghetti straps, and WHITE CANVAS SNEAKERS. Front-facing, symmetrical.',
+    'A NAVY SAILOR OUTFIT with white collar and red bow tie, navy shorts, WHITE DECK SHOES. Front-facing, symmetrical.',
+    'A BROWN COWBOY outfit with fringed leather vest, denim jeans, and BROWN COWBOY BOOTS with silver buckle. Front-facing, symmetrical.',
+    'A TEAL CHEF outfit with double-breasted white jacket, chef neckerchief, and BLACK CLOGS. Front-facing, symmetrical.',
+    'A LIME GREEN TRACKSUIT with white racing stripes down the sides, and BRIGHT GREEN RUNNING SHOES. Front-facing, symmetrical.',
+    'A PURPLE PRINCESS BALL GOWN with puffed sleeves, sparkly bodice, and long flowing skirt, with GLASS SLIPPERS. Front-facing, symmetrical.',
+    'A BLACK AND ORANGE HALLOWEEN COSTUME — skeleton bones printed on black bodysuit, ORANGE SNEAKERS. Front-facing, symmetrical.',
+    'A TURQUOISE MERMAID OUTFIT — sparkly scale-pattern top, flowing tail-shaped skirt in gradient blue-green, TURQUOISE SANDALS. Front-facing, symmetrical.',
+    'A BRIGHT PINK pop star outfit — sparkly crop jacket with sequins, matching PINK SKIRT with stars, WHITE PLATFORM BOOTS. Front-facing, symmetrical.',
+    'A FOREST GREEN ELF COSTUME with pointy collar, gold belt, green tights, and CURLY-TOED GREEN BOOTS with jingle bells. Front-facing, symmetrical.',
+  ],
+  faces: [
+    // --- PLAIN FACES (no glasses) --- prefix is added by getCatInstruction
+    'Big round sparkling eyes with white highlight dots, tiny round button nose, wide cheerful closed-mouth smile, round PINK blush circles on cheeks.',
+    'HUGE sparkling star-shaped eyes full of wonder, tiny nose, enormous open-mouth grin showing pure joy, deep rosy blush circles, raised happy eyebrows.',
+    'Half-lidded downward-looking eyes with long pretty lashes (shy look), tiny nose, gentle tiny closed-mouth smile, DEEP PINK blush circles on both cheeks.',
+    'Perfectly round WIDE-OPEN surprised eyes (big O shapes), tiny nose, small round O-shaped surprised open mouth, raised high eyebrows, light pink blush.',
+    'One eye winking shut with a curve, one eye open and cheerful, tongue poking out to the side playfully, scrunched cute nose, mischievous grin.',
+    'Half-lidded confident COOL eyes, slight one-sided knowing smirk, tiny nose, one eyebrow raised slightly higher than the other.',
+    'Drooping nearly-closed SLEEPY eyes with heavy eyelids, tiny nose, small round yawning open mouth, maybe a tiny floating Z.',
+    'Eyes squeezed completely shut in happy upward curves (^ ^), WIDE OPEN laughing mouth, tiny nose, deep PINK blush circles.',
+    'Furrowed angry eyebrows slanting down, slightly narrowed grumpy eyes, tiny nose, small pouting frown mouth, puffed-out cheeks. Cute grumpy face.',
+    'Eyes replaced with TWO BIG PINK HEARTS, dreamy swooning smile, tiny nose, DEEP blush, maybe a tiny floating heart.',
+    // --- FACES WITH GLASSES (5) ---
+    'Big round PINK-framed sunglasses with dark lenses covering the eyes, tiny nose below the glasses, big confident smile, pink blush circles. The glasses sit naturally on the face.',
+    'Fun YELLOW STAR-SHAPED glasses frames with visible happy eyes behind them, tiny nose, big excited grin, rosy cheeks. Stars are the lens shape.',
+    'Oversized RED HEART-SHAPED sunglasses covering the eyes, tiny nose, happy smile, pink blush. Valentine style.',
+    'Small round GOLD wire-rim glasses, smart-looking sparkly eyes behind lenses, tiny nose, gentle knowing smile. Scholarly bookworm look.',
+    'Chunky PURPLE cat-eye glasses with rhinestones at corners, sassy eyes behind them, tiny nose, confident grin. Retro glam style.',
+  ],
+  hairhats: [
+    // ====== HAIR ONLY ======
+    // KEY: describe as a WIG or HAIRPIECE sitting on an invisible mannequin. ZERO facial features.
+    'A short messy tousled bob WIG in DARK CHOCOLATE BROWN with gentle waves and bangs. This is ONLY the hair piece — like a wig on a featureless mannequin. Show ONLY hair strands, ZERO eyes, ZERO nose, ZERO mouth, ZERO face shape, ZERO skin. Just brown hair floating on transparency.',
+    'A long straight silky JET BLACK hair WIG flowing past shoulders with straight-cut bangs. ONLY the hair piece. ZERO face, ZERO eyes, ZERO nose, ZERO mouth, ZERO skin visible. Just black hair strands on transparent background.',
+    'A big fluffy DARK BROWN curly afro puff WIG — a large round cloud of beautiful tight curls. ONLY the hair shape. Absolutely NO facial features, NO eyes, NO nose, NO mouth, NO face outline, NO skin. Pure hair on transparency.',
+    'Twin high pigtail WIG in BRIGHT RED ginger hair tied with small blue bows, with straight bangs. ONLY the hair piece. NO face, NO eyes, NO nose, NO mouth, NO skin anywhere. Red hair on transparency.',
+    'A short spiky GOLDEN BLONDE hair WIG with messy spikes pointing in all directions. ONLY the hair piece. Absolutely NO face, NO eyes, NO nose, NO mouth, NO skin. Blonde spikes on transparency.',
+    'A long wavy AUBURN brown-red hair WIG with gentle flowing waves past shoulders. ONLY the hair. NO face, NO eyes, NO nose, NO mouth, NO skin. Auburn waves on transparency.',
+    'Two round space bun WIG in DARK BROWN with remaining hair flowing down. ONLY the hair piece. NO face, NO eyes, NO mouth, NO skin. Brown hair buns on transparency.',
+    'A short pixie cut WIG in PLATINUM BLONDE, very short neat style. ONLY the hair. NO face features, NO eyes, NO nose, NO mouth, NO skin. Platinum hair on transparency.',
+    'Two long braid WIG in LIGHT BROWN hair hanging forward with bangs and middle part. ONLY the braids. NO face, NO eyes, NO nose, NO mouth, NO skin. Brown braids on transparency.',
+    'Big bouncy DARK BROWN ringlet curl WIG with large defined voluminous curls. ONLY curls. NO face, NO eyes, NO nose, NO mouth, NO skin. Curls on transparency.',
+    'Two low twintail WIG in PASTEL PINK hair, soft wavy, resting on shoulders. ONLY the hair. NO face, NO eyes, NO mouth, NO skin. Pink hair on transparency.',
+    'Wild crazy RAINBOW colored hair WIG — red orange yellow green blue purple sections flowing everywhere. ONLY rainbow hair. NO face, NO eyes, NO mouth, NO skin.',
+    // ====== HAIR + HAT COMBOS ======
+    'A short brown bob WIG wearing a sparkly GOLD PRINCESS TIARA CROWN with pink gems on top. Show the hair AND the tiara as ONE piece. ZERO face, ZERO eyes, ZERO nose, ZERO mouth, ZERO skin. Hair+crown on transparency.',
+    'Long black straight hair WIG wearing a BRIGHT RED BASEBALL CAP forward. Hair flows from under the cap. ONE combined piece. ZERO face, ZERO eyes, ZERO nose, ZERO mouth. Hair+cap on transparency.',
+    'Curly brown hair WIG wearing a PURPLE WITCH POINTED HAT with gold star buckle. Hair curls from under hat. ONE piece. ZERO face, ZERO eyes, ZERO mouth. Hair+witch hat on transparency.',
+    'Blonde pigtail WIG wearing a PINK FLOWER CROWN headband overflowing with roses and daisies. ONE piece. ZERO face, ZERO eyes, ZERO mouth, ZERO skin. Hair+flowers on transparency.',
+    'Short spiky red hair WIG wearing a YELLOW CONSTRUCTION HARD HAT. ONE piece. ZERO face, ZERO eyes, ZERO mouth. Hair+hardhat on transparency.',
+    'Long wavy brown hair WIG wearing a BROWN COWBOY HAT with silver star badge. Hair flows from under cowboy hat. ONE piece. ZERO face, ZERO eyes, ZERO mouth. Hair+hat on transparency.',
+    'Dark brown bun WIG wearing WHITE FLUFFY BUNNY EAR HEADBAND with tall floppy pink-lined ears. ONE piece. ZERO face, ZERO eyes, ZERO mouth. Hair+bunny ears on transparency.',
+    'Auburn braid WIG wearing a GREEN ROBIN HOOD POINTED CAP with red feather. Braids hang from under cap. ONE piece. ZERO face, ZERO eyes, ZERO mouth. Hair+cap on transparency.',
+    'Black high ponytail WIG wearing a RAINBOW UNICORN HORN HEADBAND with pastel flowers and golden spiral horn. ONE piece. ZERO face, ZERO eyes, ZERO mouth. Hair+unicorn horn on transparency.',
+    'Short pink hair WIG wearing a NAVY BLUE SAILOR CAPTAIN HAT with gold anchor emblem. ONE piece. ZERO face, ZERO eyes, ZERO mouth. Hair+sailor hat on transparency.',
+    'Messy brown hair WIG wearing a PINK KNIT BEANIE with oversized RAINBOW POM-POM on top. ONE piece. ZERO face, ZERO eyes, ZERO mouth. Hair+beanie on transparency.',
+    'Long blonde hair WIG wearing CAT EARS HEADBAND with pointy black cat ears. ONE piece. ZERO face, ZERO eyes, ZERO mouth. Hair+cat ears on transparency.',
+    'Brown afro WIG wearing a SKY BLUE ICE CRYSTAL CROWN, frozen queen style. ONE piece. ZERO face, ZERO eyes, ZERO mouth. Hair+ice crown on transparency.',
+    'Jet black bun WIG with decorative CHOPSTICKS and small FLOWERS through it. ONE piece. ZERO face, ZERO eyes, ZERO mouth. Hair+chopsticks on transparency.',
+  ],
+  stickers: [
+    'A tiny PASTEL PINK heart-shaped crossbody purse with gold chain strap and little bow. On TRANSPARENT 1024x1024 background. Centered. Front view. Cute children\'s game item.',
+    'A sparkly MAGIC WAND with a glowing star tip, trail of tiny sparkles. On TRANSPARENT background. Centered.',
+    'A cute BROWN TEDDY BEAR plush toy, sitting pose, button eyes, bow tie. On TRANSPARENT background. Centered.',
+    'A single RED BALLOON on a curly string. On TRANSPARENT background. Centered.',
+    'A small RAINBOW LOLLIPOP candy on a white stick. On TRANSPARENT background. Centered.',
+    'A cute YELLOW RUBBER DUCK toy. On TRANSPARENT background. Centered.',
+    'A small PURPLE BUTTERFLY with sparkly wings. On TRANSPARENT background. Centered.',
+    'A tiny BLUE GUITAR / ukulele. On TRANSPARENT background. Centered.',
+    'A cute GREEN FROG plush toy with big round eyes. On TRANSPARENT background. Centered.',
+    'A golden TROPHY CUP with a star on it. On TRANSPARENT background. Centered.',
+    'A pink FLOWER BOUQUET tied with a ribbon. On TRANSPARENT background. Centered.',
+    'A cute ORANGE KITTEN sitting, cartoon style. On TRANSPARENT background. Centered.',
+    'A sparkly DIAMOND GEM, large faceted jewel. On TRANSPARENT background. Centered.',
+    'A small RAINBOW with clouds on each end. On TRANSPARENT background. Centered.',
+    'A cute ICE CREAM CONE with three colorful scoops. On TRANSPARENT background. Centered.',
+  ]
+};
+
+// ================================================================
+// BATCH 2 — 20 COMPLETELY NEW PROMPTS PER CATEGORY (zero overlap with above)
+// ================================================================
+var PROMPTS_BATCH2 = {
+  outfits: [
+    'A WHITE DOCTOR LAB COAT over light blue scrubs, with a tiny stethoscope around the neck, and WHITE MEDICAL CLOGS. Front-facing, symmetrical.',
+    'A BRIGHT YELLOW FIREFIGHTER JACKET with reflective silver stripes, matching yellow pants, heavy BLACK FIRE BOOTS, and a removable RED HELMET. Front-facing, symmetrical.',
+    'A NAVY BLUE PILOT UNIFORM with gold epaulets, white dress shirt, navy tie, POLISHED BLACK SHOES. Front-facing, symmetrical.',
+    'A PINK BALLERINA LEOTARD with a fluffy white tutu, pink tights, and PINK SATIN BALLET POINTE SHOES with ribbons. Front-facing, symmetrical.',
+    'A PIRATE OUTFIT — white billowy blouse with black skull-print vest, tattered brown pants, RED SASH around waist, and TALL BROWN PIRATE BOOTS. Front-facing, symmetrical.',
+    'A sparkly LIGHT BLUE FAIRY DRESS with translucent iridescent wings attached to back, flower trim, and SILVER SPARKLY SHOES. Front-facing, symmetrical.',
+    'A BLACK AND RED VAMPIRE CAPE outfit — white ruffled shirt, black vest, cape with red lining, dark pants, POINTED BLACK BOOTS. Front-facing, symmetrical.',
+    'A COLORFUL CLOWN SUIT — rainbow polka dot one-piece, oversized buttons, ruffled neck collar, and BIG RED CLOWN SHOES. Front-facing, symmetrical.',
+    'A SILVER KNIGHT ARMOR set — shiny silver breastplate over chainmail, armored gauntlets, leg armor, and SILVER ARMORED BOOTS. Front-facing, symmetrical.',
+    'A BLACK LEATHER ROCK STAR JACKET with silver studs, ripped jeans, band t-shirt underneath, CHUNKY BLACK BOOTS with buckles. Front-facing, symmetrical.',
+    'A PUFFY WINTER COAT in hot pink with faux fur hood trim, matching PINK SNOW PANTS, and WHITE FURRY SNOW BOOTS. Front-facing, symmetrical.',
+    'A WHITE FLORAL SUNDRESS with sunflower print, thin straps, flowy knee-length skirt, and YELLOW JELLY SANDALS. Front-facing, symmetrical.',
+    'A RED STRIPED overall JUMPSUIT over a white long-sleeve shirt, with paint splatters on the overalls, and TAN WORK BOOTS. Front-facing, symmetrical.',
+    'A CLASSIC BLACK TUXEDO with white shirt, bow tie, satin lapels, matching pants, and SHINY BLACK DRESS SHOES. Front-facing, symmetrical.',
+    'A HAWAIIAN SHIRT in bright tropical print (orange/teal) over KHAKI BOARD SHORTS, and BROWN FLIP FLOP SANDALS. Front-facing, symmetrical.',
+    'A PUNK OUTFIT — black plaid skirt, torn fishnets, band hoodie in electric purple, spiked bracelet, PLATFORM SNEAKERS in black and neon green. Front-facing, symmetrical.',
+    'A full SOCCER UNIFORM — bright green jersey with white number 10, matching green shorts, long white socks, and WHITE SOCCER CLEATS. Front-facing, symmetrical.',
+    'A cozy PAJAMA SET — soft lavender top with tiny moon and star print, matching lavender pants, and FLUFFY PURPLE BUNNY SLIPPERS. Front-facing, symmetrical.',
+    'A GARDEN FARMER outfit — denim overalls with sunflower patch, red gingham shirt underneath, straw belt, and MUDDY GREEN RUBBER BOOTS. Front-facing, symmetrical.',
+    'An INDIAN LEHENGA CHOLI — deep magenta embroidered crop top with mirror work, flowing magenta and gold skirt, golden JUTI SLIPPERS. Front-facing, symmetrical.',
+  ],
+  faces: [
+    'Intense DETERMINED eyes with thick eyebrows angled downward in focus, tiny nose, firm closed-mouth confident frown, no blush. Brave warrior face.',
+    'Squeezed half-shut eyes with tears of JOY streaming down, huge wide laughing open mouth, tiny nose, deep pink blush from laughing so hard.',
+    'DIZZY SPIRAL eyes (spinning spiral pattern in each eye), tiny nose, wobbly wavy line mouth, maybe tiny stars circling above head.',
+    'Wide NERVOUS worried eyes looking to the side, sweat drop on temple, tiny nose, wavy anxious frown mouth, raised worried eyebrows.',
+    'Half-lidded SASSY EYEROLL eyes looking up and to the side, tiny nose, small smug smirk mouth, one eyebrow raised, light blush.',
+    'Round eyes with musical note sparkles, SINGING wide open mouth in an O shape showing happy singing, tiny nose, rosy blush, maybe floating music notes.',
+    'Eyes squeezed completely shut, scrunched nose, SNEEZING wide open mouth — big cartoon achoo moment. Red nose. Maybe small puff clouds.',
+    'One eye looking up in DEEP THOUGHT, hand-on-chin style pursed lips, tiny nose, one eyebrow raised, small thought bubble with question mark.',
+    'HUGE sparkling EXCITED eyes with literal star/sparkle reflections inside, tiny nose, enormous delighted open-mouth grin, deep rosy blush, raised eyebrows.',
+    'Heavy-lidded BORED UNIMPRESSED eyes, flat straight-line mouth, tiny nose, no blush, one eyebrow slightly raised. Total "meh" face.',
+    // --- WITH GLASSES ---
+    'Sleek SILVER AVIATOR SUNGLASSES with mirror lenses reflecting light, tiny nose, cool confident slight smile. Top Gun style.',
+    'Fun FLOWER-SHAPED glasses — each lens is a colorful daisy shape (pink and yellow), happy eyes behind them, tiny nose, big cheerful grin.',
+    'Sparkly BUTTERFLY-WING glasses — the frame extends into delicate butterfly wing shapes on each side, cute eyes behind them, tiny nose, gentle smile.',
+    'Small ROUND TORTOISESHELL glasses in warm brown, smart studious eyes behind them, tiny nose, soft knowing smile. Classic nerdy-cute look.',
+    'Oversized NEON GREEN SQUARE glasses, goofy excited eyes behind them, tiny nose, wide silly grin showing teeth. Fun party glasses.',
+    'Elegant ROSE GOLD half-moon READING GLASSES perched on tiny nose, wise kind eyes peering over the top, warm gentle smile.',
+    'RAINBOW GRADIENT frame glasses shifting from red to violet across the top, sparkly happy eyes behind them, tiny nose, proud smile, pink blush.',
+    'Thick BLACK ROUND glasses like Harry Potter, curious wide eyes behind them, tiny nose, slight open-mouth amazed expression.',
+    'Tiny BRIGHT ORANGE sporty wraparound VISOR glasses, competitive fierce eyes behind them, tiny nose, determined grin. Athletic style.',
+    'Oversized PINK DIAMOND-ENCRUSTED glasses dripping with bling, diva eyes behind them, tiny nose, glamorous pout with a kiss. Full glam look.',
+  ],
+  hairhats: [
+    'A long flowing SILVER WHITE hair WIG, straight and silky falling past shoulders with side-swept bangs. ONLY the hair piece. ZERO face, ZERO eyes, ZERO nose, ZERO mouth, ZERO skin. Silver hair on transparency.',
+    'Neat DARK BLACK CORNROWS WIG braided tightly against head in straight-back rows. ONLY the braided hair. ZERO face, ZERO eyes, ZERO nose, ZERO mouth, ZERO skin. Cornrows on transparency.',
+    'A HALF-UP HALF-DOWN hairstyle WIG in WARM BROWN — top half pulled into a bun, bottom half flowing loose. ONLY the hair. ZERO face, ZERO eyes, ZERO mouth, ZERO skin.',
+    'Long curly GINGER RED hair WIG with big bouncy loose curls flowing everywhere. ONLY the curly ginger hair. ZERO face, ZERO eyes, ZERO nose, ZERO mouth, ZERO skin.',
+    'A bold DARK PURPLE MOHAWK WIG — shaved sides with tall spiked strip of hair down the center. ONLY the hair. ZERO face, ZERO eyes, ZERO mouth, ZERO skin.',
+    'Short wavy LAVENDER PURPLE hair WIG, soft tousled waves, chin-length. ONLY the hair piece. ZERO face, ZERO eyes, ZERO nose, ZERO mouth, ZERO skin.',
+    'A dramatic SIDE-SWEPT BLACK hair WIG with long bangs sweeping across one side, rest tucked behind ear. ONLY hair. ZERO face, ZERO eyes, ZERO mouth, ZERO skin.',
+    'A long BLONDE FISHTAIL BRAID WIG — one thick braid over shoulder with wispy bits. ONLY the hair. ZERO face, ZERO eyes, ZERO mouth, ZERO skin.',
+    'Short choppy TEAL BLUE hair WIG, edgy asymmetric cut longer on one side. ONLY the hair. ZERO face, ZERO eyes, ZERO mouth, ZERO skin.',
+    'A low DARK BROWN PONYTAIL WIG pulled back neatly, resting at the nape of the neck. ONLY the hair. ZERO face, ZERO eyes, ZERO mouth, ZERO skin.',
+    // --- HAIR + HAT COMBOS ---
+    'Brown bob WIG wearing a RED FIREFIGHTER HELMET with gold badge. Hair tucks under helmet. ONE piece. ZERO face, ZERO eyes, ZERO mouth. Hair+helmet on transparency.',
+    'Blonde bun WIG wearing a tall WHITE CHEF TOQUE HAT. Hair in neat bun under chef hat. ONE piece. ZERO face, ZERO eyes, ZERO mouth. Hair+chef hat on transparency.',
+    'Red braids WIG wearing a HORNED VIKING HELMET — brown leather with two curved horns. ONE piece. ZERO face, ZERO eyes, ZERO mouth. Hair+viking helmet on transparency.',
+    'Black slicked-back WIG wearing a shiny BLACK TOP HAT with a satin ribbon band. ONE piece. ZERO face, ZERO eyes, ZERO mouth. Hair+top hat on transparency.',
+    'Blonde wavy WIG wearing SPARKLY BLUE SWIM GOGGLES pushed up on forehead. ONE piece. ZERO face, ZERO eyes, ZERO mouth. Hair+goggles on transparency.',
+    'Brown wavy WIG wearing a wide-brim STRAW SUN HAT with pink ribbon and flower. ONE piece. ZERO face, ZERO eyes, ZERO mouth. Hair+sun hat on transparency.',
+    'Dark brown bob WIG wearing LARGE PINK OVER-EAR HEADPHONES with stars on the cups. ONE piece. ZERO face, ZERO eyes, ZERO mouth. Hair+headphones on transparency.',
+    'Black straight WIG wearing a BLACK GRADUATION CAP with gold tassel hanging to one side. ONE piece. ZERO face, ZERO eyes, ZERO mouth. Hair+grad cap on transparency.',
+    'Messy red WIG wearing a RED PIRATE BANDANA with white skull and crossbones print. ONE piece. ZERO face, ZERO eyes, ZERO mouth. Hair+bandana on transparency.',
+    'Brown curly WIG wearing a GOLDEN ROYAL CROWN with red velvet and jewels. ONE piece. ZERO face, ZERO eyes, ZERO mouth. Hair+crown on transparency.',
+  ],
+  stickers: [
+    'A cute SKATEBOARD with flame design on the bottom, wheels visible. On TRANSPARENT 1024x1024 background. Centered. Cute children\'s game item.',
+    'A yummy PIZZA SLICE with melted cheese stretching, pepperoni on top. On TRANSPARENT background. Centered.',
+    'A cute CUPCAKE with tall pink frosting swirl, rainbow sprinkles, and a cherry on top. On TRANSPARENT background. Centered.',
+    'An adorable small PUPPY — brown and white, sitting with tongue out, big cute eyes. On TRANSPARENT background. Centered.',
+    'A beautiful golden CROWN with colorful gemstones and velvet red cushion top. On TRANSPARENT background. Centered.',
+    'A bright SUNFLOWER with green stem and leaves, happy cheerful look. On TRANSPARENT background. Centered.',
+    'A cute OPEN BOOK with magical sparkles floating up from the pages. On TRANSPARENT background. Centered.',
+    'A colorful UMBRELLA — open, seen from the side, with rainbow stripes and curved handle. On TRANSPARENT background. Centered.',
+    'A pair of PINK ROLLER SKATES with rainbow laces and star wheels. On TRANSPARENT background. Centered.',
+    'A SHOOTING STAR with a golden head and sparkling rainbow trail behind it. On TRANSPARENT background. Centered.',
+    'A beautiful iridescent SEASHELL — large spiral conch shell with pink and pearl tones. On TRANSPARENT background. Centered.',
+    'A glass POTION BOTTLE filled with swirling purple-pink liquid, cork stopper, tiny bubbles. On TRANSPARENT background. Centered.',
+    'A BUBBLE WAND with iridescent floating soap bubbles around it, rainbow reflections. On TRANSPARENT background. Centered.',
+    'A sparkly MICROPHONE — classic handheld style, silver with pink sparkle details. On TRANSPARENT background. Centered.',
+    'A cute pink INSTANT CAMERA with a heart on the lens, small photo coming out. On TRANSPARENT background. Centered.',
+    'A colorful DONUT with pink glaze and rainbow sprinkles, one bite taken out. On TRANSPARENT background. Centered.',
+    'A PLANET SATURN with rings — cute stylized pastel purple planet with golden rings. On TRANSPARENT background. Centered.',
+    'A delicate sparkling SNOWFLAKE — large detailed ice crystal in pale blue and white. On TRANSPARENT background. Centered.',
+    'A wrapped GIFT BOX in red paper with a big golden bow on top, slightly open with sparkles. On TRANSPARENT background. Centered.',
+    'A set of COLORED PENCILS — 5 pencils fanned out in rainbow order, sharpened tips. On TRANSPARENT background. Centered.',
+  ]
+};
+
+// ================================================================
+// STATE — v8 Multi-Body Architecture
+// ================================================================
+var cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+var CATEGORIES=['outfits','faces','hairhats','stickers'];
+var SHARED_CATS=['faces','hairhats','stickers']; // shared across body types
+var EXPORT_H=1400,PAD_TOP=200;
+var STANDALONE_CATS={faces:true,hairhats:true,stickers:true};
+var BODY_TYPES=['petite','medium','tall'];
+var currentBT='petite'; // active body type
+
+// Per-body state (outfits are body-specific, body images are body-specific)
+var bodyStates={};
+BODY_TYPES.forEach(function(bt){
+  bodyStates[bt]={bodyFull:null,bodyHead:null,bodyLower:null,splitY:0.33,anchors:null,slotBoxes:{},outfits:[]};
+});
+
+// Shared kept assets (faces, hair, stickers work for all bodies)
+var sharedKept={faces:[],hairhats:[],stickers:[]};
+
+// "Live" pointers — these reference the CURRENT body type's data
+var bodyFull=null,bodyHead=null,bodyLower=null;
+var splitY=0.33,anchors=null,slotBoxes={};
+
+// kept object — outfits comes from bodyStates, shared cats from sharedKept
+// This is a compatibility layer so existing code works unchanged
+var kept={outfits:[],faces:[],hairhats:[],stickers:[]};
+function syncKeptFromState(){
+  kept.outfits=bodyStates[currentBT].outfits;
+  kept.faces=sharedKept.faces;
+  kept.hairhats=sharedKept.hairhats;
+  kept.stickers=sharedKept.stickers;
+}
+function syncLiveFromState(){
+  var s=bodyStates[currentBT];
+  bodyFull=s.bodyFull;bodyHead=s.bodyHead;bodyLower=s.bodyLower;
+  splitY=s.splitY;anchors=s.anchors;slotBoxes=s.slotBoxes;
+  syncKeptFromState();
+}
+function syncStateFromLive(){
+  var s=bodyStates[currentBT];
+  s.bodyFull=bodyFull;s.bodyHead=bodyHead;s.bodyLower=bodyLower;
+  s.splitY=splitY;s.anchors=anchors;s.slotBoxes=slotBoxes;
+  s.outfits=kept.outfits;
+  sharedKept.faces=kept.faces;
+  sharedKept.hairhats=kept.hairhats;
+  sharedKept.stickers=kept.stickers;
+}
+syncLiveFromState(); // init
+
+function switchBody(bt){
+  if(bt===currentBT)return;
+  syncStateFromLive(); // save current
+  currentBT=bt;
+  syncLiveFromState(); // load new
+  // Update UI
+  document.querySelectorAll('.bt-btn').forEach(function(b){b.classList.toggle('active',b.textContent.toLowerCase()===bt);});
+  document.getElementById('curBodyLabel').textContent='('+bt.charAt(0).toUpperCase()+bt.slice(1)+')';
+  seedUsedPrompts();updateCounts();render();renderPanel();
+  log('Switched to '+bt+' body');
+}
+
+var pending=[],generating=false,genCancel=false,currentTab='outfits',editingItem=null;
+// Play mode: selected index per category (-1 = none)
+var playSelection={};CATEGORIES.forEach(function(c){playSelection[c]=-1;});
+var usedPromptIdx={};CATEGORIES.forEach(function(c){usedPromptIdx[c]=new Set();});
+var db=null;
+
+function log(s){var b=document.getElementById('logBox');b.textContent+=s+'\n';b.scrollTop=b.scrollHeight;}
+function loadImg(src){return new Promise(function(r,j){var i=new Image();i.onload=function(){r(i);};i.onerror=j;i.src=src;});}
+
+// ================================================================
+// INDEXEDDB
+// ================================================================
+function dbOpen(){return new Promise(function(resolve,reject){var req=indexedDB.open('starlet_v8',1);req.onupgradeneeded=function(e){e.target.result.createObjectStore('data');};req.onsuccess=function(e){db=e.target.result;resolve();};req.onerror=reject;});}
+function dbPut(key,val){return new Promise(function(r,j){var t=db.transaction('data','readwrite');t.objectStore('data').put(val,key);t.oncomplete=r;t.onerror=j;});}
+function dbGet(key){return new Promise(function(r,j){var t=db.transaction('data','readonly');var req=t.objectStore('data').get(key);req.onsuccess=function(){r(req.result);};req.onerror=j;});}
+function dbClear(){return new Promise(function(r,j){var t=db.transaction('data','readwrite');t.objectStore('data').clear();t.oncomplete=r;t.onerror=j;});}
+
+function saveAll(){
+  if(!db) return Promise.resolve();
+  syncStateFromLive(); // ensure current body type is saved
+  var state={currentBT:currentBT,bodyStates:{},sharedMeta:{}};
+  var promises=[];
+  // Save per-body state
+  BODY_TYPES.forEach(function(bt){
+    var s=bodyStates[bt];
+    state.bodyStates[bt]={splitY:s.splitY,anchors:s.anchors,slotBoxes:s.slotBoxes,outfitsMeta:[]};
+    if(s.bodyFull) promises.push(dbPut('img_'+bt+'_bodyFull',s.bodyFull.dataUrl));
+    if(s.bodyHead) promises.push(dbPut('img_'+bt+'_bodyHead',s.bodyHead.dataUrl));
+    if(s.bodyLower) promises.push(dbPut('img_'+bt+'_bodyLower',s.bodyLower.dataUrl));
+    s.outfits.forEach(function(item,i){
+      var k='img_'+bt+'_outfit_'+i;
+      state.bodyStates[bt].outfitsMeta.push({name:item.name,adj:item.adj||null,imgKey:k});
+      promises.push(dbPut(k,item.dataUrl));
+    });
+  });
+  // Save shared assets
+  SHARED_CATS.forEach(function(cat){
+    state.sharedMeta[cat]=[];
+    sharedKept[cat].forEach(function(item,i){
+      var k='img_shared_'+cat+'_'+i;
+      state.sharedMeta[cat].push({name:item.name,adj:item.adj||null,imgKey:k});
+      promises.push(dbPut(k,item.dataUrl));
+    });
+  });
+  promises.push(dbPut('state_v8',state));
+  return Promise.all(promises).then(function(){log('Saved.');});
+}
+
+function loadSaved(){
+  if(!db) return Promise.resolve();
+  return dbGet('state_v8').then(function(state){
+    if(!state) return;
+    var promises=[];
+    // Load per-body state
+    BODY_TYPES.forEach(function(bt){
+      var sm=state.bodyStates&&state.bodyStates[bt];
+      if(!sm) return;
+      var s=bodyStates[bt];
+      s.splitY=sm.splitY||0.33;s.anchors=sm.anchors||null;s.slotBoxes=sm.slotBoxes||{};
+      promises.push(dbGet('img_'+bt+'_bodyFull').then(function(u){if(u) return loadImg(u).then(function(i){s.bodyFull={img:i,dataUrl:u};});}));
+      promises.push(dbGet('img_'+bt+'_bodyHead').then(function(u){if(u) return loadImg(u).then(function(i){s.bodyHead={img:i,dataUrl:u};});}));
+      promises.push(dbGet('img_'+bt+'_bodyLower').then(function(u){if(u) return loadImg(u).then(function(i){s.bodyLower={img:i,dataUrl:u};});}));
+      (sm.outfitsMeta||[]).forEach(function(m){
+        promises.push(dbGet(m.imgKey).then(function(u){if(u) return loadImg(u).then(function(img){s.outfits.push({name:m.name,adj:m.adj||null,img:img,dataUrl:u,category:'outfits'});});}));
+      });
+    });
+    // Load shared assets
+    SHARED_CATS.forEach(function(cat){
+      (state.sharedMeta&&state.sharedMeta[cat]||[]).forEach(function(m){
+        promises.push(dbGet(m.imgKey).then(function(u){if(u) return loadImg(u).then(function(img){sharedKept[cat].push({name:m.name,adj:m.adj||null,img:img,dataUrl:u,category:cat});});}));
+      });
+    });
+    return Promise.all(promises).then(function(){
+      if(state.currentBT) currentBT=state.currentBT;
+      syncLiveFromState();
+      // Update body type UI
+      document.querySelectorAll('.bt-btn').forEach(function(b){b.classList.toggle('active',b.textContent.toLowerCase()===currentBT);});
+      document.getElementById('curBodyLabel').textContent='('+currentBT.charAt(0).toUpperCase()+currentBT.slice(1)+')';
+      seedUsedPrompts();updateCounts();render();renderPanel();log('Loaded (v8 multi-body).');
+    });
+  });
+}
+
+// Seed usedPromptIdx from already-kept items so Gen 5/10 skips them
+function seedUsedPrompts(){
+  CATEGORIES.forEach(function(cat){
+    usedPromptIdx[cat]=new Set();
+    var pool=PROMPTS[cat];
+    kept[cat].forEach(function(item){
+      // Match kept item name (first 40 chars) against prompt pool
+      for(var i=0;i<pool.length;i++){
+        if(pool[i].substring(0,40)===item.name){usedPromptIdx[cat].add(i);break;}
+      }
+    });
+    // Also check pending items
+    pending.forEach(function(p){
+      if(p.category!==cat)return;
+      for(var i=0;i<pool.length;i++){
+        if(pool[i].substring(0,40)===p.name){usedPromptIdx[cat].add(i);break;}
+      }
+    });
+    log(cat+': '+usedPromptIdx[cat].size+'/'+pool.length+' prompts already used');
+  });
+}
+
+// ================================================================
+// SPLIT LINE
+// ================================================================
+var draggingSplit=false,splitLineVisible=false;
+cv.addEventListener('mousedown',function(e){if(!bodyFull||bodyLower)return;var r=cv.getBoundingClientRect();if(Math.abs((e.clientY-r.top)/r.height-splitY)<0.08){draggingSplit=true;cv.style.cursor='ns-resize';}});
+cv.addEventListener('mousemove',function(e){if(!bodyFull||bodyLower)return;var r=cv.getBoundingClientRect();var y=(e.clientY-r.top)/r.height;if(draggingSplit){splitY=Math.max(0.2,Math.min(0.8,y));render();drawSplitLine();}else cv.style.cursor=Math.abs(y-splitY)<0.08?'ns-resize':'default';});
+cv.addEventListener('mouseup',function(){if(draggingSplit){draggingSplit=false;cv.style.cursor='default';}});
+cv.addEventListener('touchstart',function(e){if(!bodyFull||bodyLower)return;var r=cv.getBoundingClientRect();var t=e.touches[0];var y=(t.clientY-r.top)/r.height;if(Math.abs(y-splitY)<0.12){draggingSplit=true;e.preventDefault();}},{passive:false});
+cv.addEventListener('touchmove',function(e){if(!bodyFull||bodyLower)return;if(draggingSplit){var r=cv.getBoundingClientRect();var t=e.touches[0];splitY=Math.max(0.2,Math.min(0.8,(t.clientY-r.top)/r.height));render();drawSplitLine();e.preventDefault();}},{passive:false});
+cv.addEventListener('touchend',function(){draggingSplit=false;});
+cv.addEventListener('mouseleave',function(){draggingSplit=false;cv.style.cursor='default';});
+function drawSplitLine(){var ly=splitY*1024;ctx.save();ctx.strokeStyle='#ff0000';ctx.lineWidth=6;ctx.setLineDash([10,5]);ctx.beginPath();ctx.moveTo(0,ly);ctx.lineTo(1024,ly);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#ff0000';ctx.font='bold 24px Nunito';ctx.fillText('⬆ DRAG THIS LINE ⬇ — below chin, then click Split',20,ly-12);ctx.restore();}
+function initSplitLine(){if(!bodyFull)return;var b=scanBounds(bodyFull.img);splitY=b.top+(b.bot-b.top)*0.38;splitLineVisible=true;render();drawSplitLine();log('Drag the line, then click Split.');}
+
+function reSplit(){
+  if(!bodyFull){alert('No body loaded');return;}
+  bodyHead=null;bodyLower=null;
+  var b=scanBounds(bodyFull.img);
+  splitY=b.top+(b.bot-b.top)*0.45;
+  splitLineVisible=true;render();drawSplitLine();
+  log('Re-Split ready. Use the slider below to position the line, then click Split.');
+  // Show slider
+  var el=document.getElementById('splitSlider');
+  if(el)el.remove();
+  var div=document.createElement('div');div.id='splitSlider';
+  div.style.cssText='position:fixed;bottom:10px;left:50%;transform:translateX(-50%);background:#231e30;padding:12px 20px;border-radius:12px;z-index:999;display:flex;align-items:center;gap:10px;box-shadow:0 4px 20px rgba(0,0,0,0.5);';
+  div.innerHTML='<span style="color:#fff;font-size:13px;font-weight:700;">Split line:</span>'+
+    '<input type="range" min="30" max="80" value="'+Math.round(splitY*100)+'" style="width:300px;accent-color:#ff0000;" oninput="splitY=this.value/100;render();drawSplitLine();document.getElementById(\'splitVal\').textContent=Math.round(splitY*1024)+\'px\';">'+
+    '<span id="splitVal" style="color:#ff0;font-size:13px;font-weight:700;min-width:50px;">'+Math.round(splitY*1024)+'px</span>'+
+    '<button onclick="document.getElementById(\'splitSlider\').remove();splitBody();" style="padding:8px 16px;background:#6ee7b7;border:none;border-radius:8px;font-weight:800;cursor:pointer;">✓ Split Here</button>';
+  document.body.appendChild(div);
+}
+
+// ================================================================
+// BODY GENERATION — per body type
+// ================================================================
+var BODY_PROMPTS={
+  petite: STYLE+"A cute SMALL character standing straight, facing front, centered on 1024x1024 TRANSPARENT background. "+
+    "PROPORTIONS: Very large egg-shaped head (wider at forehead, narrowing to a soft chin) taking up about 40% of total height. "+
+    "VISIBLE NECK — a short but CLEARLY VISIBLE cylinder neck connecting head to body, NOT hidden by shoulders. "+
+    "NARROW SHOULDERS — shoulders should be NARROWER than the head width. Small delicate rounded torso. "+
+    "Thin short arms hanging at sides ending in tiny round ball hands (spherical nubs, NOT flat mittens). "+
+    "Short thin legs, small bare rounded feet. Overall silhouette is TOP-HEAVY — big head, small narrow body. "+
+    "Small TEARDROP ears (slightly pointed at top). "+
+    "Wearing a plain light GREY t-shirt and light grey shorts — simple flat colour fills. "+
+    "COMPLETELY BLANK FACE — no eyes, no mouth, no nose, no eyebrows, no features at all. Smooth peach skin (#F5CBA7). "+
+    "ALL outlines DARK CHOCOLATE BROWN (#3D2B1F, thin 1-2px, NOT black). Clean vector look. Transparent background.",
+
+  medium: STYLE+"A cute MEDIUM-BUILD character standing straight, facing front, centered on 1024x1024 TRANSPARENT background. "+
+    "PROPORTIONS: Large egg-shaped head (wider at forehead, narrowing to a soft chin) taking up about 35% of total height. "+
+    "VISIBLE NECK — a short but CLEARLY VISIBLE cylinder neck connecting head to body, NOT hidden by shoulders. "+
+    "PROPORTIONAL SHOULDERS — shoulders about the same width as the head. Rounded balanced torso, slightly wider than petite. "+
+    "Medium-length arms hanging at sides ending in tiny round ball hands (spherical nubs, NOT flat mittens). "+
+    "Medium-length legs, small bare rounded feet. Overall silhouette is BALANCED — proportional head and body. "+
+    "Small TEARDROP ears (slightly pointed at top). "+
+    "Wearing a plain light GREY t-shirt and light grey shorts — simple flat colour fills. "+
+    "COMPLETELY BLANK FACE — no eyes, no mouth, no nose, no eyebrows, no features at all. Smooth peach skin (#F5CBA7). "+
+    "ALL outlines DARK CHOCOLATE BROWN (#3D2B1F, thin 1-2px, NOT black). Clean vector look. Transparent background.",
+
+  tall: STYLE+"A cute TALL SLENDER character standing straight, facing front, centered on 1024x1024 TRANSPARENT background. "+
+    "PROPORTIONS: Large egg-shaped head (wider at forehead, narrowing to a soft chin) taking up about 30% of total height. "+
+    "VISIBLE NECK — a slightly LONGER but CLEARLY VISIBLE cylinder neck connecting head to body, NOT hidden by shoulders. "+
+    "PROPORTIONAL SHOULDERS — shoulders about the same width as the head. Slender elongated torso. "+
+    "Longer slender arms hanging at sides ending in tiny round ball hands (spherical nubs, NOT flat mittens). "+
+    "LONGER legs giving a taller elegant look, small bare rounded feet. Overall silhouette is ELONGATED — longer body and legs. "+
+    "Small TEARDROP ears (slightly pointed at top). "+
+    "Wearing a plain light GREY t-shirt and light grey shorts — simple flat colour fills. "+
+    "COMPLETELY BLANK FACE — no eyes, no mouth, no nose, no eyebrows, no features at all. Smooth peach skin (#F5CBA7). "+
+    "ALL outlines DARK CHOCOLATE BROWN (#3D2B1F, thin 1-2px, NOT black). Clean vector look. Transparent background."
+};
+
+function genBody(){
+  if(!getKey()){alert('Enter API key');return;}
+  log('Generating '+currentBT+' body...');
+  var prompt=BODY_PROMPTS[currentBT];
+  apiGenerate(prompt).then(function(dataUrl){return loadImg(dataUrl).then(function(img){bodyFull={img:img,dataUrl:dataUrl};initSplitLine();});}).catch(function(e){log('Error: '+e);});
+}
+
+function splitBody(){
+  if(!bodyFull){alert('Generate body first');return;}
+  if(!splitLineVisible){initSplitLine();return;}
+  splitLineVisible=false;
+
+  // Create body_lower (below split) with ARMS STRIPPED
+  var c1=document.createElement('canvas');c1.width=c1.height=1024;var x1=c1.getContext('2d');x1.drawImage(bodyFull.img,0,0,1024,1024);
+  var d1=x1.getImageData(0,0,1024,1024);
+  // Clear above split line
+  for(var y=0;y<Math.round(splitY*1024);y++) for(var x=0;x<1024;x++) d1.data[(y*1024+x)*4+3]=0;
+
+  // Strip arms: find torso center and width, erase pixels outside torso column
+  // Scan just below split to find torso width (not arm width)
+  var scanY=Math.round(splitY*1024)+40; // a bit below neck
+  var leftEdge=1024,rightEdge=0;
+  // Find the widest continuous horizontal run at torso level
+  for(var sx=0;sx<1024;sx++){
+    if(d1.data[(scanY*1024+sx)*4+3]>50){if(sx<leftEdge)leftEdge=sx;if(sx>rightEdge)rightEdge=sx;}
+  }
+  // The torso width - use 70% of full span to be safe (excludes arms)
+  var fullSpan=rightEdge-leftEdge;
+  var centerX=(leftEdge+rightEdge)/2;
+  var torsoHalfW=fullSpan*0.38; // keep ~76% center strip
+
+  // Now erase arm pixels (outside torso column) for each row below split
+  var splitPx=Math.round(splitY*1024);
+  for(var ay=splitPx;ay<1024;ay++){
+    // Gradually widen the allowed zone toward feet (legs can be wider than torso)
+    var rowProgress=(ay-splitPx)/(1024-splitPx); // 0 at split, 1 at bottom
+    var allowedHalfW=torsoHalfW*(1+rowProgress*0.3); // widen slightly for legs
+    for(var ax=0;ax<1024;ax++){
+      var distFromCenter=Math.abs(ax-centerX);
+      if(distFromCenter>allowedHalfW){
+        d1.data[(ay*1024+ax)*4+3]=0; // erase arm pixel
+      }
+    }
+  }
+
+  // Replace dark outlines in body_lower with flat peach skin color
+  // This prevents brown outline bleed-through under outfits
+  // Instead of REMOVING dark pixels (leaves gaps), FILL them with skin
+  var SKIN_R=245,SKIN_G=203,SKIN_B=167;
+  for(var bi=splitPx;bi<1024;bi++){
+    for(var bj=0;bj<1024;bj++){
+      var pi=(bi*1024+bj)*4;
+      if(d1.data[pi+3]<10) continue;
+      var br=d1.data[pi],bg=d1.data[pi+1],bb=d1.data[pi+2];
+      var brightness=(br+bg+bb)/3;
+      if(brightness<150){
+        // Dark pixel — replace with skin color, keep alpha
+        d1.data[pi]=SKIN_R;d1.data[pi+1]=SKIN_G;d1.data[pi+2]=SKIN_B;
+      }
+    }
+  }
+  x1.putImageData(d1,0,0);var lUrl=c1.toDataURL('image/png');
+
+  // Create body_head (above split) — trim bottom 30px with fade so outfit collar shows
+  var c2=document.createElement('canvas');c2.width=c2.height=1024;var x2=c2.getContext('2d');x2.drawImage(bodyFull.img,0,0,1024,1024);
+  var d2=x2.getImageData(0,0,1024,1024);
+  var splitPxH=Math.round(splitY*1024);
+  var neckFade=30; // fade out the bottom 30px of body_head (bare neck skin)
+  for(var y2=splitPxH;y2<1024;y2++) for(var x2b=0;x2b<1024;x2b++) d2.data[(y2*1024+x2b)*4+3]=0;
+  // Fade out the neck area
+  for(var y2f=splitPxH-neckFade;y2f<splitPxH;y2f++){
+    var fade=1.0-((y2f-(splitPxH-neckFade))/neckFade); // 1 at top, 0 at split
+    for(var x2f=0;x2f<1024;x2f++){
+      var pi2=(y2f*1024+x2f)*4;
+      d2.data[pi2+3]=Math.round(d2.data[pi2+3]*fade);
+    }
+  }
+  x2.putImageData(d2,0,0);var hUrl=c2.toDataURL('image/png');
+
+  Promise.all([loadImg(lUrl),loadImg(hUrl)]).then(function(imgs){
+    bodyLower={img:imgs[0],dataUrl:lUrl};bodyHead={img:imgs[1],dataUrl:hUrl};
+    computeAnchors();log('Split done — arms stripped from body_lower.');render();saveAll();
+  });
+}
+
+function computeAnchors(){
+  if(!bodyFull) return;
+  var b=scanBounds(bodyFull.img);var headH=splitY-b.top;var fullW=b.right-b.left;var midX=b.cx;var bodySpan=b.bot-splitY;
+  anchors={bounds:b};
+  slotBoxes={
+    // OUTFIT: starts 15% above split for collar/shoulder coverage
+    outfit:{x:Math.max(0,midX-fullW*1.0),y:splitY-0.15,w:Math.min(1.0,fullW*2.0),h:Math.min(1.0-splitY+0.15, bodySpan+0.25)},
+    // HAIRHAT: covers full head area — hair sits on top, hat+hair combos need full zone
+    hairhat:{x:Math.max(0,midX-fullW*0.8),y:Math.max(0,b.top-0.12),w:Math.min(1.0,fullW*1.6),h:headH*0.85}
+  };
+  log('Zones: outfit=silhouette, hairhat=full-zone');
+}
+
+function scanBounds(img){var c=document.createElement('canvas');c.width=c.height=1024;c.getContext('2d').drawImage(img,0,0,1024,1024);var d=c.getContext('2d').getImageData(0,0,1024,1024).data;var tY=1024,bY=0,lX=1024,rX=0;for(var y=0;y<1024;y++) for(var x=0;x<1024;x++){if(d[(y*1024+x)*4+3]<50) continue;if(y<tY)tY=y;if(y>bY)bY=y;if(x<lX)lX=x;if(x>rX)rX=x;}return{top:tY/1024,bot:bY/1024,left:lX/1024,right:rX/1024,cx:(lX+rX)/2/1024,cy:(tY+bY)/2/1024};}
+
+// Post-process hair: clear face area to remove AI-generated face outlines
+function cleanHairFace(result){
+  if(!bodyHead) return Promise.resolve(result);
+  var hb=scanBounds(bodyHead.img);
+  var fc=document.createElement('canvas');fc.width=fc.height=1024;
+  var fx=fc.getContext('2d');fx.drawImage(result.img,0,0,1024,1024);
+  var faceCx=hb.cx*1024, faceCy=(hb.top+hb.bot)*0.5*1024;
+  var faceRx=(hb.right-hb.left)*0.38*1024, faceRy=(hb.bot-hb.top)*0.38*1024;
+  var fd=fx.getImageData(0,0,1024,1024),px=fd.data;
+  for(var py=0;py<1024;py++){for(var px2=0;px2<1024;px2++){
+    var dx2=(px2-faceCx)/faceRx,dy2=(py-faceCy)/faceRy;
+    if(dx2*dx2+dy2*dy2<1){px[(py*1024+px2)*4+3]=0;}
+  }}
+  fx.putImageData(fd,0,0);
+  var cleanUrl=fc.toDataURL('image/png');
+  return loadImg(cleanUrl).then(function(ci){result.img=ci;result.dataUrl=cleanUrl;return result;});
+}
+
+function autoFitItem(genImg,cat){
+  var gb=scanBounds(genImg);
+  if(gb.right-gb.left<0.01) return{dx:0,dy:0,scale:1.0};
+
+  // We need body bounds for positioning
+  var bodyBounds=bodyFull?scanBounds(bodyFull.img):null;
+  var headBounds=bodyHead?scanBounds(bodyHead.img):null;
+  if(!bodyBounds) return{dx:0,dy:0,scale:1.0};
+
+  var genW=gb.right-gb.left,genH=gb.bot-gb.top;
+  var bodyW=bodyBounds.right-bodyBounds.left;
+  var headW=headBounds?(headBounds.right-headBounds.left):bodyW*0.6;
+  var headH=headBounds?(headBounds.bot-headBounds.top):0.3;
+  var headTop=headBounds?headBounds.top:bodyBounds.top;
+  var headCx=headBounds?headBounds.cx:bodyBounds.cx;
+  var headCy=headBounds?headBounds.cy:(bodyBounds.top+0.15);
+
+  var scale,targetX,targetY;
+
+  if(cat==='faces'){
+    var tw=headW*0.45;scale=Math.min(tw/genW,(headH*0.45)/genH);
+    targetX=headCx*1024;
+    targetY=(headTop+headH*0.52)*1024;
+  } else if(cat==='outfits'){
+    var bodyBelow=bodyBounds.bot-splitY;
+    var tw2=bodyW*0.9;scale=Math.min(tw2/genW,(bodyBelow*0.95)/genH);
+    targetX=bodyBounds.cx*1024;
+    targetY=(splitY+bodyBelow*0.5)*1024;
+  } else if(cat==='hairhats'){
+    var tw3=headW*1.1;scale=Math.min(tw3/genW,0.65);
+    targetX=headCx*1024;
+    targetY=(headTop+headH*0.35)*1024;
+  } else if(cat==='stickers'){
+    var tw6=bodyW*0.4;scale=Math.min(tw6/genW,0.5);
+    targetX=(bodyBounds.cx+bodyW*0.45)*1024;
+    targetY=(splitY+0.15)*1024;
+    targetX=(bodyBounds.right+bodyW*0.1)*1024;
+    targetY=(splitY+(bodyBounds.bot-splitY)*0.4)*1024;
+  } else {
+    return{dx:0,dy:0,scale:1.0};
+  }
+
+  // drawAdj: finalPos = (srcPos - 512) * scale + 512 + offset
+  var dx=Math.round(targetX - 512 - (gb.cx*1024 - 512)*scale);
+  var dy=Math.round(targetY - 512 - (gb.cy*1024 - 512)*scale);
+
+  // Safety: ensure hair doesn't clip above canvas (y=0)
+  if(cat==='hairhats'){
+    var topInSrc=gb.top*1024;
+    var finalTop=(topInSrc-512)*scale+512+dy;
+    if(finalTop<10){
+      dy=dy+(10-Math.round(finalTop));
+      log('Auto-fit hair: shifted down '+(10-Math.round(finalTop))+'px to prevent top clipping');
+    }
+    // Also check bottom doesn't go too far
+    var botInSrc=gb.bot*1024;
+    var finalBot=(botInSrc-512)*scale+512+dy;
+    if(finalBot>1014){
+      var excess=Math.round(finalBot-1014);
+      scale=scale*0.9;
+      dx=Math.round(targetX - 512 - (gb.cx*1024 - 512)*scale);
+      dy=Math.round(targetY - 512 - (gb.cy*1024 - 512)*scale);
+      log('Auto-fit hair: scaled down to '+scale.toFixed(2)+' to prevent bottom clipping');
+    }
+  }
+
+  log('Auto-fit '+cat+': scale='+scale.toFixed(2)+' dx='+dx+' dy='+dy);
+  return{dx:dx,dy:dy,scale:parseFloat(scale.toFixed(3))};
+}
+
+// ================================================================
+// API
+// ================================================================
+function getKey(){return document.getElementById('apiKey').value.trim();}
+
+function apiGenerate(prompt){
+  var key=getKey();
+  return fetch('https://api.openai.com/v1/images/generations',{
+    method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+    body:JSON.stringify({model:'gpt-image-1',prompt:prompt,n:1,size:'1024x1024',background:'transparent',quality:'high',output_format:'png'})
+  }).then(function(r){if(r.status===429)throw new Error('RATE_LIMIT');if(!r.ok)return r.text().then(function(t){throw new Error('API '+r.status);});return r.json();
+  }).then(function(data){
+    if(!data.data||!data.data[0])throw new Error('No image');var img=data.data[0];
+    if(img.b64_json) return 'data:image/png;base64,'+img.b64_json;
+    if(img.url) return fetch(img.url).then(function(r){return r.blob();}).then(function(bl){return new Promise(function(res){var fr=new FileReader();fr.onloadend=function(){res(fr.result);};fr.readAsDataURL(bl);});});
+    throw new Error('No image data');
+  });
+}
+
+function apiInpaint(bodyDataUrl,maskType,prompt){
+  var key=getKey();var bodyBlob,maskBlob;
+  return loadImg(bodyDataUrl).then(function(bImg){
+    var bc=document.createElement('canvas');bc.width=bc.height=1024;var bx=bc.getContext('2d');bx.fillStyle='#FFFFFF';bx.fillRect(0,0,1024,1024);bx.drawImage(bImg,0,0,1024,1024);
+    return new Promise(function(r){bc.toBlob(function(b){r(b);},'image/png');});
+  }).then(function(bb){bodyBlob=bb;return createMaskBlob(maskType);
+  }).then(function(mb){
+    maskBlob=mb;if(!maskBlob)throw new Error('Mask failed');
+    var fd=new FormData();fd.append('model','gpt-image-1');fd.append('image',bodyBlob,'body.png');fd.append('mask',maskBlob,'mask.png');
+    fd.append('prompt',STYLE+prompt);fd.append('size','1024x1024');fd.append('quality','high');
+    return fetch('https://api.openai.com/v1/images/edits',{method:'POST',headers:{'Authorization':'Bearer '+key},body:fd});
+  }).then(function(r){if(r.status===429)throw new Error('RATE_LIMIT');if(!r.ok)return r.text().then(function(t){throw new Error('API '+r.status+': '+t);});return r.json();
+  }).then(function(data){
+    if(!data.data||!data.data[0])throw new Error('No image');var img=data.data[0];
+    if(img.b64_json) return 'data:image/png;base64,'+img.b64_json;
+    if(img.url) return fetch(img.url).then(function(r){return r.blob();}).then(function(bl){return new Promise(function(res){var fr=new FileReader();fr.onloadend=function(){res(fr.result);};fr.readAsDataURL(bl);});});
+    throw new Error('No image data');
+  });
+}
+
+// Categories where the ENTIRE zone should be editable (not just body silhouette)
+var FULL_ZONE_MASKS={outfit:true,hat:true,hair:true,bag:true};
+
+function createMaskBlob(maskType){
+  var zone=slotBoxes[maskType];if(!zone||!bodyFull)return Promise.resolve(null);
+  var px0=Math.round(zone.x*1024),py0=Math.round(zone.y*1024);
+  var px1=Math.round((zone.x+zone.w)*1024),py1=Math.round((zone.y+zone.h)*1024);
+
+  var mc=document.createElement('canvas');mc.width=mc.height=1024;var mx=mc.getContext('2d');
+  // Start with all-black (protected)
+  mx.fillStyle='rgba(0,0,0,1)';mx.fillRect(0,0,1024,1024);
+  var maskData=mx.getImageData(0,0,1024,1024);var md=maskData.data;
+
+  if(FULL_ZONE_MASKS[maskType]){
+    // FULL ZONE: make the ENTIRE rectangle editable
+    // This allows AI to draw in empty space (above head for hats, beside body for bags)
+    for(var y=py0;y<py1;y++) for(var x=px0;x<px1;x++){
+      var i=(y*1024+x)*4;
+      md[i+3]=0; // transparent = editable
+    }
+  } else {
+    // SILHOUETTE: only unmask where body pixels exist (dilated)
+    var bc=document.createElement('canvas');bc.width=bc.height=1024;
+    bc.getContext('2d').drawImage(bodyFull.img,0,0,1024,1024);
+    var dc=document.createElement('canvas');dc.width=dc.height=1024;var dctx=dc.getContext('2d');
+    var dilate=30;
+    for(var dy=-dilate;dy<=dilate;dy+=3) for(var dx=-dilate;dx<=dilate;dx+=3){
+      if(dx*dx+dy*dy>dilate*dilate)continue;dctx.drawImage(bc,dx,dy);
+    }
+    var dd=dctx.getImageData(0,0,1024,1024).data;
+    for(var y2=py0;y2<py1;y2++) for(var x2=px0;x2<px1;x2++){
+      var i2=(y2*1024+x2)*4;
+      if(dd[i2+3]>30) md[i2+3]=0; // transparent where body exists
+    }
+  }
+
+  mx.putImageData(maskData,0,0);
+  return new Promise(function(r){mc.toBlob(function(b){r(b);},'image/png');});
+}
+
+// Flood-fill only — no silhouette rescue. Trust the outlines.
+// DIFF-BASED outfit extraction — compares inpainted result vs original body
+// Keeps pixels that CHANGED (= the outfit). Immune to white outfits.
+function extractOutfitDiff(resultDataUrl){
+  console.log('🟢 extractOutfitDiff v7.3 — PURE DIFF, zero flood fill');
+  return loadImg(resultDataUrl).then(function(resImg){
+    // Get original body pixels
+    var oc=document.createElement('canvas');oc.width=oc.height=1024;
+    oc.getContext('2d').drawImage(bodyFull.img,0,0,1024,1024);
+    var od=oc.getContext('2d').getImageData(0,0,1024,1024).data;
+
+    // Get inpainted result pixels
+    var rc=document.createElement('canvas');rc.width=rc.height=1024;
+    rc.getContext('2d').drawImage(resImg,0,0,1024,1024);
+    var d=rc.getContext('2d').getImageData(0,0,1024,1024).data;
+
+    // Pure diff — no flood fill at all
+    var splitPx=Math.round(splitY*1024);
+    var cropAbove=splitPx-180;
+    var out=new ImageData(1024,1024);var outd=out.data;
+    var keptPx=0,diffPx=0;
+
+    for(var y=0;y<1024;y++){
+      for(var x=0;x<1024;x++){
+        if(y<cropAbove)continue;
+        var i=(y*1024+x)*4;
+        if(d[i+3]<10)continue; // transparent — skip
+
+        // Check if pixel changed from original body
+        var dr=Math.abs(d[i]-od[i]),dg=Math.abs(d[i+1]-od[i+1]),db=Math.abs(d[i+2]-od[i+2]);
+        var diff=dr+dg+db;
+        var changed=(diff>30);
+
+        if(changed){
+          // Pixel CHANGED — this is outfit (works for any color including white)
+          outd[i]=d[i];outd[i+1]=d[i+1];outd[i+2]=d[i+2];outd[i+3]=d[i+3];
+          diffPx++;
+        } else if(y>=splitPx){
+          // Unchanged below split — keep UNLESS it's near-white background
+          var r=d[i],g=d[i+1],b=d[i+2];
+          if(r>248&&g>248&&b>248)continue; // pure white bg — skip
+          outd[i]=d[i];outd[i+1]=d[i+1];outd[i+2]=d[i+2];outd[i+3]=d[i+3];
+          keptPx++;
+        }
+        // Unchanged above split = bare skin/head — body_head covers this
+      }
+    }
+
+    console.log('🟢 extractOutfitDiff done — diffPx='+diffPx+' keptPx='+keptPx+' splitPx='+splitPx);
+    var fc=document.createElement('canvas');fc.width=fc.height=1024;
+    fc.getContext('2d').putImageData(out,0,0);
+    return fc.toDataURL('image/png');
+  });
+}
+
+// Legacy flood-fill approach (kept for reference)
+function cropBelowSplit(resultDataUrl){
+  return loadImg(resultDataUrl).then(function(img){
+    var c=document.createElement('canvas');c.width=c.height=1024;
+    var cx2=c.getContext('2d');
+    cx2.drawImage(img,0,0,1024,1024);
+    var imgData=cx2.getImageData(0,0,1024,1024);
+    var d=imgData.data;
+
+    // STEP 1: Flood-fill from ALL edges — only pure white floods
+    var bg=new Uint8Array(1024*1024);
+    var queue=[];
+    var WHITE_T=240;
+    for(var ex=0;ex<1024;ex++){queue.push(ex);queue.push(ex+1023*1024);}
+    for(var ey=0;ey<1024;ey++){queue.push(ey*1024);queue.push(ey*1024+1023);}
+    var qi=0;
+    while(qi<queue.length){
+      var idx=queue[qi++];
+      if(idx<0||idx>=1024*1024||bg[idx])continue;
+      var pi=idx*4;
+      if(d[pi+3]<30||(d[pi]>WHITE_T&&d[pi+1]>WHITE_T&&d[pi+2]>WHITE_T)){
+        bg[idx]=1;
+        var px=idx%1024,py=Math.floor(idx/1024);
+        if(px>0)queue.push(idx-1);
+        if(px<1023)queue.push(idx+1);
+        if(py>0)queue.push(idx-1024);
+        if(py<1023)queue.push(idx+1024);
+      }
+    }
+
+    // STEP 2: Erode fringe — 15 passes, 8-dir, threshold 185
+    for(var pass=0;pass<15;pass++){
+      var changed=false;
+      for(var fy=1;fy<1023;fy++){
+        for(var fx=1;fx<1023;fx++){
+          var fi=fy*1024+fx;
+          if(bg[fi]) continue;
+          var fp=fi*4;
+          if(d[fp]<185||d[fp+1]<185||d[fp+2]<185) continue;
+          if(bg[fi-1]||bg[fi+1]||bg[fi-1024]||bg[fi+1024]||
+             bg[fi-1025]||bg[fi-1023]||bg[fi+1023]||bg[fi+1025]){
+            bg[fi]=1;changed=true;
+          }
+        }
+      }
+      if(!changed) break;
+    }
+
+    // STEP 3: Apply — trust flood-fill completely
+    var splitPx=Math.round(splitY*1024);
+    var cropAbove=splitPx-90;
+    var out=new ImageData(1024,1024);var outd=out.data;
+    for(var y3=0;y3<1024;y3++){
+      for(var x3=0;x3<1024;x3++){
+        if(y3<cropAbove) continue;
+        var i=(y3*1024+x3)*4;
+        if(bg[y3*1024+x3]) continue; // background — gone
+        outd[i]=d[i];outd[i+1]=d[i+1];outd[i+2]=d[i+2];outd[i+3]=d[i+3];
+      }
+    }
+    var fc=document.createElement('canvas');fc.width=fc.height=1024;
+    fc.getContext('2d').putImageData(out,0,0);
+    return fc.toDataURL('image/png');
+  });
+}
+
+function removeWhiteBackground(canvas){
+  var w=canvas.width,h=canvas.height;
+  var cx=canvas.getContext('2d');
+  var imgData=cx.getImageData(0,0,w,h);
+  var d=imgData.data;
+  var visited=new Uint8Array(w*h);
+  var queue=[];
+  var WHITE_THRESH=235;
+
+  // Seed from all edge pixels
+  for(var x=0;x<w;x++){queue.push(x);queue.push(x+(h-1)*w);}
+  for(var y=0;y<h;y++){queue.push(y*w);queue.push(y*w+w-1);}
+
+  var qi=0;
+  while(qi<queue.length){
+    var idx=queue[qi++];
+    if(idx<0||idx>=w*h)continue;
+    if(visited[idx])continue;
+    var pi=idx*4;
+    var r=d[pi],g=d[pi+1],b=d[pi+2],a=d[pi+3];
+    if(a<30||(r>WHITE_THRESH&&g>WHITE_THRESH&&b>WHITE_THRESH)){
+      visited[idx]=1;
+      var px=idx%w,py=Math.floor(idx/w);
+      if(px>0)queue.push(idx-1);
+      if(px<w-1)queue.push(idx+1);
+      if(py>0)queue.push(idx-w);
+      if(py<h-1)queue.push(idx+w);
+    } else {
+      visited[idx]=2;
+    }
+  }
+  for(var i=0;i<w*h;i++){if(visited[i]===1) d[i*4+3]=0;}
+  // Edge erosion: kill light fringe pixels that border transparency
+  // These are anti-aliased edge pixels between the outline and white BG
+  var d2=new Uint8ClampedArray(d.length);
+  for(var i2=0;i2<d.length;i2++) d2[i2]=d[i2];
+  for(var y2=1;y2<h-1;y2++){
+    for(var x2=1;x2<w-1;x2++){
+      var pi3=(y2*w+x2)*4;
+      if(d[pi3+3]<10) continue; // already transparent
+      var r2=d[pi3],g2=d[pi3+1],b2=d[pi3+2];
+      var brightness2=(r2+g2+b2)/3;
+      if(brightness2<180) continue; // dark enough to keep
+      // Check if any neighbor is transparent
+      var hasTransparentNeighbor=false;
+      var neighbors=[pi3-4,pi3+4,pi3-w*4,pi3+w*4];
+      for(var ni=0;ni<4;ni++){
+        if(d[neighbors[ni]+3]<30){hasTransparentNeighbor=true;break;}
+      }
+      if(hasTransparentNeighbor){
+        d2[pi3+3]=0; // kill this fringe pixel
+      }
+    }
+  }
+  // Second pass: also erode 1 more pixel deep for stubborn fringe
+  for(var y3=1;y3<h-1;y3++){
+    for(var x3=1;x3<w-1;x3++){
+      var pi4=(y3*w+x3)*4;
+      if(d2[pi4+3]<10) continue;
+      var r3=d2[pi4],g3=d2[pi4+1],b3=d2[pi4+2];
+      if((r3+g3+b3)/3<200) continue; // keep darker pixels
+      var hasT2=false;
+      var nb2=[pi4-4,pi4+4,pi4-w*4,pi4+w*4];
+      for(var nj=0;nj<4;nj++){
+        if(d2[nb2[nj]+3]<30){hasT2=true;break;}
+      }
+      if(hasT2) d2[pi4+3]=0;
+    }
+  }
+  for(var i3=0;i3<d.length;i3++) d[i3]=d2[i3];
+  cx.putImageData(imgData,0,0);
+}
+
+// Categories that need DIFF extraction (only keep new/changed pixels)
+var DIFF_EXTRACT={hat:true,glasses:true,hair:true};
+
+function extractLayer(origImg,resultDataUrl,maskType){
+  var zone=slotBoxes[maskType];
+  return loadImg(resultDataUrl).then(function(resImg){
+    var rc=document.createElement('canvas');rc.width=rc.height=1024;
+    rc.getContext('2d').drawImage(resImg,0,0,1024,1024);
+
+    // Step 1: Flood-fill remove white background
+    removeWhiteBackground(rc);
+
+    var rd=rc.getContext('2d').getImageData(0,0,1024,1024).data;
+
+    // For hats/glasses: diff against original to only keep NEW pixels
+    var od=null;
+    if(DIFF_EXTRACT[maskType]){
+      var oc=document.createElement('canvas');oc.width=oc.height=1024;
+      oc.getContext('2d').drawImage(origImg,0,0,1024,1024);
+      od=oc.getContext('2d').getImageData(0,0,1024,1024).data;
+    }
+
+    // Step 2: Crop to zone with feathering
+    var out=new ImageData(1024,1024);var outd=out.data;
+    var zx0=Math.round(zone.x*1024),zy0=Math.round(zone.y*1024);
+    var zx1=Math.round((zone.x+zone.w)*1024),zy1=Math.round((zone.y+zone.h)*1024);
+    var feather=6;
+
+    for(var y=zy0;y<zy1;y++) for(var x=zx0;x<zx1;x++){
+      var i=(y*1024+x)*4;
+      if(rd[i+3]<10)continue;
+
+      // DIFF mode: skip pixels that are very similar to original (unchanged body)
+      if(od){
+        var dr=Math.abs(rd[i]-od[i]),dg=Math.abs(rd[i+1]-od[i+1]),db=Math.abs(rd[i+2]-od[i+2]);
+        if(dr+dg+db<40) continue; // pixel barely changed — skip it
+      }
+
+      var dx=Math.min(x-zx0,zx1-1-x),dy=Math.min(y-zy0,zy1-1-y);
+      var fade=Math.min(1.0,Math.min(dx,dy)/feather);
+      outd[i]=rd[i];outd[i+1]=rd[i+1];outd[i+2]=rd[i+2];outd[i+3]=Math.round(rd[i+3]*fade);
+    }
+
+    var fc=document.createElement('canvas');fc.width=fc.height=1024;
+    fc.getContext('2d').putImageData(out,0,0);
+    return fc.toDataURL('image/png');
+  });
+}
+
+// ================================================================
+// RENDERING
+// ================================================================
+function render(){
+  ctx.clearRect(0,0,1024,1024);
+  for(var ry=0;ry<1024;ry+=32) for(var rx=0;rx<1024;rx+=32){ctx.fillStyle=((rx+ry)/32)%2===0?'#3a3a4e':'#2e2e42';ctx.fillRect(rx,ry,32,32);}
+  if(bodyLower) ctx.drawImage(bodyLower.img,0,0,1024,1024);
+  if(bodyHead) ctx.drawImage(bodyHead.img,0,0,1024,1024);
+  if(!bodyLower&&bodyFull) ctx.drawImage(bodyFull.img,0,0,1024,1024);
+  if(splitLineVisible&&!bodyLower) drawSplitLine();
+}
+
+function renderPreview(item){
+  if(currentTab==='play'){renderPlay();return;}
+  ctx.clearRect(0,0,1024,1024);
+  for(var ry=0;ry<1024;ry+=32) for(var rx=0;rx<1024;rx+=32){ctx.fillStyle=((rx+ry)/32)%2===0?'#3a3a4e':'#2e2e42';ctx.fillRect(rx,ry,32,32);}
+  // Order: body_lower → OUTFIT → body_head ON TOP (head covers outfit's top edge)
+  var showingOutfit=(item&&item.img&&item.category==='outfits');
+  if(!showingOutfit&&bodyLower) ctx.drawImage(bodyLower.img,0,0,1024,1024);
+  if(showingOutfit) drawAdj(item);
+  if(bodyHead) ctx.drawImage(bodyHead.img,0,0,1024,1024);
+  // Everything else draws above head
+  if(item&&item.img&&!showingOutfit) drawAdj(item);
+}
+
+function drawAdj(item){var a=item.adj||{dx:0,dy:0,scale:1.0};var adjDy=a.dy;
+  if(item.category==='hairhats'&&item.img){
+    var gb=scanBounds(item.img);var topInSrc=gb.top*1024;
+    var finalTop=(topInSrc-512)*a.scale+512+a.dy;
+    if(finalTop<0) adjDy=a.dy-finalTop+10;
+  }
+  ctx.save();ctx.translate(512+a.dx,512+adjDy);ctx.scale(a.scale,a.scale);ctx.translate(-512,-512);ctx.drawImage(item.img,0,0,1024,1024);ctx.restore();}
+
+function renderDebugZones(){
+  render();
+  var colors={outfit:'rgba(255,100,100,0.25)',hairhat:'rgba(200,100,255,0.25)'};
+  var strokes={outfit:'#ff6464',hairhat:'#c864ff'};
+  Object.keys(slotBoxes).forEach(function(k){var z=slotBoxes[k];ctx.fillStyle=colors[k]||'rgba(255,255,255,0.2)';ctx.fillRect(z.x*1024,z.y*1024,z.w*1024,z.h*1024);ctx.strokeStyle=strokes[k]||'#fff';ctx.lineWidth=2;ctx.strokeRect(z.x*1024,z.y*1024,z.w*1024,z.h*1024);ctx.font='bold 14px Nunito';ctx.fillStyle=strokes[k]||'#fff';ctx.fillText(k,z.x*1024+4,z.y*1024+16);});
+}
+
+// PLAY MODE: renders all selected layers in correct z-order
+// Layer stack: body_lower → body_head → outfit → face → hair → hats → glasses → bags
+function renderPlay(){
+  ctx.clearRect(0,0,1024,1024);
+  for(var ry=0;ry<1024;ry+=32) for(var rx=0;rx<1024;rx+=32){ctx.fillStyle=((rx+ry)/32)%2===0?'#3a3a4e':'#2e2e42';ctx.fillRect(rx,ry,32,32);}
+
+  // Layer 1: Outfit (replaces body_lower) or bare body
+  var outfitItem=getPlayItem('outfits');
+  if(outfitItem){
+    drawAdj(outfitItem);
+  } else {
+    if(bodyLower) ctx.drawImage(bodyLower.img,0,0,1024,1024);
+  }
+
+  // Layer 2: body_head ON TOP — covers outfit's top edge seamlessly
+  if(bodyHead) ctx.drawImage(bodyHead.img,0,0,1024,1024);
+
+  // Layer 3: Face (with or without glasses baked in)
+  var faceItem=getPlayItem('faces');
+  if(faceItem) drawAdj(faceItem);
+
+  // Layer 4: Hair/Hat combo
+  var hairhatItem=getPlayItem('hairhats');
+  if(hairhatItem) drawAdj(hairhatItem);
+
+  // Stickers drawn on top of everything
+  var stickerItem=getPlayItem('stickers');
+  if(stickerItem) drawAdj(stickerItem);
+}
+
+function getPlayItem(cat){
+  var idx=playSelection[cat];
+  if(idx<0||idx>=kept[cat].length) return null;
+  return kept[cat][idx];
+}
+
+function playSelect(cat,idx){
+  // Toggle: clicking same item deselects it
+  if(playSelection[cat]===idx) playSelection[cat]=-1;
+  else playSelection[cat]=idx;
+  renderPlay();renderPanel();
+}
+
+// ================================================================
+// GENERATION — DUAL PIPELINE
+// ================================================================
+function getMaskType(cat){return{outfits:'outfit'}[cat]||null;}
+
+function getCatInstruction(cat){
+  return{
+    outfits:'Dress this character in the following COMPLETE outfit. Replace ALL the grey clothing. The outfit should have a proper COLLAR or NECKLINE that sits naturally on the neck. Include shoes on the feet. KEEP the round ball hands — do NOT add fingers. Do NOT change the head or face. ',
+    faces:'ONLY the facial features of a cute cartoon character on a TRANSPARENT 1024x1024 background. Draw centered in the UPPER THIRD of the canvas (around y=250 to y=400). NOTHING else — no head outline, no skin fill, no head shape, no body, no hair. Just the floating facial features with dark brown outlines on pure transparency. Features: ',
+    hairhats:'A HAIR WIG or HAT item ONLY on a TRANSPARENT 1024x1024 background. Think of this as a wig on a mannequin stand — there is NO HEAD underneath. ABSOLUTE HARD RULES: 1) ZERO face shape or head outline of any kind — no circle, no oval, no egg shape. 2) ZERO facial features — no eyes, no nose, no mouth, no cheeks, no skin color. 3) ZERO neck or body parts. 4) The ONLY visible thing is hair strands and/or headwear material. 5) Where the face would be must be 100% TRANSPARENT/EMPTY. Position the hair CENTERED on canvas (y=300 to y=600). Leave space above for tall hats. Dark brown outlines (#3D2B1F, thin). Description: ',
+    stickers:'A cute accessory/prop item for a children\'s dress-up game on a TRANSPARENT 1024x1024 background. Centered. Front-facing. Dark chocolate brown outlines (#3D2B1F, thin). Clean vector style. Item: '
+  }[cat]||'';
+}
+
+function getNextPrompts(cat,count){
+  var pool=PROMPTS[cat];var used=usedPromptIdx[cat];var result=[];
+  for(var i=0;i<pool.length&&result.length<count;i++){if(!used.has(i)){result.push({idx:i,text:pool[i]});used.add(i);}}
+  if(result.length<count){used.clear();for(var j=0;j<pool.length&&result.length<count;j++){if(!used.has(j)){result.push({idx:j,text:pool[j]});used.add(j);}}}
+  return result;
+}
+
+function generateAllCategories(){
+  if(!bodyFull||!bodyLower){alert('Generate and split body first!');return;}
+  if(generating) return;
+  var cats=CATEGORIES.slice();var ci=0;
+  log('=== Generating 5 of each ===');
+  function next(){if(ci>=cats.length){log('=== All done! ===');return;}var cat=cats[ci];ci++;showTab(cat);generateBatch(cat,5,function(){setTimeout(next,2000);});}
+  next();
+}
+
+function generateBatch2(){
+  if(!bodyFull||!bodyLower){alert('Generate and split body first!');return;}
+  if(generating) return;
+  var cats=CATEGORIES.slice();var ci=0;
+  log('=== BATCH 2: Generating 20 of each (80 total) ===');
+  function next(){
+    if(ci>=cats.length){log('=== BATCH 2 COMPLETE! ===');return;}
+    var cat=cats[ci];ci++;showTab(cat);
+    generateFromList(cat,PROMPTS_BATCH2[cat],function(){setTimeout(next,2000);});
+  }
+  next();
+}
+
+function generateFromList(cat,promptList,onDone){
+  if(!bodyFull||!bodyLower){alert('Generate and split body first!');return;}
+  if(generating){genCancel=true;return;}
+  generating=true;genCancel=false;
+  pending=pending.filter(function(p){return p.category!==cat;});
+  var total=promptList.length,done=0,errors=0;
+  updateProgress(done,total,errors);renderPanel();
+  function next(i){
+    if(i>=total||genCancel){generating=false;genCancel=false;updateProgress(done,total,errors,true);renderPanel();if(onDone)onDone();return;}
+    var promptText=promptList[i];
+    log('Batch2 '+(i+1)+'/'+total+': '+promptText.substring(0,50)+'...');
+    updateProgress(done,total,errors);
+    var genPromise;
+    if(STANDALONE_CATS[cat]){
+      var fullPrompt=STYLE+getCatInstruction(cat)+promptText+'. Dark chocolate brown outlines (#3D2B1F). Flat bold colors, ZERO gradients.';
+      genPromise=apiGenerate(fullPrompt).then(function(dataUrl){
+        return loadImg(dataUrl).then(function(img){return{img:img,dataUrl:dataUrl};});
+      });
+    } else {
+      var maskType=getMaskType(cat);
+      var outfitPrompt=getCatInstruction(cat)+promptText+'. Flat colors, dark brown outlines. Cute children\'s game style.';
+      genPromise=apiInpaint(bodyFull.dataUrl,maskType,outfitPrompt).then(function(resultUrl){
+        return extractOutfitDiff(resultUrl).then(function(croppedUrl){
+          return loadImg(croppedUrl).then(function(img){return{img:img,dataUrl:croppedUrl};});
+        });
+      });
+    }
+    genPromise.then(function(result){
+      if(cat==='hairhats') return cleanHairFace(result);
+      return result;
+    }).then(function(result){
+      var defaultAdj=STANDALONE_CATS[cat]?autoFitItem(result.img,cat):null;
+      pending.push({name:promptText.substring(0,40),img:result.img,dataUrl:result.dataUrl,category:cat,status:'pending',adj:defaultAdj});
+      done++;updateProgress(done,total,errors);renderPanel();renderPreview(pending[pending.length-1]);
+    }).catch(function(e){
+      log('Error: '+e.message);errors++;done++;updateProgress(done,total,errors);
+      if(e.message==='RATE_LIMIT'){log('Rate limited — 30s...');setTimeout(function(){next(i);},30000);return;}
+    }).then(function(){setTimeout(function(){next(i+1);},1500);});
+  }
+  next(0);
+}
+
+function generateBatch(cat,count,onDone){
+  if(!bodyFull||!bodyLower){alert('Generate and split body first!');return;}
+  if(generating){genCancel=true;return;}
+  generating=true;genCancel=false;
+  pending=pending.filter(function(p){return p.category!==cat;});
+  var prompts=getNextPrompts(cat,count);
+  var done=0,total=prompts.length,errors=0;
+  updateProgress(done,total,errors);renderPanel();
+
+  function next(i){
+    if(i>=total||genCancel){generating=false;genCancel=false;updateProgress(done,total,errors,true);renderPanel();if(onDone)onDone();return;}
+    var p=prompts[i];
+    log('Gen '+(i+1)+'/'+total+': '+p.text.substring(0,50)+'...');
+    updateProgress(done,total,errors);
+
+    var genPromise;
+
+    if(STANDALONE_CATS[cat]){
+      // Standalone: generate item on transparent background
+      var fullPrompt=STYLE+getCatInstruction(cat)+p.text+'. Dark chocolate brown outlines (#3D2B1F). Flat bold colors, ZERO gradients.';
+      genPromise=apiGenerate(fullPrompt).then(function(dataUrl){
+        return loadImg(dataUrl).then(function(img){return{img:img,dataUrl:dataUrl};});
+      });
+    } else {
+      // OUTFITS: inpaint onto body, then crop below split line
+      // The result IS the character wearing the outfit — no extraction needed
+      var maskType=getMaskType(cat);
+      var outfitPrompt=getCatInstruction(cat)+p.text+'. Flat colors, dark brown outlines. Cute children\'s game style.';
+      genPromise=apiInpaint(bodyFull.dataUrl,maskType,outfitPrompt).then(function(resultUrl){
+        return extractOutfitDiff(resultUrl).then(function(croppedUrl){
+          return loadImg(croppedUrl).then(function(img){return{img:img,dataUrl:croppedUrl};});
+        });
+      });
+    }
+
+    genPromise.then(function(result){
+      if(cat==='hairhats') return cleanHairFace(result);
+      return result;
+    }).then(function(result){
+      var defaultAdj=STANDALONE_CATS[cat]?autoFitItem(result.img,cat):null;
+      pending.push({name:p.text.substring(0,40),img:result.img,dataUrl:result.dataUrl,category:cat,status:'pending',adj:defaultAdj});
+      done++;updateProgress(done,total,errors);renderPanel();renderPreview(pending[pending.length-1]);
+    }).catch(function(e){
+      log('Error: '+e.message);errors++;done++;updateProgress(done,total,errors);
+      if(e.message==='RATE_LIMIT'){log('Rate limited — 30s...');setTimeout(function(){next(i);},30000);return;}
+    }).then(function(){setTimeout(function(){next(i+1);},1500);});
+  }
+  next(0);
+}
+
+function updateProgress(done,total,errors,finished){var el=document.getElementById('genProgress');if(!el)return;var pct=total>0?Math.round(done/total*100):0;el.innerHTML='<div>'+done+'/'+total+(errors?' ('+errors+' err)':'')+(finished?' — <strong>Done!</strong>':'')+'</div><div class="bar"><div class="fill" style="width:'+pct+'%"></div></div>';}
+
+// ================================================================
+// KEEP / DELETE / ADJUST
+// ================================================================
+var adjustingPendingIdx=null;
+function adjustPending(idx){
+  adjustingPendingIdx=idx;
+  var item=pending[idx];
+  if(!item.adj) item.adj={dx:0,dy:0,scale:1.0};
+  renderPreview(item);renderPanel();
+}
+function adjPendingChange(prop,val){
+  if(adjustingPendingIdx===null) return;
+  var item=pending[adjustingPendingIdx];
+  if(!item.adj) item.adj={dx:0,dy:0,scale:1.0};
+  item.adj[prop]=prop==='scale'?parseFloat(val):parseInt(val);
+  renderPreview(item);
+  var el=document.getElementById('padj-val-'+prop);
+  if(el) el.textContent=prop==='scale'?parseFloat(val).toFixed(2):val+'px';
+}
+function closePendingAdj(){adjustingPendingIdx=null;renderPanel();}
+function keepItem(idx){var item=pending[idx];if(!item)return;item.status='kept';kept[item.category].push({name:item.name,img:item.img,dataUrl:item.dataUrl,category:item.category,adj:item.adj||null});updateCounts();renderPanel();saveAll();}
+function deleteItem(idx){if(idx>=0&&idx<pending.length){pending[idx].status='deleted';renderPanel();}}
+function removeKept(cat,idx){kept[cat].splice(idx,1);if(editingItem&&editingItem.cat===cat){if(editingItem.idx===idx)editingItem=null;else if(editingItem.idx>idx)editingItem.idx--;}updateCounts();renderPanel();saveAll();}
+function keepAll(){pending.forEach(function(item,i){if(item.status==='pending')keepItem(i);});}
+function deleteAllPending(){pending.forEach(function(item){if(item.status==='pending')item.status='deleted';});renderPanel();}
+function editItem(cat,idx){var item=kept[cat][idx];if(!item.adj)item.adj={dx:0,dy:0,scale:1.0};editingItem={cat:cat,idx:idx};renderPreviewAdj(item);renderPanel();}
+function closeEdit(){editingItem=null;render();renderPanel();}
+function adjChange(prop,val){if(!editingItem)return;var item=kept[editingItem.cat][editingItem.idx];if(!item.adj)item.adj={dx:0,dy:0,scale:1.0};item.adj[prop]=prop==='scale'?parseFloat(val):parseInt(val);renderPreviewAdj(item);var el=document.getElementById('adj-val-'+prop);if(el)el.textContent=prop==='scale'?parseFloat(val).toFixed(2):val+'px';}
+function adjReset(){if(!editingItem)return;kept[editingItem.cat][editingItem.idx].adj={dx:0,dy:0,scale:1.0};renderPreviewAdj(kept[editingItem.cat][editingItem.idx]);renderPanel();}
+function adjSave(){if(!editingItem)return;saveAll();log('Saved adjustments.');}
+function renderPreviewAdj(item){
+  ctx.clearRect(0,0,1024,1024);
+  for(var ry=0;ry<1024;ry+=32) for(var rx=0;rx<1024;rx+=32){ctx.fillStyle=((rx+ry)/32)%2===0?'#3a3a4e':'#2e2e42';ctx.fillRect(rx,ry,32,32);}
+  var showingOutfit=(item&&item.img&&item.category==='outfits');
+  if(!showingOutfit&&bodyLower) ctx.drawImage(bodyLower.img,0,0,1024,1024);
+  if(showingOutfit) drawAdj(item);
+  if(bodyHead) ctx.drawImage(bodyHead.img,0,0,1024,1024);
+  if(!showingOutfit&&item&&item.img) drawAdj(item);
+}
+function bakeItem(item){var a=item.adj||{dx:0,dy:0,scale:1.0};
+  var bc=document.createElement('canvas');bc.width=1024;bc.height=EXPORT_H;
+  var bx=bc.getContext('2d');
+  // Draw 1024x1024 source onto 1024x1400 canvas with PAD_TOP offset
+  bx.translate(512+a.dx, 512+PAD_TOP+a.dy);
+  bx.scale(a.scale, a.scale);
+  bx.translate(-512, -512);
+  bx.drawImage(item.img, 0, 0, 1024, 1024);
+  return bc.toDataURL('image/png');}
+function updateCounts(){var total=0;CATEGORIES.forEach(function(cat){var n=kept[cat].length;var el=document.getElementById('cnt-'+cat);if(el)el.textContent=n;total+=n;});
+  // All outfits across all bodies
+  var allOutfits=0;BODY_TYPES.forEach(function(bt){allOutfits+=bodyStates[bt].outfits.length;});
+  var aoEl=document.getElementById('cnt-all-outfits');if(aoEl)aoEl.textContent=allOutfits;
+  // Total = shared + all outfits
+  total=allOutfits+sharedKept.faces.length+sharedKept.hairhats.length+sharedKept.stickers.length;
+  document.getElementById('cnt-total').textContent=total;}
+
+// ================================================================
+// UI
+// ================================================================
+function showTab(tab){currentTab=tab;var names=CATEGORIES.concat(['play','library']);document.querySelectorAll('.tab-btn').forEach(function(b,i){b.classList.toggle('active',names[i]===tab);});if(tab==='play')renderPlay();renderPanel();}
+
+function renderPanel(){
+  var area=document.getElementById('panelArea');
+  if(currentTab==='play'){
+    var html='<h3 style="color:#6ee7b7;margin-bottom:4px;">🎮 Play Mode — dress up your character!</h3>';
+    html+='<div style="font-size:11px;color:#9890a8;margin-bottom:12px;">Pick one from each row. Click again to deselect.</div>';
+    var playOrder=['outfits','faces','hairhats','stickers'];
+    var catLabels={outfits:'👗 Outfits',faces:'😊 Faces',hairhats:'💇 Hair/Hats',stickers:'⭐ Stickers'};
+    playOrder.forEach(function(cat){
+      html+='<div class="section-title" style="margin-top:12px;">'+catLabels[cat]+' ('+kept[cat].length+')</div>';
+      if(!kept[cat].length){html+='<div class="empty-msg" style="padding:10px;">No '+cat+' kept yet — generate some first!</div>';return;}
+      html+='<div style="display:flex;gap:6px;flex-wrap:wrap;">';
+      kept[cat].forEach(function(item,i){
+        var isSel=playSelection[cat]===i;
+        var border=isSel?'border:3px solid #6ee7b7;box-shadow:0 0 10px rgba(110,231,183,0.5);':'border:2px solid #3d3555;';
+        html+='<div style="width:80px;height:80px;border-radius:8px;overflow:hidden;cursor:pointer;'+border+'background:repeating-conic-gradient(#2d2640 0% 25%,#231e30 0% 50%) 50%/8px 8px;position:relative;flex-shrink:0;" onclick="playSelect(\''+cat+'\','+i+')">';
+        html+='<img src="'+item.dataUrl+'" style="width:100%;height:100%;object-fit:contain;">';
+        if(isSel) html+='<div style="position:absolute;top:2px;right:2px;background:#6ee7b7;color:#1a1625;font-size:8px;font-weight:800;padding:1px 4px;border-radius:3px;">ON</div>';
+        html+='</div>';
+      });
+      html+='</div>';
+    });
+    area.innerHTML=html;return;
+  }
+
+  if(currentTab==='library'){
+    var html='<h3 style="color:#f0a8d0;margin-bottom:12px;">Library — click to adjust position</h3>';
+    if(editingItem){
+      var ei=kept[editingItem.cat][editingItem.idx];var a=ei.adj||{dx:0,dy:0,scale:1.0};
+      html+='<div class="adjust-panel"><h3>Adjusting: '+ei.name+'</h3>';
+      html+='<div class="slider-row"><label>X</label><input type="range" min="-300" max="300" value="'+a.dx+'" oninput="adjChange(\'dx\',this.value)"><span class="val" id="adj-val-dx">'+a.dx+'px</span></div>';
+      html+='<div class="slider-row"><label>Y</label><input type="range" min="-300" max="300" value="'+a.dy+'" oninput="adjChange(\'dy\',this.value)"><span class="val" id="adj-val-dy">'+a.dy+'px</span></div>';
+      html+='<div class="slider-row"><label>Scale</label><input type="range" min="0.2" max="2.5" step="0.01" value="'+a.scale+'" oninput="adjChange(\'scale\',this.value)"><span class="val" id="adj-val-scale">'+a.scale.toFixed(2)+'</span></div>';
+      html+='<div class="adj-btns"><button class="btn btn-green" onclick="adjSave()">Save</button><button class="btn btn-dark" onclick="adjReset()">Reset</button><button class="btn btn-red" onclick="closeEdit()">Close</button></div></div>';
+    }
+    CATEGORIES.forEach(function(cat){
+      html+='<div class="section-title">'+cat.charAt(0).toUpperCase()+cat.slice(1)+' ('+kept[cat].length+')</div>';
+      if(!kept[cat].length){html+='<div class="empty-msg">None yet</div>';return;}
+      html+='<div class="kept-grid">';
+      kept[cat].forEach(function(item,i){
+        var isE=editingItem&&editingItem.cat===cat&&editingItem.idx===i;
+        html+='<div class="kept-card" style="'+(isE?'border-color:#f0a8d0;box-shadow:0 0 12px rgba(240,168,208,0.5)':'')+'" onclick="editItem(\''+cat+'\','+i+')" onmouseenter="renderPreview(kept.'+cat+'['+i+'])">';
+        html+='<img src="'+item.dataUrl+'"><button class="rm" onclick="event.stopPropagation();removeKept(\''+cat+'\','+i+')">✕</button>';
+        html+='<div class="klbl">'+item.name.substring(0,20)+(item.adj&&(item.adj.dx||item.adj.dy||item.adj.scale!==1)?' ✎':'')+'</div></div>';
+      });
+      html+='</div>';
+    });
+    area.innerHTML=html;return;
+  }
+  var cat=currentTab;
+  var html='<div class="gen-controls"><h3>Generate '+cat.charAt(0).toUpperCase()+cat.slice(1)+(STANDALONE_CATS[cat]?' (standalone)':' (inpainted)')+'</h3>';
+  if(STANDALONE_CATS[cat]) html+='<div style="font-size:11px;color:#f0a8d0;margin-bottom:8px;">💡 Generated standalone (no inpainting). Auto-sized. Fine-tune with 🔧 Adjust.</div>';
+  html+='<div class="gen-row">';
+  html+='<button class="btn btn-orange" onclick="generateBatch(\''+cat+'\',5)" '+(generating?'disabled':'')+'>Gen 5</button>';
+  html+='<button class="btn btn-orange" onclick="generateBatch(\''+cat+'\',10)" '+(generating?'disabled':'')+'>Gen 10</button>';
+  html+='<button class="btn btn-blue" onclick="generateFromList(\''+cat+'\',PROMPTS_BATCH2.'+cat+')" '+(generating?'disabled':'')+' title="20 brand-new prompts">🔥 Gen 20 New</button>';
+  if(generating) html+='<button class="btn btn-red" onclick="genCancel=true">⏹ Stop</button>';
+  html+='</div><div class="gen-progress" id="genProgress"></div></div>';
+  var pi=pending.filter(function(p){return p.status==='pending'&&p.category===cat;});
+  if(pi.length>0){
+    html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><span class="section-title" style="margin:0;">⏳ Review ('+pi.length+')</span>';
+    html+='<div><button class="btn btn-green" onclick="keepAll()" style="margin-right:4px;">Keep All</button><button class="btn btn-red" onclick="deleteAllPending()">Delete All</button></div></div>';
+  }
+  // Inline adjustment panel for pending item
+  if(adjustingPendingIdx!==null&&pending[adjustingPendingIdx]&&pending[adjustingPendingIdx].category===cat){
+    var ai=pending[adjustingPendingIdx];var aa=ai.adj||{dx:0,dy:0,scale:1.0};
+    html+='<div class="adjust-panel"><h3>Adjust: '+ai.name.substring(0,30)+'</h3>';
+    html+='<div class="slider-row"><label>X</label><input type="range" min="-300" max="300" value="'+aa.dx+'" oninput="adjPendingChange(\'dx\',this.value)"><span class="val" id="padj-val-dx">'+aa.dx+'px</span></div>';
+    html+='<div class="slider-row"><label>Y</label><input type="range" min="-300" max="300" value="'+aa.dy+'" oninput="adjPendingChange(\'dy\',this.value)"><span class="val" id="padj-val-dy">'+aa.dy+'px</span></div>';
+    html+='<div class="slider-row"><label>Scale</label><input type="range" min="0.2" max="2.5" step="0.01" value="'+aa.scale+'" oninput="adjPendingChange(\'scale\',this.value)"><span class="val" id="padj-val-scale">'+aa.scale.toFixed(2)+'</span></div>';
+    html+='<div class="adj-btns"><button class="btn btn-green" onclick="closePendingAdj()">Done</button></div></div>';
+  }
+  html+='<div class="grid">';
+  pending.forEach(function(item,i){
+    if(item.category!==cat||item.status==='deleted')return;
+    if(item.status==='kept'){html+='<div class="card kept"><img src="'+item.dataUrl+'"><div class="name">'+item.name+'</div></div>';return;}
+    html+='<div class="card" onmouseenter="renderPreview(pending['+i+'])"><img src="'+item.dataUrl+'"><div class="name">'+item.name+'</div>';
+    html+='<div class="actions"><button class="keep-btn" onclick="keepItem('+i+')">✓ Keep</button><button class="del-btn" onclick="deleteItem('+i+')">✕</button></div>';
+    html+='<div class="actions"><button style="flex:1;padding:5px;border:none;background:#a78bfa;color:#1a1625;font-family:inherit;font-weight:700;font-size:10px;cursor:pointer;" onclick="adjustPending('+i+')">🔧 Adjust</button></div>';
+    html+='</div>';
+  });
+  html+='</div>';
+  if(kept[cat].length>0){
+    html+='<div class="section-title" style="margin-top:20px;">✅ Kept ('+kept[cat].length+')</div><div class="kept-grid">';
+    kept[cat].forEach(function(item,i){
+      html+='<div class="kept-card" onmouseenter="renderPreview(kept.'+cat+'['+i+'])"><img src="'+item.dataUrl+'"><button class="rm" onclick="removeKept(\''+cat+'\','+i+')">✕</button><div class="klbl">'+item.name.substring(0,20)+'</div></div>';
+    });
+    html+='</div>';
+  }
+  area.innerHTML=html;
+}
+
+// ================================================================
+// EXPORT / IMPORT / RESET
+// ================================================================
+function padBody(img){if(!img)return null;var c=document.createElement('canvas');c.width=1024;c.height=EXPORT_H;c.getContext('2d').drawImage(img,0,PAD_TOP,1024,1024);return c.toDataURL('image/png');}
+function exportAll(){
+  syncStateFromLive(); // ensure current body is saved
+  var data={version:'8.0',canvasHeight:EXPORT_H,padTop:PAD_TOP,bodies:{},shared:{faces:[],hairhats:[],stickers:[]}};
+  // Export each body type
+  BODY_TYPES.forEach(function(bt){
+    var s=bodyStates[bt];
+    var bFull=s.bodyFull?s.bodyFull.img:null;
+    var bHead=s.bodyHead?s.bodyHead.img:null;
+    var bLower=s.bodyLower?s.bodyLower.img:null;
+    data.bodies[bt]={
+      body:{full:padBody(bFull),head:padBody(bHead),lower:padBody(bLower)},
+      splitY:s.splitY?(s.splitY*1024+PAD_TOP)/EXPORT_H:0.33,
+      anchors:s.anchors,slotBoxes:s.slotBoxes,
+      outfits:[]
+    };
+    s.outfits.forEach(function(item){data.bodies[bt].outfits.push({name:item.name,dataUrl:bakeItem(item)});});
+  });
+  // Export shared assets
+  SHARED_CATS.forEach(function(cat){
+    sharedKept[cat].forEach(function(item){data.shared[cat].push({name:item.name,dataUrl:bakeItem(item)});});
+  });
+  var blob=new Blob([JSON.stringify(data)],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='starlet-v8.json';a.click();
+  var stats=BODY_TYPES.map(function(bt){return bt+':'+bodyStates[bt].outfits.length+'outfits';}).join(', ');
+  log('Exported v8 — '+stats+' + '+sharedKept.faces.length+'faces + '+sharedKept.hairhats.length+'hair + '+sharedKept.stickers.length+'stickers');
+}
+function importAll(input){
+  if(!input.files||!input.files[0])return;var reader=new FileReader();
+  reader.onload=function(e){try{var data=JSON.parse(e.target.result);log('Importing...');
+    // Detect v8 (multi-body) vs v7 (single body) format
+    if(data.version==='8.0'&&data.bodies){
+      importV8(data);
+    } else {
+      importV7(data);
+    }
+  }catch(err){log('Error: '+err.message);}};
+  reader.readAsText(input.files[0]);input.value='';
+}
+function importV8(data){
+  var promises=[];
+  BODY_TYPES.forEach(function(bt){
+    if(!data.bodies[bt])return;
+    var bd=data.bodies[bt];var s=bodyStates[bt];
+    s.splitY=bd.splitY||0.33;s.anchors=bd.anchors||null;s.slotBoxes=bd.slotBoxes||{};
+    if(bd.body&&bd.body.full) promises.push(loadImg(bd.body.full).then(function(img){s.bodyFull={img:img,dataUrl:bd.body.full};}));
+    if(bd.body&&bd.body.head) promises.push(loadImg(bd.body.head).then(function(img){s.bodyHead={img:img,dataUrl:bd.body.head};}));
+    if(bd.body&&bd.body.lower) promises.push(loadImg(bd.body.lower).then(function(img){s.bodyLower={img:img,dataUrl:bd.body.lower};}));
+    (bd.outfits||[]).forEach(function(item){
+      promises.push(loadImg(item.dataUrl).then(function(img){s.outfits.push({name:item.name,img:img,dataUrl:item.dataUrl,category:'outfits'});}));
+    });
+  });
+  SHARED_CATS.forEach(function(cat){
+    (data.shared&&data.shared[cat]||[]).forEach(function(item){
+      promises.push(loadImg(item.dataUrl).then(function(img){sharedKept[cat].push({name:item.name,img:img,dataUrl:item.dataUrl,category:cat});}));
+    });
+  });
+  Promise.all(promises).then(function(){syncLiveFromState();seedUsedPrompts();updateCounts();render();renderPanel();log('Imported v8 multi-body!');});
+}
+function importV7(data){
+  // Import v7 single-body into CURRENT body type
+  var s=bodyStates[currentBT];var promises=[];
+  if(data.body&&data.body.full) promises.push(loadImg(data.body.full).then(function(img){s.bodyFull={img:img,dataUrl:data.body.full};}));
+  if(data.body&&data.body.head) promises.push(loadImg(data.body.head).then(function(img){s.bodyHead={img:img,dataUrl:data.body.head};}));
+  if(data.body&&data.body.lower) promises.push(loadImg(data.body.lower).then(function(img){s.bodyLower={img:img,dataUrl:data.body.lower};}));
+  if(data.splitY) s.splitY=data.splitY;
+  if(data.anchors) s.anchors=data.anchors;
+  if(data.slotBoxes) s.slotBoxes=data.slotBoxes;
+  // Outfits go to current body type
+  (data.assets&&data.assets.outfits||[]).forEach(function(item){
+    promises.push(loadImg(item.dataUrl).then(function(img){s.outfits.push({name:item.name,img:img,dataUrl:item.dataUrl,category:'outfits'});}));
+  });
+  // Shared assets
+  SHARED_CATS.forEach(function(cat){
+    (data.assets&&data.assets[cat]||[]).forEach(function(item){
+      promises.push(loadImg(item.dataUrl).then(function(img){sharedKept[cat].push({name:item.name,img:img,dataUrl:item.dataUrl,category:cat});}));
+    });
+  });
+  Promise.all(promises).then(function(){syncLiveFromState();seedUsedPrompts();updateCounts();render();renderPanel();log('Imported v7 into '+currentBT+' body type.');});
+}
+function shiftAllDown(){
+  if(!bodyFull){alert('No body loaded');return;}
+  if(!confirm('This will reposition ALL assets to create headroom for hats/hair. Your outfits, faces, and stickers are preserved. Continue?'))return;
+  
+  log('⬇️ Repositioning all assets...');
+  
+  var bb=scanBounds(bodyFull.img);
+  var bodyTopPx=bb.top*1024, bodyBotPx=bb.bot*1024;
+  var bodyHPx=bodyBotPx-bodyTopPx;
+  
+  // Target positions in pixels
+  var targetTop=250; // head starts here — 250px headroom for hats
+  var targetBot=1000; // feet end here — 24px bottom margin
+  var targetH=targetBot-targetTop;
+  
+  // Scale to fit
+  var scale=Math.min(targetH/bodyHPx, 1.0);
+  
+  // Calculate shift using actual transform formula:
+  // newY = (oldY - 512) * scale + 512 + shiftY
+  // We want bodyTopPx → targetTop:
+  var shiftY = targetTop - (bodyTopPx - 512) * scale - 512;
+  
+  // Verify bottom fits
+  var newBot = (bodyBotPx - 512) * scale + 512 + shiftY;
+  log('Body: top='+Math.round(bodyTopPx)+' bot='+Math.round(bodyBotPx)+' h='+Math.round(bodyHPx));
+  log('Transform: scale='+scale.toFixed(3)+' shiftY='+Math.round(shiftY));
+  log('Result: top→'+targetTop+' bot→'+Math.round(newBot));
+  
+  if(newBot > 1020){
+    // Safety: scale down more
+    scale = scale * 0.92;
+    shiftY = targetTop - (bodyTopPx - 512) * scale - 512;
+    newBot = (bodyBotPx - 512) * scale + 512 + shiftY;
+    log('Adjusted: scale='+scale.toFixed(3)+' shiftY='+Math.round(shiftY)+' bot→'+Math.round(newBot));
+  }
+  
+  function transformImage(img){
+    return new Promise(function(resolve){
+      var c=document.createElement('canvas');c.width=c.height=1024;
+      var x=c.getContext('2d');
+      x.translate(512, 512+shiftY);
+      x.scale(scale, scale);
+      x.translate(-512, -512);
+      x.drawImage(img,0,0,1024,1024);
+      var url=c.toDataURL('image/png');
+      loadImg(url).then(function(newImg){resolve({img:newImg,dataUrl:url});});
+    });
+  }
+  
+  var promises=[];
+  
+  if(bodyFull) promises.push(transformImage(bodyFull.img).then(function(r){bodyFull=r;}));
+  if(bodyHead) promises.push(transformImage(bodyHead.img).then(function(r){bodyHead=r;}));
+  if(bodyLower) promises.push(transformImage(bodyLower.img).then(function(r){bodyLower=r;}));
+  
+  // Update splitY through same transform
+  splitY = (splitY*1024 - 512) * scale / 1024 + 0.5 + shiftY/1024;
+  
+  CATEGORIES.forEach(function(cat){
+    if(cat==='hairhats') return;
+    kept[cat].forEach(function(item){
+      promises.push(transformImage(item.img).then(function(r){
+        item.img=r.img;item.dataUrl=r.dataUrl;
+        item.adj={dx:0,dy:0,scale:1.0};
+      }));
+    });
+  });
+  
+  Promise.all(promises).then(function(){
+    if(bodyFull){
+      var b=scanBounds(bodyFull.img);
+      var headH=splitY-b.top;
+      var fullW=b.right-b.left;
+      var midX=b.cx;
+      slotBoxes={
+        outfit:{x:Math.max(0,midX-fullW*1.0),y:splitY-0.15,w:Math.min(1.0,fullW*2.0),h:Math.min(1.0-splitY+0.15,(b.bot-splitY)+0.25)},
+        hairhat:{x:Math.max(0,midX-fullW*0.8),y:Math.max(0,b.top-0.20),w:Math.min(1.0,fullW*1.6),h:headH+0.20}
+      };
+    }
+    
+    updateCounts();saveAll();render();renderPanel();
+    var newBB=scanBounds(bodyFull.img);
+    log('✅ Done! Head at y='+Math.round(newBB.top*1024)+' feet at y='+Math.round(newBB.bot*1024));
+    log('Headroom: '+Math.round(newBB.top*1024)+'px — plenty for hats!');
+    log('👉 Delete old hair/hats in Library tab, then generate fresh ones');
+  });
+}
+
+function clearAll(){if(!confirm('Reset ALL body types and assets?'))return;BODY_TYPES.forEach(function(bt){bodyStates[bt]={bodyFull:null,bodyHead:null,bodyLower:null,splitY:0.33,anchors:null,slotBoxes:{},outfits:[]};});SHARED_CATS.forEach(function(c){sharedKept[c]=[];});syncLiveFromState();pending=[];CATEGORIES.forEach(function(c){usedPromptIdx[c]=new Set();});updateCounts();render();renderPanel();if(db)dbClear().then(function(){log('Reset.');});else log('Reset.');}
+
+// ================================================================
+// PUSH TO GITHUB
+// ================================================================
+function ghApi(repo, path, token, method, body) {
+  return fetch('https://api.github.com/repos/' + repo + '/' + path, {
+    method: method || 'GET',
+    headers: { 'Authorization': 'token ' + token, 'Content-Type': 'application/json', 'Accept': 'application/vnd.github.v3+json' },
+    body: body ? JSON.stringify(body) : undefined
+  }).then(function(r) {
+    if (!r.ok) return r.json().then(function(e) { throw new Error(e.message || r.status); });
+    return r.json();
+  });
+}
+
+function pushToGitHub() {
+  var repo = document.getElementById('ghRepo').value.trim();
+  var token = document.getElementById('ghToken').value.trim();
+  if (!repo || !token) { alert('Enter your GitHub user/repo and token first'); return; }
+  if (!repo.includes('/')) { alert('Repo should be like: jamie323/starlet'); return; }
+
+  // Save config for next time
+  try { localStorage.setItem('gh_repo', repo); localStorage.setItem('gh_token', token); } catch(e) {}
+
+  syncStateFromLive();
+  // Build v8 multi-body data
+  var data = { version: '8.0', canvasHeight: EXPORT_H, padTop: PAD_TOP, bodies: {}, shared: { faces: [], hairhats: [], stickers: [] } };
+  BODY_TYPES.forEach(function(bt) {
+    var s = bodyStates[bt];
+    var bFull = s.bodyFull ? s.bodyFull.img : null;
+    var bHead = s.bodyHead ? s.bodyHead.img : null;
+    var bLower = s.bodyLower ? s.bodyLower.img : null;
+    data.bodies[bt] = {
+      body: { full: padBody(bFull), head: padBody(bHead), lower: padBody(bLower) },
+      splitY: s.splitY ? (s.splitY * 1024 + PAD_TOP) / EXPORT_H : 0.33,
+      anchors: s.anchors, slotBoxes: s.slotBoxes, outfits: []
+    };
+    s.outfits.forEach(function(item) { data.bodies[bt].outfits.push({ name: item.name, dataUrl: bakeItem(item) }); });
+  });
+  SHARED_CATS.forEach(function(cat) { sharedKept[cat].forEach(function(item) { data.shared[cat].push({ name: item.name, dataUrl: bakeItem(item) }); }); });
+
+  // Split into parts: 1=meta+bodies, 2-4=outfits per body, 5=shared
+  var parts = {};
+  parts['starlet-v8-meta.json'] = JSON.stringify({ version: '8.0', canvasHeight: EXPORT_H, padTop: PAD_TOP, bodyTypes: BODY_TYPES });
+  BODY_TYPES.forEach(function(bt) {
+    parts['starlet-v8-' + bt + '.json'] = JSON.stringify({ body: data.bodies[bt].body, splitY: data.bodies[bt].splitY, anchors: data.bodies[bt].anchors, slotBoxes: data.bodies[bt].slotBoxes, outfits: data.bodies[bt].outfits });
+  });
+  parts['starlet-v8-shared.json'] = JSON.stringify({ shared: data.shared });
+
+  var fileNames = Object.keys(parts);
+  var totalFiles = fileNames.length;
+
+  log('🚀 Pushing ' + totalFiles + ' files to ' + repo + '...');
+
+  // Step 1: Get latest commit SHA
+  ghApi(repo, 'git/ref/heads/main', token).then(function(ref) {
+    var commitSha = ref.object.sha;
+    log('📌 Latest commit: ' + commitSha.substring(0, 7));
+
+    // Step 2: Get tree SHA from commit
+    return ghApi(repo, 'git/commits/' + commitSha, token).then(function(commit) {
+      var treeSha = commit.tree.sha;
+
+      // Step 3: Create blobs for each file
+      log('📦 Creating blobs...');
+      var blobPromises = fileNames.map(function(name) {
+        // Base64 encode the content for large files
+        var content = parts[name];
+        var b64 = btoa(unescape(encodeURIComponent(content)));
+        return ghApi(repo, 'git/blobs', token, 'POST', {
+          content: b64,
+          encoding: 'base64'
+        }).then(function(blob) {
+          log('  ✓ ' + name + ' (' + Math.round(content.length / 1024) + ' KB)');
+          return { path: name, mode: '100644', type: 'blob', sha: blob.sha };
+        });
+      });
+
+      return Promise.all(blobPromises).then(function(treeItems) {
+        // Step 4: Create new tree
+        log('🌳 Creating tree...');
+        return ghApi(repo, 'git/trees', token, 'POST', {
+          base_tree: treeSha,
+          tree: treeItems
+        });
+      }).then(function(tree) {
+        // Step 5: Create commit
+        log('💾 Creating commit...');
+        return ghApi(repo, 'git/commits', token, 'POST', {
+          message: '🎨 Update Starlet assets from Curator',
+          tree: tree.sha,
+          parents: [commitSha]
+        });
+      }).then(function(newCommit) {
+        // Step 6: Update ref
+        return ghApi(repo, 'git/refs/heads/main', token, 'PATCH', {
+          sha: newCommit.sha
+        });
+      });
+    });
+  }).then(function() {
+    log('✅ Pushed! Game will update in ~60 seconds.');
+    log('🔗 https://' + repo.split('/')[0] + '.github.io/' + repo.split('/')[1] + '/');
+  }).catch(function(err) {
+    log('❌ Push failed: ' + err.message);
+    if (err.message.includes('Bad credentials')) log('💡 Check your GitHub token — get one at github.com/settings/tokens');
+    if (err.message.includes('Not Found')) log('💡 Check repo name — should be like: jamie323/starlet');
+  });
+}
+
+// Load saved GitHub config
+try {
+  var sr = localStorage.getItem('gh_repo');
+  var st = localStorage.getItem('gh_token');
+  if (sr) document.getElementById('ghRepo').value = sr;
+  if (st) document.getElementById('ghToken').value = st;
+} catch(e) {}
+
+// ================================================================
+// INIT
+// ================================================================
+function curatorAutoFetch(){
+  // If body is already loaded from IDB, skip
+  if(bodyFull) return Promise.resolve();
+  log('No local data — trying to auto-fetch from repo...');
+  
+  function unpadDataUrl(dataUrl){
+    return new Promise(function(res){
+      var img=new Image();img.onload=function(){
+        if(img.height<=1024){res({img:img,dataUrl:dataUrl});return;}
+        var c=document.createElement('canvas');c.width=1024;c.height=1024;
+        c.getContext('2d').drawImage(img, 0,PAD_TOP,1024,1024, 0,0,1024,1024);
+        var u=c.toDataURL('image/png');
+        var out=new Image();out.onload=function(){res({img:out,dataUrl:u});};out.src=u;
+      };img.src=dataUrl;
+    });
+  }
+  
+  // Try v8 first
+  return fetch('starlet-v8.json').then(function(r){
+    if(!r.ok) throw new Error('no v8');
+    return r.json();
+  }).then(function(data){
+    if(data.version==='8.0'&&data.bodies){
+      log('Auto-fetched v8 multi-body!');
+      var promises=[];
+      BODY_TYPES.forEach(function(bt){
+        if(!data.bodies[bt])return;
+        var bd=data.bodies[bt];var s=bodyStates[bt];
+        if(bd.splitY) s.splitY=(bd.splitY*EXPORT_H-PAD_TOP)/1024;
+        s.anchors=bd.anchors||null;s.slotBoxes=bd.slotBoxes||{};
+        function loadB(key,url){
+          if(!url)return Promise.resolve();
+          return unpadDataUrl(url).then(function(r){
+            if(key==='full')s.bodyFull=r;
+            else if(key==='head')s.bodyHead=r;
+            else s.bodyLower=r;
+          });
+        }
+        if(bd.body&&bd.body.full) promises.push(loadB('full',bd.body.full));
+        if(bd.body&&bd.body.head) promises.push(loadB('head',bd.body.head));
+        if(bd.body&&bd.body.lower) promises.push(loadB('lower',bd.body.lower));
+        (bd.outfits||[]).forEach(function(item){
+          promises.push(unpadDataUrl(item.dataUrl).then(function(r){
+            s.outfits.push({name:item.name,img:r.img,dataUrl:r.dataUrl,category:'outfits'});
+          }));
+        });
+      });
+      SHARED_CATS.forEach(function(cat){
+        (data.shared&&data.shared[cat]||[]).forEach(function(item){
+          promises.push(unpadDataUrl(item.dataUrl).then(function(r){
+            sharedKept[cat].push({name:item.name,img:r.img,dataUrl:r.dataUrl,category:cat});
+          }));
+        });
+      });
+      return Promise.all(promises).then(function(){
+        syncLiveFromState();seedUsedPrompts();updateCounts();saveAll();
+        BODY_TYPES.forEach(function(bt){
+          log(bt+': '+(bodyStates[bt].bodyFull?'✓ body':'✗ no body')+', '+bodyStates[bt].outfits.length+' outfits');
+        });
+        log('Shared: '+sharedKept.faces.length+' faces, '+sharedKept.hairhats.length+' hair, '+sharedKept.stickers.length+' stickers');
+      });
+    }
+    throw new Error('not v8 format');
+  }).catch(function(){
+    // Fallback: try v7
+    return fetch('starlet-v7.json').then(function(r){
+      if(!r.ok) throw new Error('no v7');
+      return r.json();
+    }).catch(function(){
+      var parts=['starlet-v7-part1.json','starlet-v7-part2.json','starlet-v7-part3.json','starlet-v7-part4.json'];
+      return Promise.all(parts.map(function(p){
+        return fetch(p).then(function(r){if(!r.ok)throw new Error(p);return r.json();});
+      })).then(function(results){
+        var merged=results[0];
+        if(!merged.assets)merged.assets={};
+        for(var i=1;i<results.length;i++){
+          if(results[i].assets){
+            Object.keys(results[i].assets).forEach(function(k){
+              var nk=k==='hair'?'hairhats':k;
+              if(!merged.assets[nk])merged.assets[nk]=[];
+              merged.assets[nk]=merged.assets[nk].concat(results[i].assets[k]);
+            });
+          }
+        }
+        return merged;
+      });
+    }).then(function(data){
+      if(!data) return;
+      log('Auto-fetched v7 → loading into petite body...');
+      var s=bodyStates.petite;var bp=[];
+      function loadBody(key,url){
+        if(!url)return Promise.resolve();
+        return unpadDataUrl(url).then(function(r){
+          if(key==='full')s.bodyFull=r;
+          else if(key==='head')s.bodyHead=r;
+          else s.bodyLower=r;
+        });
+      }
+      if(data.body&&data.body.full)bp.push(loadBody('full',data.body.full));
+      if(data.body&&data.body.head)bp.push(loadBody('head',data.body.head));
+      if(data.body&&data.body.lower)bp.push(loadBody('lower',data.body.lower));
+      return Promise.all(bp).then(function(){
+        if(data.splitY) s.splitY=(data.splitY*EXPORT_H-PAD_TOP)/1024;
+        s.anchors=data.anchors||null;s.slotBoxes=data.slotBoxes||{};
+        var ap=[];
+        (data.assets&&data.assets.outfits||[]).forEach(function(item){
+          ap.push(unpadDataUrl(item.dataUrl).then(function(r){
+            s.outfits.push({name:item.name,img:r.img,dataUrl:r.dataUrl,category:'outfits'});
+          }));
+        });
+        SHARED_CATS.forEach(function(cat){
+          (data.assets&&data.assets[cat]||[]).forEach(function(item){
+            ap.push(unpadDataUrl(item.dataUrl).then(function(r){
+              sharedKept[cat].push({name:item.name,img:r.img,dataUrl:r.dataUrl,category:cat});
+            }));
+          });
+        });
+        return Promise.all(ap);
+      }).then(function(){
+        syncLiveFromState();seedUsedPrompts();updateCounts();saveAll();
+        log('✅ v7 loaded into petite: '+s.outfits.length+' outfits, '+sharedKept.faces.length+' faces, '+sharedKept.hairhats.length+' hair, '+sharedKept.stickers.length+' stickers');
+      });
+    });
+  }).catch(function(e){
+    log('No auto-fetch available ('+e.message+') — generate a body to start fresh');
+  });
+}
+
+dbOpen().then(function(){log('v8 — 3 Body Types, pure diff extraction');return loadSaved();}).then(function(){return curatorAutoFetch();}).then(function(){render();renderPanel();}).catch(function(e){log('DB: '+e);render();renderPanel();});
+</script>
+</body>
+</html>
