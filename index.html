@@ -16,6 +16,9 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .topbar-btns{display:flex;gap:6px;}
 .menu-btn{background:rgba(255,255,255,0.3);border:2px solid rgba(255,255,255,0.4);width:46px;height:46px;border-radius:50%;font-size:22px;cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center;transition:0.2s;box-shadow:0 2px 8px rgba(0,0,0,0.15);}
 .menu-btn:active{transform:scale(0.88);background:rgba(255,255,255,0.5);}
+.tbtn{background:rgba(255,255,255,0.3);border:2px solid rgba(255,255,255,0.4);width:40px;height:40px;border-radius:50%;font-size:18px;cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center;transition:0.2s;box-shadow:0 2px 8px rgba(0,0,0,0.1),inset 0 1px 0 rgba(255,255,255,.3);}
+.tbtn:active{transform:scale(0.88);background:rgba(255,255,255,0.5);}
+.tbtn img{width:22px;height:22px;object-fit:contain;filter:brightness(10);}
 
 /* MENU OVERLAY — big fun buttons for kids */
 .menu-overlay{position:absolute;inset:0;z-index:90;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(255,240,245,0.97);backdrop-filter:blur(8px);}
@@ -47,19 +50,23 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 @keyframes sf{0%{opacity:0;transform:translateY(0) scale(0);}20%{opacity:1;transform:translateY(-20px) scale(1);}80%{opacity:0.5;}100%{opacity:0;transform:translateY(-80px) scale(0.2);}}
 
 /* PANEL — bottom */
-.panel{flex-shrink:0;background:linear-gradient(180deg,#FFF5F8,#FFE8EE);border-top:2px solid rgba(255,107,157,0.2);display:flex;flex-direction:column;height:40%;}
+.panel{flex-shrink:0;background:linear-gradient(180deg,#FFF8F5,#FFE8E0,#FFDDD0);border-top:3px solid rgba(255,200,180,.3);display:flex;flex-direction:column;height:40%;
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.6);}
 
-/* CATEGORY TABS — big colorful pills */
+/* CATEGORY TABS — puffy toy buttons */
 .cattabs{display:flex;gap:6px;padding:10px 10px 8px;flex-shrink:0;justify-content:center;}
-.cattab{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 12px 8px;border-radius:18px;border:2px solid transparent;background:rgba(255,107,157,0.06);cursor:pointer;transition:all 0.2s;min-width:62px;min-height:62px;}
+.cattab{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 12px 8px;border-radius:20px;border:2px solid transparent;
+  background:linear-gradient(180deg,#FFF8F5,#FFE8E0);cursor:pointer;transition:all 0.2s cubic-bezier(.34,1.56,.64,1);min-width:62px;min-height:62px;
+  box-shadow:0 2px 8px rgba(180,100,120,.06),inset 0 1px 0 rgba(255,255,255,.8);}
 .cattab .cemoji{font-size:28px;line-height:1;transition:transform 0.2s;}
-.cattab .cicon{width:36px;height:36px;object-fit:contain;transition:transform 0.2s;}
-.cattab.on .cicon{transform:scale(1.15);}
+.cattab .cicon{width:36px;height:36px;object-fit:contain;transition:transform 0.2s;filter:drop-shadow(0 1px 2px rgba(140,80,100,.1));}
+.cattab.on .cicon{transform:scale(1.15);filter:drop-shadow(0 2px 4px rgba(255,107,157,.3));}
 .topbar-logo{height:34px;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.2));}
 .menu-card .mc-icon img{width:54px;height:54px;object-fit:contain;}
 .h-btn img{width:20px;height:20px;object-fit:contain;vertical-align:middle;margin-right:4px;}
-.cattab .clabel{font-size:10px;font-weight:800;color:rgba(180,100,140,0.5);transition:color 0.2s;}
-.cattab.on{border-color:#FF6B9D;background:rgba(255,107,157,0.12);box-shadow:0 2px 8px rgba(255,107,157,0.15);}
+.cattab .clabel{font-size:10px;font-weight:800;color:rgba(140,80,100,0.4);transition:color 0.2s;}
+.cattab.on{border-color:rgba(255,107,157,.4);background:linear-gradient(180deg,#FFE8EE,#FFD4DE);
+  box-shadow:0 4px 16px rgba(255,107,157,.15),inset 0 1px 0 rgba(255,255,255,.6);}
 .cattab.on .clabel{color:#FF6B9D;}
 .cattab.on .cemoji{transform:scale(1.15);}
 .cattab:active{transform:scale(0.92);}
@@ -67,9 +74,9 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 /* ITEM GRID — 3 columns, scrollable */
 .isc{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:10px 12px;overflow-y:auto;overflow-x:hidden;flex:1;-webkit-overflow-scrolling:touch;align-content:start;}
 .isc::-webkit-scrollbar{width:3px;}.isc::-webkit-scrollbar-thumb{background:rgba(255,107,157,0.3);border-radius:4px;}
-.ic{border-radius:16px;border:2px solid rgba(255,107,157,0.12);background:#FFF5F8;overflow:hidden;cursor:pointer;position:relative;transition:0.15s;box-shadow:0 2px 6px rgba(0,0,0,0.05);padding-bottom:100%;}
+.ic{border-radius:18px;border:2px solid rgba(255,200,180,.2);background:linear-gradient(180deg,#FFF8F5,#FFEFEA);overflow:hidden;cursor:pointer;position:relative;transition:all .2s cubic-bezier(.34,1.56,.64,1);box-shadow:0 3px 10px rgba(180,100,120,.06),inset 0 1px 0 rgba(255,255,255,.7);padding-bottom:100%;}
 .ic:active{transform:scale(0.94);}
-.ic.on{border-color:#FF6B9D;box-shadow:0 3px 12px rgba(255,107,157,0.3);background:#FFE8EE;}
+.ic.on{border-color:rgba(255,107,157,.5);box-shadow:0 4px 16px rgba(255,107,157,.2),inset 0 1px 0 rgba(255,255,255,.5);background:linear-gradient(180deg,#FFE8EE,#FFD8E4);}
 .ic img{position:absolute;top:4px;left:4px;right:4px;bottom:4px;width:calc(100% - 8px);height:calc(100% - 8px);pointer-events:none;object-fit:contain;display:block;}
 .ic .ck{position:absolute;top:4px;right:4px;background:#FF6B9D;color:#fff;font-size:10px;font-weight:900;padding:2px 6px;border-radius:6px;display:none;}
 .ic.on .ck{display:block;}
@@ -210,19 +217,41 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 #gToast{position:fixed;top:50px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#FF6B9D,#C850C0);color:#fff;padding:8px 20px;border-radius:20px;font-weight:800;font-size:12px;z-index:200;opacity:0;transition:opacity 0.3s;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,0.3);}
 #gToast.show{opacity:1;}
 
-/* BOTTOM NAV BAR — always visible */
-.bnav{position:fixed;bottom:0;left:0;right:0;height:64px;background:rgba(255,255,255,.97);backdrop-filter:blur(12px);border-top:2px solid rgba(255,107,157,.12);display:flex;justify-content:space-around;align-items:center;z-index:100;padding:0 4px;padding-bottom:env(safe-area-inset-bottom);}
+/* BOTTOM NAV — floating toy shelf dock */
+.bnav{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);width:calc(100% - 40px);max-width:560px;height:auto;
+  background:linear-gradient(180deg,#FFF5F0 0%,#FFE8DD 40%,#FDDDD0 100%);
+  border-radius:32px;display:flex;justify-content:space-around;align-items:center;z-index:100;
+  padding:10px 8px 8px;
+  box-shadow:0 8px 32px rgba(180,100,120,.18),0 2px 8px rgba(180,100,120,.1),inset 0 2px 0 rgba(255,255,255,.7),inset 0 -2px 4px rgba(180,100,120,.08);
+  border:2px solid rgba(255,220,210,.6);
+}
 .bnav.hid{display:none;}
-.bnav-btn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 8px;border:none;background:none;cursor:pointer;border-radius:12px;transition:.2s;min-width:56px;font-family:inherit;}
-.bnav-btn:active{transform:scale(.9);}
-.bnav-btn.on{background:rgba(255,107,157,.12);}
-.bnav-btn .bnav-ico{font-size:22px;line-height:1;}
-.bnav-btn .bnav-ico img{width:26px;height:26px;object-fit:contain;}
-.bnav-btn .bnav-lbl{font-size:9px;font-weight:700;color:rgba(100,70,130,.4);}
-.bnav-btn.on .bnav-lbl{color:#FF6B9D;}
+.bnav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 6px 6px;border:none;background:none;cursor:pointer;border-radius:20px;transition:all .25s cubic-bezier(.34,1.56,.64,1);min-width:52px;font-family:inherit;position:relative;-webkit-tap-highlight-color:transparent;}
+.bnav-btn:active{transform:scale(.92);}
+.bnav-btn.on{transform:translateY(-6px);}
+.bnav-btn.on .bnav-pill{opacity:1;transform:scale(1);}
+.bnav-pill{position:absolute;inset:-2px -4px;border-radius:22px;
+  background:linear-gradient(135deg,#FFB8C6 0%,#FFCBA4 100%);
+  opacity:0;transform:scale(.8);transition:all .3s cubic-bezier(.34,1.56,.64,1);z-index:0;
+  box-shadow:0 4px 16px rgba(255,140,160,.3),inset 0 1px 0 rgba(255,255,255,.5);
+}
+.bnav-ico{font-size:26px;line-height:1;position:relative;z-index:1;filter:drop-shadow(0 2px 3px rgba(140,80,100,.15));transition:transform .25s cubic-bezier(.34,1.56,.64,1);}
+.bnav-btn.on .bnav-ico{transform:scale(1.15);filter:drop-shadow(0 2px 6px rgba(255,140,160,.4));}
+.bnav-ico img{width:30px;height:30px;object-fit:contain;filter:drop-shadow(0 2px 3px rgba(140,80,100,.15));}
+.bnav-btn.on .bnav-ico img{width:34px;height:34px;filter:drop-shadow(0 2px 6px rgba(255,140,160,.4)) brightness(1.1);}
+.bnav-lbl{font-size:9px;font-weight:800;letter-spacing:.5px;color:rgba(140,80,100,.45);position:relative;z-index:1;transition:all .2s;}
+.bnav-btn.on .bnav-lbl{color:#fff;font-size:10px;text-shadow:0 1px 3px rgba(180,80,100,.3);}
 
-/* All screens need bottom padding for nav bar */
-.scr{padding-bottom:64px;}
+/* Bounce animation on tap */
+@keyframes bnavBounce{0%{transform:scale(.92);}40%{transform:scale(1.08) translateY(-6px);}70%{transform:scale(.97) translateY(-6px);}100%{transform:translateY(-6px);}}
+.bnav-btn.bounce{animation:bnavBounce .4s cubic-bezier(.34,1.56,.64,1);}
+
+/* Sparkle burst on tap */
+.bnav-spark{position:absolute;width:4px;height:4px;border-radius:50%;pointer-events:none;z-index:10;animation:bnavSpark .6s ease-out forwards;}
+@keyframes bnavSpark{0%{opacity:1;transform:translate(0,0) scale(1);}100%{opacity:0;transform:translate(var(--sx),var(--sy)) scale(0);}}
+
+/* All screens need bottom padding for floating shelf */
+.scr{padding-bottom:90px;}
 /* MULTI-SCREEN NAVIGATION */
 .scr{position:absolute;inset:0;display:none;flex-direction:column;overflow:hidden;}
 .scr.on{display:flex;}
@@ -246,11 +275,12 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .h-add-icon{font-size:48px;color:rgba(255,107,157,.3);animation:addPulse 2s ease infinite;}
 .h-add-lbl{font-size:13px;color:rgba(255,107,157,.4);font-weight:700;margin-top:4px;}
 @keyframes addPulse{0%,100%{opacity:.5;transform:scale(1);}50%{opacity:1;transform:scale(1.1);}}
-.h-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
-.h-btn{padding:14px 28px;border:none;border-radius:18px;font-family:inherit;font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.08);transition:.2s;}
-.h-btn:active{transform:scale(.95);}
-.h-btn-p{background:linear-gradient(135deg,#FF6B9D,#FF8C69);color:#fff;box-shadow:0 4px 16px rgba(255,107,157,.3);}
-.h-btn-s{background:#fff;color:#3d2040;border:2px solid rgba(255,107,157,.08);}
+.h-actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+.h-btn{padding:14px 28px;border:none;border-radius:22px;font-family:inherit;font-size:16px;font-weight:700;cursor:pointer;transition:all .2s cubic-bezier(.34,1.56,.64,1);letter-spacing:.3px;
+  box-shadow:0 6px 20px rgba(0,0,0,.08),inset 0 2px 0 rgba(255,255,255,.6),inset 0 -2px 4px rgba(0,0,0,.04);}
+.h-btn:active{transform:scale(.93);}
+.h-btn-p{background:linear-gradient(135deg,#FF6B9D,#FF8C69);color:#fff;box-shadow:0 6px 24px rgba(255,107,157,.35),inset 0 2px 0 rgba(255,255,255,.3),inset 0 -2px 4px rgba(180,50,80,.15);}
+.h-btn-s{background:linear-gradient(180deg,#fff 0%,#FFF5F0 100%);color:#6B3A5E;border:2px solid rgba(255,200,190,.4);}
 
 /* CREATE SCREEN */
 .create-scr{background:linear-gradient(160deg,#FFE8F0,#FFF8FF,#F0F0FF);align-items:center;justify-content:center;padding:30px;gap:16px;}
@@ -475,24 +505,30 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 
   <div class="toast" id="gToast"></div>
 
-  <!-- BOTTOM NAV — always visible -->
+  <!-- BOTTOM NAV — floating toy shelf -->
   <nav class="bnav hid" id="bnav">
-    <button class="bnav-btn" onclick="bnavGo('home')" data-scr="homeScr">
+    <button class="bnav-btn" onclick="bnavTap(this,'home')" data-scr="homeScr">
+      <div class="bnav-pill"></div>
       <span class="bnav-ico" data-ic="home">🏠</span><span class="bnav-lbl">Home</span>
     </button>
-    <button class="bnav-btn" onclick="bnavGo('dress')" data-scr="dressScr">
+    <button class="bnav-btn" onclick="bnavTap(this,'dress')" data-scr="dressScr">
+      <div class="bnav-pill"></div>
       <span class="bnav-ico" data-ic="outfits">👗</span><span class="bnav-lbl">Dress Up</span>
     </button>
-    <button class="bnav-btn" onclick="bnavGo('runway')" data-scr="rwScr">
+    <button class="bnav-btn" onclick="bnavTap(this,'runway')" data-scr="rwScr">
+      <div class="bnav-pill"></div>
       <span class="bnav-ico" data-ic="runway">🎤</span><span class="bnav-lbl">Runway</span>
     </button>
-    <button class="bnav-btn" onclick="bnavGo('photo')" data-scr="pbScr">
+    <button class="bnav-btn" onclick="bnavTap(this,'photo')" data-scr="pbScr">
+      <div class="bnav-pill"></div>
       <span class="bnav-ico" data-ic="photobooth">📸</span><span class="bnav-lbl">Photos</span>
     </button>
-    <button class="bnav-btn" onclick="bnavGo('dollhouse')" data-scr="dhScr">
+    <button class="bnav-btn" onclick="bnavTap(this,'dollhouse')" data-scr="dhScr">
+      <div class="bnav-pill"></div>
       <span class="bnav-ico" data-ic="dollhouse">🏡</span><span class="bnav-lbl">Dollhouse</span>
     </button>
-    <button class="bnav-btn" onclick="bnavGo('wardrobe')" data-scr="fwScr">
+    <button class="bnav-btn" onclick="bnavTap(this,'wardrobe')" data-scr="fwScr">
+      <div class="bnav-pill"></div>
       <span class="bnav-ico" data-ic="wardrobe">👜</span><span class="bnav-lbl">Looks</span>
     </button>
   </nav>
@@ -1124,9 +1160,28 @@ function menuGo(action){
   }
 }
 
-// BOTTOM NAV BAR
-function bnavGo(action){
+// BOTTOM NAV BAR — toy shelf with bounce + sparkles
+function bnavTap(btn,action){
+  // Bounce animation
+  btn.classList.remove('bounce');btn.offsetHeight;btn.classList.add('bounce');
+  setTimeout(function(){btn.classList.remove('bounce');},400);
+  // Sparkle burst
+  for(var i=0;i<6;i++){
+    var sp=document.createElement('div');sp.className='bnav-spark';
+    var angle=Math.random()*Math.PI*2;var dist=15+Math.random()*20;
+    sp.style.setProperty('--sx',Math.cos(angle)*dist+'px');
+    sp.style.setProperty('--sy',Math.sin(angle)*dist-10+'px');
+    sp.style.left='50%';sp.style.top='30%';
+    var colors=['#FFD700','#FF6B9D','#FF8C69','#C850C0','#FFB6C1'];
+    sp.style.background=colors[Math.floor(Math.random()*colors.length)];
+    sp.style.width=sp.style.height=(2+Math.random()*4)+'px';
+    btn.appendChild(sp);
+    setTimeout(function(s){s.remove();}.bind(null,sp),600);
+  }
   sfxTap();
+  bnavGo(action);
+}
+function bnavGo(action){
   switch(action){
     case 'home':goHome();break;
     case 'dress':if(chars.length)showScr('dressScr');else showToast('Create a doll first!');break;
