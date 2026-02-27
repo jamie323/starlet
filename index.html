@@ -43,6 +43,8 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .cattab .cicon{width:36px;height:36px;object-fit:contain;transition:transform 0.2s;}
 .cattab.on .cicon{transform:scale(1.15);}
 .topbar-logo{height:34px;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.2));}
+.tbtn img{width:22px;height:22px;object-fit:contain;}
+.h-btn img{width:20px;height:20px;object-fit:contain;vertical-align:middle;margin-right:4px;}
 .cattab .clabel{font-size:10px;font-weight:800;color:rgba(180,100,140,0.5);transition:color 0.2s;}
 .cattab.on{border-color:#FF6B9D;background:rgba(255,107,157,0.12);box-shadow:0 2px 8px rgba(255,107,157,0.15);}
 .cattab.on .clabel{color:#FF6B9D;}
@@ -318,10 +320,11 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
   <div class="scr" id="dressScr">
   <div class="topbar"><h1 id="logoArea">✨ Starlet <span style="font-size:9px;opacity:0.7;font-weight:700;">by BrightBox</span></h1><div class="topbar-btns">
     <button class="tbtn" onclick="goHome()" title="Home">🏠</button>
-    <button class="tbtn" onclick="doSave()">📸</button>
+    <button class="tbtn" onclick="saveCharToArray();showScr('rwScr')" title="Runway">🎤</button>
+    <button class="tbtn" onclick="saveCharToArray();showScr('pbScr')" title="Photo Booth">🖼</button>
     <button class="tbtn" onclick="doSaveToWardrobe()" title="Save to wardrobe">💾</button>
-    <button class="tbtn" onclick="saveCharToArray();fwFrom='dressScr';showScr('fwScr')">👜</button>
-    <button class="tbtn" onclick="showSet()">⚙️</button>
+    <button class="tbtn" onclick="saveCharToArray();fwFrom='dressScr';showScr('fwScr')" title="Wardrobe">👜</button>
+    <button class="tbtn" onclick="showSet()" title="Settings">⚙️</button>
   </div></div>
   <div class="app-body">
   <div class="stage" id="stg">
@@ -330,6 +333,7 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
       <button class="fab" onclick="doUndo()" title="Undo">↩</button>
       <button class="fab" onclick="doRandom()" title="Surprise Me">🎲</button>
       <button class="fab" onclick="doClear()" title="Clear All">🧹</button>
+      <button class="fab" onclick="doSave()" title="Screenshot">📸</button>
     </div>
     <div class="stk-toolbar" id="stkTb"><button class="stk-tb" onclick="stkScale(1.15)">＋</button><button class="stk-tb" onclick="stkScale(0.87)">－</button><button class="stk-tb" onclick="stkRotate(15)">↻</button><button class="stk-tb" onclick="stkFlip()">⇄</button><button class="stk-tb del" onclick="stkDelete()">✕</button></div>
     <div class="pose-label" id="poseLbl"></div><div class="toast" id="toast"></div>
@@ -1159,6 +1163,68 @@ function bCt(){
   document.getElementById('cattabs').innerHTML=h;
 }
 
+// Apply all UI_ASSETS icons to topbar, home screen, dollhouse, etc.
+function applyUIIcons(){
+  if(!UI_ASSETS||!UI_ASSETS.icons)return;
+  var ic=UI_ASSETS.icons;
+  // Topbar buttons — find by title or content and replace emoji with icon
+  var tbMap={'Home':'home','Save to wardrobe':'save','⚙️':'settings'};
+  document.querySelectorAll('.tbtn').forEach(function(btn){
+    var key=tbMap[btn.title]||tbMap[btn.textContent.trim()];
+    if(!key&&btn.textContent.includes('🏠'))key='home';
+    if(!key&&btn.textContent.includes('👜'))key='wardrobe';
+    if(!key&&btn.textContent.includes('📸'))key='photobooth';
+    if(!key&&btn.textContent.includes('🖼'))key='photobooth';
+    if(!key&&btn.textContent.includes('💾'))key='save';
+    if(!key&&btn.textContent.includes('⚙'))key='settings';
+    if(!key&&btn.textContent.includes('🎤'))key='runway';
+    if(key&&ic[key])btn.innerHTML='<img src="'+ic[key]+'">';
+  });
+  // Home screen buttons
+  document.querySelectorAll('.h-btn').forEach(function(btn){
+    var txt=btn.textContent;
+    if(txt.includes('Dollhouse')&&ic.dollhouse)btn.innerHTML='<img src="'+ic.dollhouse+'"> Dollhouse';
+    if(txt.includes('My Looks')&&ic.wardrobe)btn.innerHTML='<img src="'+ic.wardrobe+'"> My Looks';
+    if(txt.includes('Surprise')&&ic.surprise)btn.innerHTML='<img src="'+ic.surprise+'"> Surprise';
+    if(txt.includes('Group Photo')&&ic.photobooth)btn.innerHTML='<img src="'+ic.photobooth+'"> Group Photo';
+  });
+  // Dollhouse room background
+  if(UI_ASSETS.dollhouse&&UI_ASSETS.dollhouse.room){
+    var dhRoom=document.getElementById('dhRoom');
+    if(dhRoom){
+      dhRoom.style.backgroundImage='url('+UI_ASSETS.dollhouse.room+')';
+      dhRoom.style.backgroundSize='cover';
+      dhRoom.style.backgroundPosition='center';
+      // Hide CSS placeholders when AI room is loaded
+      var wall=dhRoom.querySelector('.dh-wall');if(wall)wall.style.display='none';
+      var floor=dhRoom.querySelector('.dh-floor');if(floor)floor.style.display='none';
+      var rug=dhRoom.querySelector('.dh-rug');if(rug)rug.style.display='none';
+    }
+  }
+  // Add dollhouse furniture if available
+  if(UI_ASSETS.dollhouse){
+    var dhDolls=document.getElementById('dhDolls');
+    if(dhDolls){
+      var furnitureHTML='';
+      var furnitureItems=[
+        {key:'bookshelf',x:'5%',y:'20%',w:'120px'},
+        {key:'lamp',x:'82%',y:'15%',w:'60px'},
+        {key:'mirror',x:'40%',y:'10%',w:'80px'},
+        {key:'bed',x:'60%',y:'45%',w:'160px'},
+        {key:'dresser',x:'15%',y:'50%',w:'100px'},
+        {key:'window',x:'45%',y:'2%',w:'100px'}
+      ];
+      furnitureItems.forEach(function(f){
+        if(UI_ASSETS.dollhouse[f.key]){
+          furnitureHTML+='<img src="'+UI_ASSETS.dollhouse[f.key]+'" style="position:absolute;left:'+f.x+';top:'+f.y+';width:'+f.w+';object-fit:contain;pointer-events:none;z-index:1;">';
+        }
+      });
+      // Prepend furniture before dolls
+      dhDolls.insertAdjacentHTML('beforebegin',furnitureHTML);
+    }
+  }
+}
+
 // THUMBNAIL — handled in proc() via canvas crop → THUMBS object
 
 function bIt(){
@@ -1430,12 +1496,16 @@ function renderCreateStep(){
     h+='<div class="cr-opts">';
     BODY_TYPES.forEach(function(bt,i){
       h+='<button class="cr-opt'+(CR.bt===i?' on':'')+'" onclick="CR.bt='+i+';renderCreateStep()">';
-      h+='<div style="font-size:28px;margin-bottom:4px;">'+['🧸','💃','👸'][i]+'</div>';
+      h+='<canvas width="80" height="100" id="btPrev'+i+'" style="margin-bottom:4px;"></canvas>';
       h+='<div style="font-weight:700;">'+bt.label+'</div>';
       h+='<div style="font-size:11px;color:rgba(100,70,130,.5);">'+bt.desc+'</div></button>';
     });
     h+='</div>';
     h+='<br><button class="h-btn h-btn-p" onclick="crNext()">Next →</button>';
+    // Draw body type silhouettes after DOM renders
+    el.innerHTML=h;
+    drawBodyPreviews();
+    return;
   }else if(CR.step===1){
     h+='<h2 style="color:#3d2040;font-size:22px;">Choose a skin tone</h2>';
     h+='<div class="cr-skin-row">';
@@ -1451,6 +1521,55 @@ function renderCreateStep(){
     return;
   }
   el.innerHTML=h;
+}
+function drawBodyPreviews(){
+  // Draw cute silhouette for each body type
+  var configs=[
+    {headR:18,bodyH:22,legH:16,shoulderW:14,neckH:3}, // petite — big head, short
+    {headR:16,bodyH:28,legH:22,shoulderW:16,neckH:4}, // medium — balanced
+    {headR:15,bodyH:30,legH:28,shoulderW:15,neckH:5}  // tall — elongated
+  ];
+  configs.forEach(function(cfg,i){
+    var c=document.getElementById('btPrev'+i);if(!c)return;
+    var cx=c.getContext('2d');var midX=40,topY=6;
+    var color=CR.bt===i?'#FF6B9D':'#F5CBA7';
+    var outline='#3D2B1F';
+    cx.clearRect(0,0,80,100);
+    cx.lineCap='round';cx.lineJoin='round';cx.strokeStyle=outline;cx.lineWidth=1.5;cx.fillStyle=color;
+    // Head
+    var headY=topY+cfg.headR;
+    cx.beginPath();cx.arc(midX,headY,cfg.headR,0,Math.PI*2);cx.fill();cx.stroke();
+    // Ears
+    cx.beginPath();cx.arc(midX-cfg.headR+1,headY,3,0,Math.PI*2);cx.fill();cx.stroke();
+    cx.beginPath();cx.arc(midX+cfg.headR-1,headY,3,0,Math.PI*2);cx.fill();cx.stroke();
+    // Neck
+    var neckY=headY+cfg.headR;
+    cx.fillRect(midX-3,neckY,6,cfg.neckH);cx.strokeRect(midX-3,neckY,6,cfg.neckH);
+    // Body
+    var bodyY=neckY+cfg.neckH;
+    cx.beginPath();
+    cx.moveTo(midX-cfg.shoulderW,bodyY);
+    cx.quadraticCurveTo(midX-cfg.shoulderW-2,bodyY+cfg.bodyH*0.5,midX-cfg.shoulderW*0.6,bodyY+cfg.bodyH);
+    cx.lineTo(midX+cfg.shoulderW*0.6,bodyY+cfg.bodyH);
+    cx.quadraticCurveTo(midX+cfg.shoulderW+2,bodyY+cfg.bodyH*0.5,midX+cfg.shoulderW,bodyY);
+    cx.closePath();cx.fill();cx.stroke();
+    // Grey clothes overlay
+    cx.fillStyle='rgba(180,180,190,0.5)';cx.fill();cx.fillStyle=color;
+    // Legs
+    var legY=bodyY+cfg.bodyH;
+    cx.fillRect(midX-8,legY,6,cfg.legH);cx.strokeRect(midX-8,legY,6,cfg.legH);
+    cx.fillRect(midX+2,legY,6,cfg.legH);cx.strokeRect(midX+2,legY,6,cfg.legH);
+    // Feet
+    var footY=legY+cfg.legH;
+    cx.beginPath();cx.ellipse(midX-5,footY,5,3,0,0,Math.PI*2);cx.fill();cx.stroke();
+    cx.beginPath();cx.ellipse(midX+5,footY,5,3,0,0,Math.PI*2);cx.fill();cx.stroke();
+    // Arms
+    cx.fillRect(midX-cfg.shoulderW-4,bodyY+2,4,cfg.bodyH*0.6);cx.strokeRect(midX-cfg.shoulderW-4,bodyY+2,4,cfg.bodyH*0.6);
+    cx.fillRect(midX+cfg.shoulderW,bodyY+2,4,cfg.bodyH*0.6);cx.strokeRect(midX+cfg.shoulderW,bodyY+2,4,cfg.bodyH*0.6);
+    // Ball hands
+    cx.beginPath();cx.arc(midX-cfg.shoulderW-2,bodyY+cfg.bodyH*0.6+4,3,0,Math.PI*2);cx.fill();cx.stroke();
+    cx.beginPath();cx.arc(midX+cfg.shoulderW+2,bodyY+cfg.bodyH*0.6+4,3,0,Math.PI*2);cx.fill();cx.stroke();
+  });
 }
 function crNext(){CR.step++;sfxTap();renderCreateStep();}
 function crFinish(){
@@ -1703,18 +1822,7 @@ goHome=function(){
 var origBui=bui;
 bui=function(){origBui();if(chars[ci])saveCharToArray();};
 
-// Add runway button to topbar
-(function(){
-  var btns=document.querySelector('.topbar-btns');
-  if(btns){
-    var rb=document.createElement('button');rb.className='tbtn';rb.title='Runway';rb.textContent='🎤';
-    rb.onclick=function(){saveCharToArray();showScr('rwScr');};
-    btns.appendChild(rb);
-    var pb=document.createElement('button');pb.className='tbtn';pb.title='Photo Booth';pb.textContent='🖼';
-    pb.onclick=function(){saveCharToArray();showScr('pbScr');};
-    btns.appendChild(pb);
-  }
-})();
+// Runway + Photo Booth buttons are in topbar HTML directly
 
 // INIT SPLASH STARS
 (function(){var c=document.getElementById('lsStars');for(var i=0;i<25;i++){var s=document.createElement('div');s.className='ls-star';s.style.left=Math.random()*100+'%';s.style.top=Math.random()*100+'%';s.style.animationDelay=Math.random()*4+'s';s.style.animationDuration=(3+Math.random()*3)+'s';var sz=3+Math.random()*8;s.style.width=s.style.height=sz+'px';var colors=['rgba(255,215,100,0.9)','rgba(255,180,200,0.8)','rgba(255,255,255,0.9)','rgba(255,200,100,0.85)'];var col=colors[Math.floor(Math.random()*colors.length)];s.style.background='radial-gradient(circle,'+col+' 0%,transparent 70%)';s.style.boxShadow='0 0 '+(sz*2)+'px '+col;c.appendChild(s);}})();
@@ -1797,6 +1905,7 @@ function autoFetch(){
     }
     // Rebuild tabs with icons
     bCt();
+    applyUIIcons();
     // Cache in IDB
     if(db)dbp('ui_assets',JSON.stringify(d));
   }).catch(function(){
@@ -1812,6 +1921,7 @@ function autoFetch(){
           if(sl)sl.innerHTML='<img src="'+UI_ASSETS.ui.logo+'" style="height:140px;object-fit:contain;">';
         }
         bCt();
+        applyUIIcons();
       }catch(e){}}
     });
   });
