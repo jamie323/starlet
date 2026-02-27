@@ -218,7 +218,7 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 #gToast.show{opacity:1;}
 
 /* BOTTOM NAV — physical toy shelf dock */
-.bnav{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:580px;
+.bnav{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:580px;
   background:linear-gradient(180deg,#FFF5EE 0%,#FFE4D6 50%,#FDDAC8 100%);
   border-radius:28px;display:flex;justify-content:space-evenly;align-items:center;z-index:100;
   padding:6px 4px 10px;
@@ -347,7 +347,7 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .pb-stamp:active{transform:scale(1.3);}
 
 /* RUNWAY */
-.rw-scr{background:linear-gradient(180deg,#1a0a30,#2a1040,#1a0a30);align-items:center;justify-content:flex-end;position:relative;overflow:hidden;cursor:pointer;padding-bottom:80px;}
+.rw-scr{background:linear-gradient(180deg,#1a0a30,#2a1040,#1a0a30);align-items:center;justify-content:center;position:relative;overflow:hidden;gap:8px;}
 .rw-spot{position:absolute;width:500px;height:100%;background:radial-gradient(ellipse at 50% 30%,rgba(255,215,0,.12),transparent 60%);top:0;left:50%;transform:translateX(-50%);pointer-events:none;}
 .rw-strip{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:200px;height:100%;background:linear-gradient(180deg,transparent 0%,rgba(255,107,157,.04) 30%,rgba(255,107,157,.08) 100%);pointer-events:none;}
 .rw-canvas-wrap{position:relative;z-index:2;transform:translateY(120%);animation:rwWalkIn 1.8s .3s cubic-bezier(.16,1,.3,1) forwards;}
@@ -363,6 +363,9 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 @keyframes rwHint{to{opacity:1;}}
 .rw-back{position:absolute;top:16px;left:16px;z-index:10;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:13px;font-weight:700;padding:8px 16px;border-radius:12px;cursor:pointer;font-family:inherit;backdrop-filter:blur(6px);}
 .rw-back:active{background:rgba(255,255,255,.3);}
+.rw-actions{display:flex;gap:10px;z-index:5;margin-top:8px;}
+.rw-btn{background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.25);color:#fff;font-family:inherit;font-size:14px;font-weight:700;padding:10px 20px;border-radius:16px;cursor:pointer;backdrop-filter:blur(6px);transition:.2s;}
+.rw-btn:active{transform:scale(.93);background:rgba(255,255,255,.3);}
 
 /* FULL-PAGE WARDROBE */
 .fw-scr{background:linear-gradient(160deg,#FFF0F5,#FFE8EE,#F0F0FF);padding:20px;gap:12px;}
@@ -372,7 +375,7 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .fw-item img{width:100%;aspect-ratio:1;object-fit:cover;display:block;}
 .fw-item .fw-del{position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;background:rgba(255,107,157,.9);color:#fff;font-size:11px;display:none;align-items:center;justify-content:center;cursor:pointer;border:none;}
 .fw-item:hover .fw-del{display:flex;}
-.fw-empty{grid-column:1/-1;text-align:center;color:rgba(140,100,160,.5);font-size:14px;padding:40px 0;}
+.fw-empty{grid-column:1/-1;text-align:center;padding:60px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;}
 @media(max-width:699px){.fw-grid{grid-template-columns:repeat(3,1fr);}}
 </style>
 </head>
@@ -510,12 +513,13 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
     <button class="rw-back" onclick="showScr('dressScr')">← Back</button>
     <div class="rw-flash" id="rwFlash"></div>
     <div class="rw-canvas-wrap" id="rwWrap">
-      <canvas id="rwCv" width="512" height="700" style="max-height:55vh;object-fit:contain;"></canvas>
+      <canvas id="rwCv" width="512" height="700" style="max-height:60vh;object-fit:contain;"></canvas>
     </div>
     <div class="rw-name" id="rwName"></div>
-    <div class="rw-hint">tap anywhere to go back ✨</div>
-  </div>
-    <div class="rw-hint">tap anywhere to go back</div>
+    <div class="rw-actions">
+      <button class="rw-btn" onclick="rwSavePhoto()">📸 Save Photo</button>
+      <button class="rw-btn" onclick="showScr('dressScr')">👗 Change Outfit</button>
+    </div>
   </div>
 
   <!-- FULL WARDROBE SCREEN -->
@@ -1814,13 +1818,13 @@ function renderDollhouse(){
     return;
   }
   // Scale dolls based on room size and count
-  var DW=320,DH=440;
+  var DW=400,DH=550;
   var html='';
   chars.forEach(function(ch,i){
     var n=chars.length;
-    var spacing=Math.min(30,80/n);
+    var spacing=Math.min(28,70/n);
     var x=Math.max(5,50-n*spacing/2+i*spacing);
-    var y=15;
+    var y=8;
     html+='<div class="dh-doll" id="dhD'+i+'" style="left:'+x+'%;top:'+y+'%;width:'+DW+'px;" data-idx="'+i+'">';
     html+='<canvas width="'+DW+'" height="'+DH+'" id="dhC'+i+'"></canvas>';
     html+='<div style="text-align:center;font-size:14px;font-weight:800;color:#3d2040;margin-top:4px;text-shadow:0 1px 3px rgba(255,255,255,.8);">'+esc(ch.name)+'</div></div>';
@@ -1892,7 +1896,7 @@ function startRunway(){
   document.getElementById('rwName').textContent='✨ '+ch.name+' ✨';
   var ctx=cv.getContext('2d');ctx.clearRect(0,0,512,700);
   var tmpEq=ch.eq||{};var s=ch.skinIdx||0;
-  ctx.save();ctx.translate(256,350);ctx.scale(0.4,0.4);ctx.translate(-512,-ASSET_H/2);
+  ctx.save();ctx.translate(256,320);ctx.scale(0.46,0.46);ctx.translate(-512,-ASSET_H/2);
   if(IM['bl'])ctx.drawImage(s>0?tint('bl',SK[s]):IM['bl'],0,0,1024,ASSET_H);
   if(IM['bh'])ctx.drawImage(s>0?tint('bh',SK[s]):IM['bh'],0,0,1024,ASSET_H);
   if(tmpEq.outfits>=0&&IM['outfits_'+tmpEq.outfits])ctx.drawImage(IM['outfits_'+tmpEq.outfits],0,0,1024,ASSET_H);
@@ -1921,6 +1925,15 @@ function startRunway(){
     rw.style.backgroundImage='url('+UI_ASSETS.runway.stage+')';
     rw.style.backgroundSize='cover';rw.style.backgroundPosition='center';
   }
+}
+
+function rwSavePhoto(){
+  sfxCamera();
+  var flash=document.getElementById('rwFlash');
+  if(flash){flash.classList.remove('on');flash.offsetHeight;flash.classList.add('on');setTimeout(function(){flash.classList.remove('on');},200);}
+  var cv=document.getElementById('rwCv');
+  if(cv){var a=document.createElement('a');a.download='starlet-runway-'+Date.now()+'.png';a.href=cv.toDataURL();a.click();}
+  showToast('📸 Runway photo saved!');
 }
 
 // PHOTO BOOTH
@@ -1974,7 +1987,12 @@ function renderFullWardrobe(){
   var el=document.getElementById('fwGrid');
   var cnt=document.getElementById('fwCount');
   if(!ch||!ch.wardrobe||!ch.wardrobe.length){
-    el.innerHTML='<div class="fw-empty">No saved looks yet!<br>Dress up your doll and tap 💾 in the dressing room.</div>';
+    el.innerHTML='<div class="fw-empty">'+
+      '<div style="font-size:80px;margin-bottom:12px;filter:grayscale(30%) opacity(0.6);">👗</div>'+
+      '<div style="font-size:20px;font-weight:800;color:#3d2040;margin-bottom:8px;">Your wardrobe is empty!</div>'+
+      '<div style="font-size:14px;color:rgba(100,70,130,.5);max-width:260px;line-height:1.5;">Dress up your doll with cute outfits, then tap 💾 to save your favorite looks here!</div>'+
+      '<br><button class="h-btn h-btn-p" onclick="showScr(\'dressScr\')" style="font-size:14px;">👗 Go Dress Up!</button>'+
+      '</div>';
     cnt.textContent='0 looks';return;
   }
   cnt.textContent=ch.wardrobe.length+' look'+(ch.wardrobe.length>1?'s':'');
