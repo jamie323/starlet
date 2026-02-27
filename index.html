@@ -332,19 +332,35 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .dh-rug{position:absolute;bottom:15%;left:25%;width:50%;height:20%;border-radius:50%;background:radial-gradient(ellipse,#E8A0C0,#D080A0);opacity:.5;z-index:1;}
 .dh-doll{position:absolute;cursor:grab;touch-action:none;transition:none;z-index:5;}
 .dh-doll:active{cursor:grabbing;}
+.dh-hotspot{position:absolute;z-index:3;cursor:pointer;border-radius:8px;transition:all .15s;}
+.dh-hotspot:active{background:rgba(255,255,200,.2);}
+.dh-effects{position:absolute;inset:0;pointer-events:none;z-index:8;}
+.dh-effect{position:absolute;pointer-events:none;animation:dhPop .8s ease-out forwards;font-size:28px;}
+@keyframes dhPop{0%{opacity:1;transform:translateY(0) scale(.5);}50%{transform:translateY(-30px) scale(1.2);}100%{opacity:0;transform:translateY(-60px) scale(.8);}}
+.dh-bubble{position:absolute;background:rgba(255,255,255,.9);padding:6px 12px;border-radius:14px;font-size:12px;font-weight:700;color:#3d2040;pointer-events:none;animation:dhBubble 2s ease-out forwards;box-shadow:0 2px 8px rgba(0,0,0,.1);z-index:9;white-space:nowrap;}
+@keyframes dhBubble{0%{opacity:0;transform:translateY(10px) scale(.8);}15%{opacity:1;transform:translateY(0) scale(1);}75%{opacity:1;}100%{opacity:0;transform:translateY(-10px);}}
 .dh-topbar{position:absolute;top:0;left:0;right:0;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;z-index:10;background:linear-gradient(180deg,rgba(255,240,245,.95),rgba(255,240,245,.6),transparent);}
 .dh-empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2;}
 .dh-empty div{background:rgba(255,255,255,.85);padding:20px 30px;border-radius:20px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.08);}
 
 /* PHOTO BOOTH */
-.pb-scr{background:#1a1028;align-items:center;justify-content:center;padding:20px;gap:16px;}
-.pb-canvas-wrap{position:relative;border-radius:16px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.3);}
-.pb-frames{display:flex;gap:8px;justify-content:center;}
-.pb-fr{width:44px;height:44px;border-radius:12px;border:2px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;background:rgba(255,255,255,.05);transition:.15s;}
-.pb-fr.on{border-color:#FF6B9D;background:rgba(255,107,157,.15);}
-.pb-stamps{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;}
-.pb-stamp{width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;border-radius:8px;transition:.15s;}
-.pb-stamp:active{transform:scale(1.3);}
+.pb-scr{background:#1a1028;padding:0;gap:0;}
+.pb-top{display:flex;align-items:center;justify-content:space-between;width:100%;padding:12px 16px;flex-shrink:0;}
+.pb-back,.pb-save{background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.2);color:#fff;font-family:inherit;font-size:13px;font-weight:700;padding:8px 16px;border-radius:14px;cursor:pointer;}
+.pb-back:active,.pb-save:active{transform:scale(.93);}
+.pb-title{color:#fff;font-weight:800;font-size:16px;}
+.pb-main{display:flex;flex:1;gap:16px;padding:0 16px 16px;overflow:hidden;align-items:center;justify-content:center;}
+.pb-canvas-wrap{position:relative;border-radius:16px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.3);flex-shrink:0;}
+.pb-canvas-wrap canvas{display:block;max-height:65vh;width:auto;}
+.pb-tools{display:flex;flex-direction:column;gap:8px;padding:12px;background:rgba(255,255,255,.08);border-radius:16px;min-width:160px;max-width:200px;max-height:100%;overflow-y:auto;}
+.pb-tool-label{color:rgba(255,255,255,.5);font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;}
+.pb-frames{display:flex;gap:6px;flex-wrap:wrap;}
+.pb-fr{width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.1);border:2px solid transparent;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;transition:.15s;}
+.pb-fr.on{border-color:#FF6B9D;background:rgba(255,107,157,.2);}
+.pb-fr:active{transform:scale(.9);}
+.pb-stamps{display:flex;gap:5px;flex-wrap:wrap;}
+.pb-stamp{width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;border-radius:8px;background:rgba(255,255,255,.06);transition:.15s;}
+.pb-stamp:active{transform:scale(.85);background:rgba(255,255,255,.15);}
 
 /* RUNWAY */
 .rw-scr{background:linear-gradient(180deg,#1a0a30,#2a1040,#1a0a30);align-items:center;justify-content:center;position:relative;overflow:hidden;gap:8px;}
@@ -366,6 +382,15 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .rw-actions{display:flex;gap:10px;z-index:5;margin-top:8px;}
 .rw-btn{background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.25);color:#fff;font-family:inherit;font-size:14px;font-weight:700;padding:10px 20px;border-radius:16px;cursor:pointer;backdrop-filter:blur(6px);transition:.2s;}
 .rw-btn:active{transform:scale(.93);background:rgba(255,255,255,.3);}
+.rw-pose{background:linear-gradient(135deg,rgba(255,107,157,.3),rgba(200,80,192,.3));border-color:rgba(255,255,255,.35);}
+
+/* Runway pose animations */
+@keyframes rwSpin{0%{transform:rotateY(0) scale(1);}25%{transform:rotateY(90deg) scale(.8);}50%{transform:rotateY(180deg) scale(1);}75%{transform:rotateY(270deg) scale(.8);}100%{transform:rotateY(360deg) scale(1);}}
+@keyframes rwBounce{0%,100%{transform:translateY(0);}15%{transform:translateY(-40px) scaleX(.9);}30%{transform:translateY(0) scaleX(1.05) scaleY(.9);}45%{transform:translateY(-25px) scaleX(.95);}60%{transform:translateY(0) scaleX(1.02) scaleY(.95);}75%{transform:translateY(-10px);}90%{transform:translateY(0);}}
+@keyframes rwWiggle{0%,100%{transform:rotate(0);}10%{transform:rotate(-8deg);}20%{transform:rotate(8deg);}30%{transform:rotate(-6deg);}40%{transform:rotate(6deg);}50%{transform:rotate(-4deg);}60%{transform:rotate(4deg);}70%{transform:rotate(-2deg);}80%{transform:rotate(2deg);}90%{transform:rotate(-1deg);}}
+.rw-spin .rw-canvas-wrap{animation:rwSpin .8s ease-in-out;}
+.rw-bounce .rw-canvas-wrap{animation:rwBounce 1s cubic-bezier(.34,1.56,.64,1);}
+.rw-wiggle .rw-canvas-wrap{animation:rwWiggle 1.2s ease-in-out;}
 
 /* FULL-PAGE WARDROBE */
 .fw-scr{background:linear-gradient(160deg,#FFF0F5,#FFE8EE,#F0F0FF);padding:20px;gap:12px;}
@@ -490,19 +515,33 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
       <div class="dh-wall"></div>
       <div class="dh-floor"></div>
       <div class="dh-rug"></div>
+      <!-- Interactive hotspots -->
+      <div class="dh-hotspot" data-action="mirror" style="left:35%;top:5%;width:12%;height:25%;" onclick="dhTapSpot(this,'mirror')"></div>
+      <div class="dh-hotspot" data-action="bed" style="right:20%;top:25%;width:18%;height:25%;" onclick="dhTapSpot(this,'bed')"></div>
+      <div class="dh-hotspot" data-action="bookshelf" style="left:0;top:10%;width:14%;height:55%;" onclick="dhTapSpot(this,'bookshelf')"></div>
+      <div class="dh-hotspot" data-action="table" style="left:30%;bottom:15%;width:25%;height:20%;" onclick="dhTapSpot(this,'table')"></div>
+      <div class="dh-hotspot" data-action="window" style="left:28%;top:0;width:28%;height:30%;" onclick="dhTapSpot(this,'window')"></div>
       <div id="dhDolls"></div>
+      <div class="dh-effects" id="dhEffects"></div>
     </div>
   </div>
 
   <!-- PHOTO BOOTH SCREEN -->
   <div class="scr pb-scr" id="pbScr">
-    <button class="h-btn h-btn-s" onclick="showScr('dressScr')" style="position:absolute;top:16px;left:16px;padding:8px 16px;font-size:13px;z-index:5;">← Back</button>
-    <div class="pb-canvas-wrap"><canvas id="pbCv" width="800" height="1000"></canvas></div>
-    <div class="pb-frames" id="pbFrames"></div>
-    <div class="pb-stamps" id="pbStamps"></div>
-    <div style="display:flex;gap:10px;">
-      <button class="h-btn h-btn-p" onclick="pbSnap()" style="padding:10px 20px;font-size:14px;">📸 Snap!</button>
-      <button class="h-btn h-btn-s" onclick="pbSavePhoto()" style="padding:10px 20px;font-size:14px;">💾 Save</button>
+    <div class="pb-top">
+      <button class="pb-back" onclick="showScr('dressScr')">← Back</button>
+      <span class="pb-title">📸 Photo Booth</span>
+      <button class="pb-save" onclick="pbSavePhoto()">💾 Save</button>
+    </div>
+    <div class="pb-main">
+      <div class="pb-canvas-wrap"><canvas id="pbCv" width="600" height="750"></canvas></div>
+      <div class="pb-tools">
+        <div class="pb-tool-label">Frames</div>
+        <div class="pb-frames" id="pbFrames"></div>
+        <div class="pb-tool-label">Stickers</div>
+        <div class="pb-stamps" id="pbStamps"></div>
+        <button class="h-btn h-btn-p" onclick="pbSnap()" style="width:100%;margin-top:8px;">📸 Snap!</button>
+      </div>
     </div>
   </div>
 
@@ -513,12 +552,14 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
     <button class="rw-back" onclick="showScr('dressScr')">← Back</button>
     <div class="rw-flash" id="rwFlash"></div>
     <div class="rw-canvas-wrap" id="rwWrap">
-      <canvas id="rwCv" width="512" height="700" style="max-height:60vh;object-fit:contain;"></canvas>
+      <canvas id="rwCv" width="512" height="700" style="max-height:55vh;object-fit:contain;"></canvas>
     </div>
     <div class="rw-name" id="rwName"></div>
     <div class="rw-actions">
-      <button class="rw-btn" onclick="rwSavePhoto()">📸 Save Photo</button>
-      <button class="rw-btn" onclick="showScr('dressScr')">👗 Change Outfit</button>
+      <button class="rw-btn rw-pose" onclick="rwPose('spin')">🌀 Spin!</button>
+      <button class="rw-btn rw-pose" onclick="rwPose('bounce')">⬆️ Jump!</button>
+      <button class="rw-btn rw-pose" onclick="rwPose('wiggle')">💃 Dance!</button>
+      <button class="rw-btn" onclick="rwSavePhoto()">📸 Save</button>
     </div>
   </div>
 
@@ -1231,7 +1272,7 @@ function bnavGo(action){
 function updateBnav(scrId){
   var nav=document.getElementById('bnav');if(!nav)return;
   // Hide on splash and create screens
-  var hideOn=['ls','createScr'];
+  var hideOn=['ls','createScr','pbScr','rwScr'];
   if(hideOn.indexOf(scrId)>=0){nav.classList.add('hid');return;}
   nav.classList.remove('hid');
   // Highlight active
@@ -1424,27 +1465,6 @@ function applyDollhouseAssets(){
       var wall=dhRoom.querySelector('.dh-wall');if(wall)wall.style.display='none';
       var floor=dhRoom.querySelector('.dh-floor');if(floor)floor.style.display='none';
       var rug=dhRoom.querySelector('.dh-rug');if(rug)rug.style.display='none';
-    }
-  }
-  // Dollhouse furniture
-  if(UI_ASSETS.dollhouse){
-    var dhRoom2=document.getElementById('dhRoom');
-    if(dhRoom2&&!dhRoom2.querySelector('.dh-furniture')){
-      var furnitureHTML='';
-      var items=[
-        {key:'bookshelf',x:'5%',y:'20%',w:'120px'},
-        {key:'lamp',x:'82%',y:'15%',w:'60px'},
-        {key:'mirror',x:'40%',y:'10%',w:'80px'},
-        {key:'bed',x:'60%',y:'45%',w:'160px'},
-        {key:'dresser',x:'15%',y:'50%',w:'100px'},
-        {key:'window',x:'45%',y:'2%',w:'100px'}
-      ];
-      items.forEach(function(f){
-        if(UI_ASSETS.dollhouse[f.key]){
-          furnitureHTML+='<img class="dh-furniture" src="'+UI_ASSETS.dollhouse[f.key]+'" style="position:absolute;left:'+f.x+';top:'+f.y+';width:'+f.w+';object-fit:contain;pointer-events:none;z-index:1;">';
-        }
-      });
-      dhRoom2.insertAdjacentHTML('afterbegin',furnitureHTML);
     }
   }
 }
@@ -1861,6 +1881,46 @@ function renderDollhouse(){
     d.addEventListener('mousedown',onDown);d.addEventListener('touchstart',onDown,{passive:false});
   });
 }
+// DOLLHOUSE INTERACTIVE HOTSPOTS
+var dhReactions={
+  mirror:['💄 Trying lipstick!','💅 Painting nails!','👑 Feeling like a queen!','🪞 Looking fabulous!','✨ So sparkly!'],
+  bed:['💤 So sleepy...','🧸 Teddy bear hug!','🌙 Sweet dreams!','😴 Nap time!','⭐ Counting stars...'],
+  bookshelf:['📖 Reading a story!','📚 So many books!','🦋 Found a butterfly!','🎵 Music box!','🔮 Magic spell book!'],
+  table:['🍰 Tea party time!','🧁 Yummy cupcake!','🫖 More tea please!','🍪 Cookie break!','🎂 Birthday cake!'],
+  window:['🌈 Look, a rainbow!','☀️ Sunny day!','🦋 A butterfly!','⭐ Shooting star!','🌸 Pretty flowers!']
+};
+function dhTapSpot(el,action){
+  sfxTap();
+  var lines=dhReactions[action]||['✨'];
+  var msg=lines[Math.floor(Math.random()*lines.length)];
+  var efx=document.getElementById('dhEffects');if(!efx)return;
+  // Pop emojis
+  var emoji=msg.match(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu)||['✨'];
+  for(var i=0;i<4;i++){
+    var sp=document.createElement('div');sp.className='dh-effect';
+    sp.textContent=emoji[Math.floor(Math.random()*emoji.length)];
+    var rect=el.getBoundingClientRect();var room=el.parentElement.getBoundingClientRect();
+    sp.style.left=(rect.left-room.left+rect.width*Math.random())+'px';
+    sp.style.top=(rect.top-room.top+rect.height*.3)+'px';
+    sp.style.animationDelay=(i*100)+'ms';
+    efx.appendChild(sp);
+    setTimeout(function(s){s.remove()},1200);
+  }
+  // Speech bubble from doll
+  if(chars.length){
+    var dollEl=document.getElementById('dhD0');
+    if(dollEl){
+      var bub=document.createElement('div');bub.className='dh-bubble';
+      bub.textContent=msg;
+      bub.style.left=dollEl.offsetLeft+'px';
+      bub.style.top=(dollEl.offsetTop-30)+'px';
+      var room=document.getElementById('dhRoom');
+      if(room)room.appendChild(bub);
+      setTimeout(function(){bub.remove();},2200);
+    }
+  }
+}
+
 function dhGroupPhoto(){
   sfxCamera();
   var c=document.createElement('canvas');c.width=1200;c.height=800;
@@ -1936,6 +1996,34 @@ function rwSavePhoto(){
   showToast('📸 Runway photo saved!');
 }
 
+function rwPose(type){
+  sfxTap();
+  var rw=document.getElementById('rwScr');if(!rw)return;
+  // Remove old animation classes
+  rw.classList.remove('rw-spin','rw-bounce','rw-wiggle');
+  rw.offsetHeight; // force reflow
+  rw.classList.add('rw-'+type);
+  // Camera flash on pose
+  var flash=document.getElementById('rwFlash');
+  if(flash){
+    setTimeout(function(){
+      flash.classList.remove('on');flash.offsetHeight;flash.classList.add('on');
+      sfxCamera();
+      setTimeout(function(){flash.classList.remove('on');},200);
+    },300);
+  }
+  // Sparkle burst
+  for(var i=0;i<12;i++){
+    var sp=document.createElement('div');sp.className='rw-sparkle';
+    sp.style.left=20+Math.random()*60+'%';sp.style.top=20+Math.random()*60+'%';
+    sp.style.width=sp.style.height=(3+Math.random()*8)+'px';
+    sp.style.animationDelay=(Math.random()*.5)+'s';
+    rw.appendChild(sp);setTimeout(function(s){s.remove()}.bind(null,sp),2000);
+  }
+  // Remove animation class after it completes
+  setTimeout(function(){rw.classList.remove('rw-spin','rw-bounce','rw-wiggle');},1500);
+}
+
 // PHOTO BOOTH
 var pbFrame='pink',pbStamps=[];
 var PB_FRAMES=[{id:'none',e:'✕'},{id:'pink',e:'💕'},{id:'gold',e:'✨'},{id:'rainbow',e:'🌈'},{id:'stars',e:'⭐'},{id:'lav',e:'💜'}];
@@ -1951,15 +2039,15 @@ function initPhotoBooth(){
 function pbSetFrame(id){pbFrame=id;sfxTap();
   var fh='';PB_FRAMES.forEach(function(f){fh+='<div class="pb-fr'+(f.id===pbFrame?' on':'')+'" onclick="pbSetFrame(\''+f.id+'\')">'+f.e+'</div>';});
   document.getElementById('pbFrames').innerHTML=fh;pbRender();}
-function pbAddStamp(i){sfxTap();pbStamps.push({e:PB_STAMP_E[i],x:200+Math.random()*400,y:200+Math.random()*600});pbRender();}
+function pbAddStamp(i){sfxTap();pbStamps.push({e:PB_STAMP_E[i],x:100+Math.random()*400,y:100+Math.random()*550});pbRender();}
 function pbRender(){
   var cv=document.getElementById('pbCv');if(!cv)return;
-  var ctx=cv.getContext('2d');ctx.clearRect(0,0,800,1000);
-  ctx.fillStyle='#FFF0F5';ctx.fillRect(0,0,800,1000);
+  var ctx=cv.getContext('2d');ctx.clearRect(0,0,600,750);
+  ctx.fillStyle='#FFF0F5';ctx.fillRect(0,0,600,750);
   // Draw character centered
   var ch=chars[ci];if(!ch)return;
   var tmpEq=ch.eq||{};var s=ch.skinIdx||0;
-  ctx.save();ctx.translate(400,480);ctx.scale(0.6,0.6);ctx.translate(-512,-ASSET_H/2);
+  ctx.save();ctx.translate(300,360);ctx.scale(0.5,0.5);ctx.translate(-512,-ASSET_H/2);
   if(IM['bl'])ctx.drawImage(s>0?tint('bl',SK[s]):IM['bl'],0,0,1024,ASSET_H);
   if(IM['bh'])ctx.drawImage(s>0?tint('bh',SK[s]):IM['bh'],0,0,1024,ASSET_H);
   if(tmpEq.outfits>=0&&IM['outfits_'+tmpEq.outfits])ctx.drawImage(IM['outfits_'+tmpEq.outfits],0,0,1024,ASSET_H);
@@ -1969,14 +2057,15 @@ function pbRender(){
   // Stamps
   ctx.font='40px serif';ctx.textAlign='center';
   pbStamps.forEach(function(s){ctx.fillText(s.e,s.x,s.y);});
-  // Frame
-  if(pbFrame==='pink'){ctx.strokeStyle='#FF6B9D';ctx.lineWidth=12;ctx.strokeRect(6,6,788,988);}
-  else if(pbFrame==='gold'){ctx.strokeStyle='#FFD700';ctx.lineWidth=12;ctx.strokeRect(6,6,788,988);}
-  else if(pbFrame==='rainbow'){ctx.lineWidth=12;var rg=ctx.createLinearGradient(0,0,800,1000);rg.addColorStop(0,'#FF6B9D');rg.addColorStop(.2,'#FFD700');rg.addColorStop(.4,'#6ee7b7');rg.addColorStop(.6,'#87CEEB');rg.addColorStop(.8,'#C8A8E9');rg.addColorStop(1,'#FF6B9D');ctx.strokeStyle=rg;ctx.strokeRect(6,6,788,988);}
-  else if(pbFrame==='stars'){ctx.strokeStyle='#FFD700';ctx.lineWidth=6;ctx.setLineDash([12,8]);ctx.strokeRect(10,10,780,980);ctx.setLineDash([]);}
-  else if(pbFrame==='lav'){ctx.strokeStyle='#C8A8E9';ctx.lineWidth=12;ctx.strokeRect(6,6,788,988);}
-  // Watermark
-  ctx.fillStyle='rgba(61,32,64,0.3)';ctx.font='11px Nunito';ctx.textAlign='right';ctx.fillText('✨ Made with Starlet',780,985);
+  // Frame — use AI frame if available, else colored borders
+  if(pbFrame!=='none'&&UI_ASSETS&&UI_ASSETS.photobooth&&UI_ASSETS.photobooth['frame_'+pbFrame]){
+    var fi=new Image();fi.onload=function(){ctx.drawImage(fi,0,0,600,750);};fi.src=UI_ASSETS.photobooth['frame_'+pbFrame];
+  } else if(pbFrame==='pink'){ctx.strokeStyle='#FF6B9D';ctx.lineWidth=10;ctx.strokeRect(5,5,590,740);}
+  else if(pbFrame==='gold'){ctx.strokeStyle='#FFD700';ctx.lineWidth=10;ctx.strokeRect(5,5,590,740);}
+  else if(pbFrame==='rainbow'){ctx.lineWidth=10;var rg=ctx.createLinearGradient(0,0,600,750);rg.addColorStop(0,'#FF6B9D');rg.addColorStop(.2,'#FFD700');rg.addColorStop(.4,'#6ee7b7');rg.addColorStop(.6,'#87CEEB');rg.addColorStop(.8,'#C8A8E9');rg.addColorStop(1,'#FF6B9D');ctx.strokeStyle=rg;ctx.strokeRect(5,5,590,740);}
+  else if(pbFrame==='stars'){ctx.strokeStyle='#FFD700';ctx.lineWidth=5;ctx.setLineDash([10,6]);ctx.strokeRect(8,8,584,734);ctx.setLineDash([]);}
+  else if(pbFrame==='lav'){ctx.strokeStyle='#C8A8E9';ctx.lineWidth=10;ctx.strokeRect(5,5,590,740);}
+  ctx.fillStyle='rgba(61,32,64,0.3)';ctx.font='11px Nunito';ctx.textAlign='right';ctx.fillText('✨ Made with Starlet',585,740);
 }
 function pbSnap(){sfxCamera();pbRender();showToast('📸 Snap!');}
 function pbSavePhoto(){var cv=document.getElementById('pbCv');var a=document.createElement('a');a.download='starlet-photo.png';a.href=cv.toDataURL();a.click();sfxSave();showToast('💾 Photo saved!');}
