@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>✨ Starlet v27 ✨</title>
+<title>✨ Starlet v4 ✨</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;}
@@ -192,6 +192,92 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .cattab .cemoji{font-size:22px;}
 .cattab .clabel{font-size:9px;}
 }
+#gToast{position:fixed;top:50px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#FF6B9D,#C850C0);color:#fff;padding:8px 20px;border-radius:20px;font-weight:800;font-size:12px;z-index:200;opacity:0;transition:opacity 0.3s;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,0.3);}
+#gToast.show{opacity:1;}
+/* MULTI-SCREEN NAVIGATION */
+.scr{position:absolute;inset:0;display:none;flex-direction:column;overflow:hidden;}
+.scr.on{display:flex;}
+.scr-enter{animation:scrIn .4s cubic-bezier(.16,1,.3,1) forwards;}
+.scr-leave{animation:scrOut .35s ease forwards;}
+@keyframes scrIn{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:none;}}
+@keyframes scrOut{to{opacity:0;transform:translateY(-20px);}}
+
+/* HOME SCREEN */
+.home-scr{background:linear-gradient(160deg,#FFE8F0 0%,#FFF5F0 30%,#F0F0FF 70%,#E8F8FF 100%);align-items:center;justify-content:center;gap:20px;padding:30px;}
+.h-logo{font-size:36px;font-weight:900;background:linear-gradient(135deg,#FF6B9D,#FF8C69,#FFD700);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:2px;text-align:center;}
+.h-cards{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;padding:10px 0;}
+.h-card{width:220px;background:#fff;border-radius:24px;overflow:hidden;box-shadow:0 8px 28px rgba(0,0,0,.06);cursor:pointer;transition:.3s;display:flex;flex-direction:column;}
+.h-card:hover{transform:translateY(-4px);box-shadow:0 12px 36px rgba(0,0,0,.1);}
+.h-card.empty{background:rgba(255,255,255,.5);border:3px dashed rgba(255,107,157,.2);box-shadow:none;align-items:center;justify-content:center;min-height:300px;}
+.h-card.empty:hover{border-color:#FF6B9D;background:rgba(255,255,255,.7);}
+.h-preview{height:240px;background:linear-gradient(180deg,#FFF5F8,#FFE8EE);display:flex;align-items:flex-end;justify-content:center;padding-bottom:8px;overflow:hidden;}
+.h-info{padding:12px 16px;text-align:center;background:#fff;}
+.h-name{font-weight:700;color:#3d2040;font-size:16px;}
+.h-body{font-size:11px;color:rgba(100,70,130,.5);margin-top:2px;}
+.h-add-icon{font-size:48px;color:rgba(255,107,157,.3);animation:addPulse 2s ease infinite;}
+.h-add-lbl{font-size:13px;color:rgba(255,107,157,.4);font-weight:700;margin-top:4px;}
+@keyframes addPulse{0%,100%{opacity:.5;transform:scale(1);}50%{opacity:1;transform:scale(1.1);}}
+.h-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
+.h-btn{padding:14px 28px;border:none;border-radius:18px;font-family:inherit;font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.08);transition:.2s;}
+.h-btn:active{transform:scale(.95);}
+.h-btn-p{background:linear-gradient(135deg,#FF6B9D,#FF8C69);color:#fff;box-shadow:0 4px 16px rgba(255,107,157,.3);}
+.h-btn-s{background:#fff;color:#3d2040;border:2px solid rgba(255,107,157,.08);}
+
+/* CREATE SCREEN */
+.create-scr{background:linear-gradient(160deg,#FFE8F0,#FFF8FF,#F0F0FF);align-items:center;justify-content:center;padding:30px;gap:16px;}
+.cr-progress{height:4px;background:rgba(255,107,157,.1);margin:0 20px;width:80%;max-width:300px;border-radius:4px;}
+.cr-bar{height:100%;background:linear-gradient(90deg,#FF6B9D,#FF8C69);border-radius:4px;transition:width .4s cubic-bezier(.16,1,.3,1);}
+.cr-step{text-align:center;}
+.cr-opts{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;padding:10px 0;}
+.cr-opt{padding:16px 28px;border-radius:18px;border:2px solid rgba(255,107,157,.15);background:#fff;cursor:pointer;font-family:inherit;font-weight:600;font-size:14px;color:#3d2040;transition:.2s;}
+.cr-opt:hover,.cr-opt.on{border-color:#FF6B9D;background:#FFE8EE;box-shadow:0 4px 16px rgba(255,107,157,.15);}
+.cr-opt.dim{opacity:.4;pointer-events:none;}
+.cr-skin-row{display:flex;gap:14px;justify-content:center;padding:10px 0;}
+.cr-skin{width:52px;height:52px;border-radius:50%;border:3px solid transparent;cursor:pointer;transition:.15s;box-shadow:0 2px 8px rgba(0,0,0,.2);}
+.cr-skin.on{border-color:#FF6B9D;box-shadow:0 0 12px rgba(255,107,157,.4);}
+.cr-input{border:2px solid rgba(255,107,157,.2);border-radius:16px;padding:14px 20px;font-family:inherit;font-size:18px;font-weight:600;text-align:center;color:#3d2040;background:#fff;outline:none;width:250px;}
+.cr-input:focus{border-color:#FF6B9D;box-shadow:0 0 16px rgba(255,107,157,.15);}
+
+/* DOLLHOUSE SCREEN */
+.dh-scr{background:linear-gradient(160deg,#FFF0F5,#FFE8F0);padding:0;position:relative;}
+.dh-room{flex:1;position:relative;overflow:hidden;}
+.dh-wall{position:absolute;top:0;left:0;right:0;height:55%;background:linear-gradient(180deg,#FFE8D6,#FFD4C0);}
+.dh-floor{position:absolute;bottom:0;left:0;right:0;height:45%;background:repeating-linear-gradient(90deg,#D4A574 0px,#C4955A 60px,#D4A574 120px);}
+.dh-rug{position:absolute;bottom:15%;left:25%;width:50%;height:20%;border-radius:50%;background:radial-gradient(ellipse,#E8A0C0,#D080A0);opacity:.4;}
+.dh-doll{position:absolute;cursor:grab;touch-action:none;transition:none;}
+.dh-doll:active{cursor:grabbing;}
+.dh-topbar{position:absolute;top:0;left:0;right:0;padding:8px 16px;display:flex;justify-content:space-between;align-items:center;z-index:10;background:linear-gradient(180deg,rgba(255,240,245,.9),transparent);}
+
+/* PHOTO BOOTH */
+.pb-scr{background:#1a1028;align-items:center;justify-content:center;padding:20px;gap:16px;}
+.pb-canvas-wrap{position:relative;border-radius:16px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.3);}
+.pb-frames{display:flex;gap:8px;justify-content:center;}
+.pb-fr{width:44px;height:44px;border-radius:12px;border:2px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;background:rgba(255,255,255,.05);transition:.15s;}
+.pb-fr.on{border-color:#FF6B9D;background:rgba(255,107,157,.15);}
+.pb-stamps{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;}
+.pb-stamp{width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;border-radius:8px;transition:.15s;}
+.pb-stamp:active{transform:scale(1.3);}
+
+/* RUNWAY */
+.rw-scr{background:linear-gradient(180deg,#1a0a30,#2a1040,#1a0a30);align-items:center;justify-content:center;position:relative;overflow:hidden;cursor:pointer;}
+.rw-spot{position:absolute;width:400px;height:800px;background:radial-gradient(ellipse at 50% 0%,rgba(255,215,0,.08),transparent 70%);top:0;left:50%;transform:translateX(-50%);}
+.rw-name{color:#FFD700;font-size:28px;font-weight:900;text-shadow:0 0 30px rgba(255,215,0,.5);opacity:0;animation:rwNameIn 1s .8s forwards;}
+@keyframes rwNameIn{to{opacity:1;}}
+.rw-sparkle{position:absolute;border-radius:50%;background:rgba(255,215,0,.6);pointer-events:none;animation:rwSp 2s ease-out forwards;}
+@keyframes rwSp{0%{opacity:0;transform:scale(0);}30%{opacity:1;transform:scale(1);}100%{opacity:0;transform:translateY(-50px) scale(.3);}}
+.rw-hint{position:absolute;bottom:40px;color:rgba(255,255,255,.4);font-size:12px;font-weight:600;opacity:0;animation:rwHint .5s 3s forwards;}
+@keyframes rwHint{to{opacity:1;}}
+
+/* FULL-PAGE WARDROBE */
+.fw-scr{background:linear-gradient(160deg,#FFF0F5,#FFE8EE,#F0F0FF);padding:20px;gap:12px;}
+.fw-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;overflow-y:auto;flex:1;padding:4px;}
+.fw-item{position:relative;border-radius:16px;overflow:hidden;border:2px solid rgba(255,107,157,.15);cursor:pointer;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.04);transition:.2s;}
+.fw-item:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.08);}
+.fw-item img{width:100%;aspect-ratio:1;object-fit:cover;display:block;}
+.fw-item .fw-del{position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;background:rgba(255,107,157,.9);color:#fff;font-size:11px;display:none;align-items:center;justify-content:center;cursor:pointer;border:none;}
+.fw-item:hover .fw-del{display:flex;}
+.fw-empty{grid-column:1/-1;text-align:center;color:rgba(140,100,160,.5);font-size:14px;padding:40px 0;}
+@media(max-width:699px){.fw-grid{grid-template-columns:repeat(3,1fr);}}
 </style>
 </head>
 <body>
@@ -216,10 +302,25 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
     </div>
     <input type="file" id="fp" accept=".json" style="display:none" onchange="handleFile(this)">
   </div>
+  <!-- HOME SCREEN -->
+  <div class="scr home-scr" id="homeScr">
+    <div class="h-logo" id="hLogo">✨ Starlet ✨</div>
+    <div class="h-cards" id="hCards"></div>
+    <div class="h-actions">
+      <button class="h-btn h-btn-p" onclick="hPlay()">▶ Play Now</button>
+      <button class="h-btn h-btn-s" onclick="hSurprise()">🎲 Surprise</button>
+      <button class="h-btn h-btn-s" onclick="showScr('dhScr')">🏠 Dollhouse</button>
+      <button class="h-btn h-btn-s" onclick="fwFrom='homeScr';showScr('fwScr')">👜 My Looks</button>
+    </div>
+  </div>
+
+  <!-- DRESSING ROOM (existing v27) -->
+  <div class="scr" id="dressScr">
   <div class="topbar"><h1 id="logoArea">✨ Starlet <span style="font-size:9px;opacity:0.7;font-weight:700;">by BrightBox</span></h1><div class="topbar-btns">
     <button class="tbtn" onclick="goHome()" title="Home">🏠</button>
     <button class="tbtn" onclick="doSave()">📸</button>
-    <button class="tbtn" onclick="showWardrobe()">👜</button>
+    <button class="tbtn" onclick="doSaveToWardrobe()" title="Save to wardrobe">💾</button>
+    <button class="tbtn" onclick="saveCharToArray();fwFrom='dressScr';showScr('fwScr')">👜</button>
     <button class="tbtn" onclick="showSet()">⚙️</button>
   </div></div>
   <div class="app-body">
@@ -239,7 +340,15 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
   </div>
   </div><!-- /app-body -->
   <div class="gh" id="gh"><img id="gi"></div>
-  <!-- MODALS -->
+  <!-- ONBOARDING -->
+  <div class="onboard" id="onboard" onclick="dismissOnboard()">
+    <div class="ob-bubble">Tap an outfit to dress me up! ✨</div>
+    <div class="ob-sub">tap anywhere to start</div>
+    <div class="ob-arrow">👇</div>
+  </div>
+  </div><!-- /dressScr -->
+
+  <!-- MODALS (global, outside any screen) -->
   <div class="mb" id="setM"><div class="md"><h3>⚙️ Settings</h3>
     <div class="snd-toggle"><label>🔊 Sound</label><input type="checkbox" id="sndOn" checked onchange="toggleSnd()"></div>
     <div class="snd-toggle"><label>🎵 Music</label><input type="checkbox" id="musOn" checked onchange="toggleMus()"></div>
@@ -249,13 +358,61 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
     <button class="mbt" onclick="clrDB()">🗑️ Clear All Data</button><br>
     <button class="mbt gy" onclick="hideSet()">Close</button>
   </div></div>
-  <div class="mb" id="wdM"><div class="md"><h3>👜 Wardrobe</h3><div id="wdGrid" class="wd-grid"></div><div style="margin-top:10px"><button class="mbt" onclick="saveToWardrobe()">💾 Save Current Look</button><button class="mbt gy" onclick="hideWardrobe()">Close</button></div></div></div>
-  <!-- ONBOARDING -->
-  <div class="onboard" id="onboard" onclick="dismissOnboard()">
-    <div class="ob-bubble">Tap an outfit to dress me up! ✨</div>
-    <div class="ob-sub">tap anywhere to start</div>
-    <div class="ob-arrow">👇</div>
+
+  <!-- CREATE SCREEN -->
+  <div class="scr create-scr" id="createScr">
+    <button class="h-btn h-btn-s" onclick="showScr('homeScr')" style="position:absolute;top:16px;left:16px;padding:8px 16px;font-size:13px;z-index:5;">← Back</button>
+    <div class="cr-progress"><div class="cr-bar" id="crBar" style="width:33%"></div></div>
+    <div id="crContent"></div>
   </div>
+
+  <!-- DOLLHOUSE SCREEN -->
+  <div class="scr dh-scr" id="dhScr">
+    <div class="dh-topbar">
+      <button class="h-btn h-btn-s" onclick="goHome()" style="padding:8px 16px;font-size:13px;">← Home</button>
+      <span style="font-weight:700;color:#3d2040;">🏠 Dollhouse</span>
+      <button class="h-btn h-btn-p" onclick="dhGroupPhoto()" style="padding:8px 16px;font-size:13px;">📸 Group Photo</button>
+    </div>
+    <div class="dh-room" id="dhRoom">
+      <div class="dh-wall"></div>
+      <div class="dh-floor"></div>
+      <div class="dh-rug"></div>
+      <div id="dhDolls"></div>
+    </div>
+  </div>
+
+  <!-- PHOTO BOOTH SCREEN -->
+  <div class="scr pb-scr" id="pbScr">
+    <button class="h-btn h-btn-s" onclick="showScr('dressScr')" style="position:absolute;top:16px;left:16px;padding:8px 16px;font-size:13px;z-index:5;">← Back</button>
+    <div class="pb-canvas-wrap"><canvas id="pbCv" width="800" height="1000"></canvas></div>
+    <div class="pb-frames" id="pbFrames"></div>
+    <div class="pb-stamps" id="pbStamps"></div>
+    <div style="display:flex;gap:10px;">
+      <button class="h-btn h-btn-p" onclick="pbSnap()" style="padding:10px 20px;font-size:14px;">📸 Snap!</button>
+      <button class="h-btn h-btn-s" onclick="pbSavePhoto()" style="padding:10px 20px;font-size:14px;">💾 Save</button>
+    </div>
+  </div>
+
+  <!-- RUNWAY SCREEN -->
+  <div class="scr rw-scr" id="rwScr" onclick="rwTap()">
+    <div class="rw-spot"></div>
+    <canvas id="rwCv" width="512" height="700" style="max-height:65vh;object-fit:contain;z-index:2;"></canvas>
+    <div class="rw-name" id="rwName"></div>
+    <div class="rw-hint">tap anywhere to go back</div>
+  </div>
+
+  <!-- FULL WARDROBE SCREEN -->
+  <div class="scr fw-scr" id="fwScr">
+    <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+      <button class="h-btn h-btn-s" onclick="saveCharToArray();showScr(fwFrom||'homeScr')" style="padding:8px 16px;font-size:13px;">← Back</button>
+      <span style="font-weight:700;color:#3d2040;font-size:16px;">👜 Wardrobe</span>
+      <button class="h-btn h-btn-p" onclick="fwSaveLook()" style="padding:8px 16px;font-size:13px;">💾 Save Look</button>
+    </div>
+    <span id="fwCount" style="font-size:12px;color:rgba(100,70,130,.5);font-weight:600;display:block;text-align:center;margin:6px 0;"></span>
+    <div class="fw-grid" id="fwGrid"></div>
+  </div>
+
+  <div class="toast" id="gToast"></div>
 </div>
 <script>
 // Init AudioContext on very first user touch/click anywhere
@@ -771,7 +928,17 @@ buildDefaultBody();
 function cft(){var s=document.getElementById('stg'),c=['#FF6B9D','#C850C0','#6C63FF','#FFD700','#56AB2F','#FF9A76','#87CEEB','#fff'];for(var i=0;i<35;i++){var e=document.createElement('div');e.className='cft';e.style.cssText='left:'+Math.random()*100+'%;top:'+Math.random()*50+'%;background:'+c[i%c.length]+';width:'+(4+Math.random()*8)+'px;height:'+(4+Math.random()*8)+'px;border-radius:'+(Math.random()>0.5?'50%':'2px')+';animation-duration:'+(1+Math.random())+'s';s.appendChild(e);setTimeout(function(){e.remove()},2500);}}
 setInterval(function(){if(!document.getElementById('ls').classList.contains('hid'))return;var s=document.getElementById('stg'),e=document.createElement('div');e.className='sparkle';e.style.cssText='left:'+Math.random()*100+'%;top:'+(50+Math.random()*50)+'%;background:'+['#FFD700','#FF6B9D','#C850C0','#6C63FF','#fff'][Math.floor(Math.random()*5)]+';animation-duration:'+(2+Math.random()*2)+'s';s.appendChild(e);setTimeout(function(){e.remove()},5000);},900);
 function bounce(){var c=document.getElementById('cv');c.classList.add('bounce');setTimeout(function(){c.classList.remove('bounce')},250);}
-function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},1800);}
+function showToast(msg){
+  // Try the in-screen toast first
+  var t=document.getElementById('toast');
+  // If dressScr not visible, use global toast
+  if(!t||!document.getElementById('dressScr').classList.contains('on')){
+    t=document.getElementById('gToast');
+  }
+  if(!t)return;
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(t._tm);t._tm=setTimeout(function(){t.classList.remove('show')},1800);
+}
 
 // DB
 function dbo(){return new Promise(function(r,j){var q=indexedDB.open('stlt_g12',1);q.onupgradeneeded=function(e){e.target.result.createObjectStore('d')};q.onsuccess=function(e){db=e.target.result;r()};q.onerror=j});}
@@ -1151,6 +1318,404 @@ function toggleMus(){
 }
 function log(s){console.log('Starlet:',s);}
 
+// ================================================================
+// MULTI-CHARACTER & SCREEN NAVIGATION
+// ================================================================
+var chars=[],ci=0,paid=false;
+var curScr='ls'; // current screen id
+var fwFrom='homeScr'; // where full wardrobe returns to
+
+function showScr(id){
+  // Hide all screens
+  document.querySelectorAll('.scr').forEach(function(s){s.classList.remove('on');});
+  // Also handle splash
+  if(id!=='ls')document.getElementById('ls').classList.add('hid');
+  // Show target
+  var el=document.getElementById(id);
+  if(el){el.classList.add('on','scr-enter');setTimeout(function(){el.classList.remove('scr-enter')},400);}
+  curScr=id;
+  // Screen-specific setup
+  if(id==='homeScr')renderHome();
+  if(id==='dressScr'){loadCharIntoGlobals();bui();checkOnboard();}
+  if(id==='dhScr')renderDollhouse();
+  if(id==='fwScr')renderFullWardrobe();
+  if(id==='createScr')renderCreateStep();
+  if(id==='rwScr')startRunway();
+  if(id==='pbScr')initPhotoBooth();
+}
+
+// Sync chars array ↔ v27 globals
+function saveCharToArray(){
+  if(!chars[ci])return;
+  chars[ci].eq=JSON.parse(JSON.stringify(eq));
+  chars[ci].skinIdx=si;
+  chars[ci].bgIdx=bi;
+  chars[ci].stickers=JSON.parse(JSON.stringify(st));
+  chars[ci].clrVar=JSON.parse(JSON.stringify(clrVar));
+  chars[ci].wardrobe=wardrobe;
+  saveChars();
+}
+function loadCharIntoGlobals(){
+  var ch=chars[ci];if(!ch)return;
+  eq=JSON.parse(JSON.stringify(ch.eq||{outfits:-1,faces:-1,hairhats:-1}));
+  si=ch.skinIdx||0;
+  bi=ch.bgIdx||0;
+  st=JSON.parse(JSON.stringify(ch.stickers||[]));
+  clrVar=JSON.parse(JSON.stringify(ch.clrVar||{outfits:0,faces:0,hairhats:0}));
+  wardrobe=ch.wardrobe||[];
+  selStk=-1;hideStkTb();TN={};tintedDefaults={};
+}
+function saveChars(){if(db)dbp('chars',JSON.stringify(chars));if(db)dbp('ci',ci);}
+
+// HOME SCREEN
+function renderHome(){
+  var el=document.getElementById('hCards');if(!el)return;
+  var maxC=paid?3:1;
+  var html='';
+  for(var i=0;i<3;i++){
+    if(i<chars.length){
+      var ch=chars[i];
+      html+='<div class="h-card" onclick="selectChar('+i+')">';
+      html+='<div class="h-preview"><canvas id="hPv'+i+'" width="256" height="256"></canvas></div>';
+      var btLabel=(ch.bodyType||'petite').charAt(0).toUpperCase()+(ch.bodyType||'petite').slice(1);
+      html+='<div class="h-info"><div class="h-name">'+esc(ch.name)+'</div><div class="h-body">'+btLabel+'</div></div></div>';
+    }else if(i<maxC){
+      html+='<div class="h-card empty" onclick="startCreate('+i+')"><div class="h-add-icon">+</div><div class="h-add-lbl">Create a doll!</div></div>';
+    }else{
+      html+='<div class="h-card empty" style="opacity:.4;cursor:default;"><div class="h-add-icon">🔒</div><div class="h-add-lbl">Unlock ✨</div></div>';
+    }
+  }
+  el.innerHTML=html;
+  // Draw previews
+  chars.forEach(function(ch,i){
+    var cv=document.getElementById('hPv'+i);if(!cv)return;
+    var ctx=cv.getContext('2d');ctx.clearRect(0,0,256,256);
+    // Mini render: just draw the body + outfit + face + hair
+    var tmpEq=ch.eq||{outfits:-1,faces:-1,hairhats:-1};
+    var s=ch.skinIdx||0;
+    // Draw body
+    if(IM['bl']){var im=s>0?tint('bl',SK[s]):IM['bl'];if(im)ctx.drawImage(im,0,-40,256,256*ASSET_H/1024);}
+    if(IM['bh']){var im=s>0?tint('bh',SK[s]):IM['bh'];if(im)ctx.drawImage(im,0,-40,256,256*ASSET_H/1024);}
+    if(tmpEq.outfits>=0&&IM['outfits_'+tmpEq.outfits])ctx.drawImage(IM['outfits_'+tmpEq.outfits],0,-40,256,256*ASSET_H/1024);
+    if(tmpEq.faces>=0&&IM['faces_'+tmpEq.faces])ctx.drawImage(IM['faces_'+tmpEq.faces],0,-40,256,256*ASSET_H/1024);
+    if(tmpEq.hairhats>=0&&IM['hairhats_'+tmpEq.hairhats])ctx.drawImage(IM['hairhats_'+tmpEq.hairhats],0,-40,256,256*ASSET_H/1024);
+  });
+  // Update logo with real one if available
+  var hLogo=document.getElementById('hLogo');
+  if(UI_ASSETS&&UI_ASSETS.ui&&UI_ASSETS.ui.logo){
+    hLogo.innerHTML='<img src="'+UI_ASSETS.ui.logo+'" style="height:80px;object-fit:contain;">';
+  }
+}
+function selectChar(i){saveCharToArray();ci=i;showScr('dressScr');}
+function hPlay(){
+  if(!chars.length){startCreate(0);return;}
+  ci=0;showScr('dressScr');
+}
+function hSurprise(){
+  if(!chars.length){startCreate(0);return;}
+  ci=0;loadCharIntoGlobals();doRandom();saveCharToArray();showScr('dressScr');
+}
+
+// CHARACTER CREATION
+var BODY_TYPES=[{id:'petite',label:'Petite',desc:'Small & cute'},{id:'medium',label:'Medium',desc:'Classic style'},{id:'tall',label:'Tall',desc:'Long & elegant'}];
+var CR={step:0,bt:0,si:0,nm:''};
+function startCreate(i){ci=i;CR={step:0,bt:0,si:0,nm:''};showScr('createScr');}
+function renderCreateStep(){
+  var el=document.getElementById('crContent');if(!el)return;
+  document.getElementById('crBar').style.width=((CR.step+1)*33)+'%';
+  var h='';
+  if(CR.step===0){
+    h+='<h2 style="color:#3d2040;font-size:22px;">Choose a body type</h2>';
+    h+='<p style="color:rgba(100,70,130,.5);font-size:13px;margin-bottom:12px;">Each body type has unique outfits!</p>';
+    h+='<div class="cr-opts">';
+    BODY_TYPES.forEach(function(bt,i){
+      h+='<button class="cr-opt'+(CR.bt===i?' on':'')+'" onclick="CR.bt='+i+';renderCreateStep()">';
+      h+='<div style="font-size:28px;margin-bottom:4px;">'+['🧸','💃','👸'][i]+'</div>';
+      h+='<div style="font-weight:700;">'+bt.label+'</div>';
+      h+='<div style="font-size:11px;color:rgba(100,70,130,.5);">'+bt.desc+'</div></button>';
+    });
+    h+='</div>';
+    h+='<br><button class="h-btn h-btn-p" onclick="crNext()">Next →</button>';
+  }else if(CR.step===1){
+    h+='<h2 style="color:#3d2040;font-size:22px;">Choose a skin tone</h2>';
+    h+='<div class="cr-skin-row">';
+    SK.forEach(function(s,i){h+='<div class="cr-skin'+(CR.si===i?' on':'')+'" style="background:'+s.h+'" onclick="CR.si='+i+';renderCreateStep()"></div>';});
+    h+='</div>';
+    h+='<br><button class="h-btn h-btn-p" onclick="crNext()">Next →</button>';
+  }else if(CR.step===2){
+    h+='<h2 style="color:#3d2040;font-size:22px;">Name your doll</h2>';
+    h+='<input class="cr-input" id="crName" placeholder="Enter a name..." maxlength="20" value="'+esc(CR.nm)+'">';
+    h+='<br><br><button class="h-btn h-btn-p" onclick="crFinish()">✨ Create! ✨</button>';
+    el.innerHTML=h;
+    setTimeout(function(){var inp=document.getElementById('crName');if(inp){inp.focus();inp.oninput=function(){CR.nm=this.value};}},100);
+    return;
+  }
+  el.innerHTML=h;
+}
+function crNext(){CR.step++;sfxTap();renderCreateStep();}
+function crFinish(){
+  var name=CR.nm.trim()||'Doll';
+  var bt=BODY_TYPES[CR.bt].id;
+  var ch={name:name,bodyType:bt,skinIdx:CR.si,eq:{outfits:-1,faces:-1,hairhats:-1},clrVar:{outfits:0,faces:0,hairhats:0},bgIdx:0,stickers:[],wardrobe:[]};
+  if(ci<chars.length)chars[ci]=ch;else chars.push(ch);
+  saveChars();
+  sfxEquip();
+  // TTS
+  try{var u=new SpeechSynthesisUtterance(name);u.rate=0.9;u.pitch=1.3;speechSynthesis.speak(u);}catch(e){}
+  showScr('dressScr');
+}
+
+// DOLLHOUSE
+function renderDollhouse(){
+  var el=document.getElementById('dhDolls');if(!el)return;
+  if(!chars.length){el.innerHTML='<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(100,70,130,.5);font-size:16px;font-weight:600;">Create your first doll! 🎀</div>';return;}
+  var html='';
+  chars.forEach(function(ch,i){
+    var x=20+i*30,y=40;
+    html+='<div class="dh-doll" id="dhD'+i+'" style="left:'+x+'%;top:'+y+'%;width:180px;" data-idx="'+i+'">';
+    html+='<canvas width="180" height="250" id="dhC'+i+'"></canvas>';
+    html+='<div style="text-align:center;font-size:11px;font-weight:700;color:#3d2040;margin-top:2px;">'+esc(ch.name)+'</div></div>';
+  });
+  el.innerHTML=html;
+  // Draw dolls
+  chars.forEach(function(ch,i){
+    var cv=document.getElementById('dhC'+i);if(!cv)return;
+    var ctx=cv.getContext('2d');ctx.clearRect(0,0,180,250);
+    var tmpEq=ch.eq||{outfits:-1,faces:-1,hairhats:-1};
+    var s=ch.skinIdx||0;
+    if(IM['bl']){var im=s>0?tint('bl',SK[s]):IM['bl'];if(im)ctx.drawImage(im,0,-30,180,180*ASSET_H/1024);}
+    if(IM['bh']){var im=s>0?tint('bh',SK[s]):IM['bh'];if(im)ctx.drawImage(im,0,-30,180,180*ASSET_H/1024);}
+    if(tmpEq.outfits>=0&&IM['outfits_'+tmpEq.outfits])ctx.drawImage(IM['outfits_'+tmpEq.outfits],0,-30,180,180*ASSET_H/1024);
+    if(tmpEq.faces>=0&&IM['faces_'+tmpEq.faces])ctx.drawImage(IM['faces_'+tmpEq.faces],0,-30,180,180*ASSET_H/1024);
+    if(tmpEq.hairhats>=0&&IM['hairhats_'+tmpEq.hairhats])ctx.drawImage(IM['hairhats_'+tmpEq.hairhats],0,-30,180,180*ASSET_H/1024);
+  });
+  // Make draggable
+  document.querySelectorAll('.dh-doll').forEach(function(d){
+    var startX,startY,origL,origT;
+    function onDown(e){
+      e.preventDefault();var t=e.touches?e.touches[0]:e;
+      startX=t.clientX;startY=t.clientY;
+      origL=d.offsetLeft;origT=d.offsetTop;
+      document.addEventListener('mousemove',onMove);document.addEventListener('mouseup',onUp);
+      document.addEventListener('touchmove',onMove,{passive:false});document.addEventListener('touchend',onUp);
+    }
+    function onMove(e){
+      e.preventDefault();var t=e.touches?e.touches[0]:e;
+      d.style.left=(origL+t.clientX-startX)+'px';d.style.top=(origT+t.clientY-startY)+'px';
+    }
+    function onUp(){
+      document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseup',onUp);
+      document.removeEventListener('touchmove',onMove);document.removeEventListener('touchend',onUp);
+    }
+    d.addEventListener('mousedown',onDown);d.addEventListener('touchstart',onDown,{passive:false});
+  });
+}
+function dhGroupPhoto(){
+  sfxCamera();
+  var c=document.createElement('canvas');c.width=1200;c.height=800;
+  var ctx=c.getContext('2d');
+  var g=ctx.createLinearGradient(0,0,0,800);g.addColorStop(0,'#FFF0F5');g.addColorStop(1,'#FFE0EE');ctx.fillStyle=g;ctx.fillRect(0,0,1200,800);
+  var n=chars.length;if(!n)return;
+  var w=Math.min(350,1100/n);
+  chars.forEach(function(ch,i){
+    var x=(1200-n*w)/2+i*w+w/2;
+    var tmpEq=ch.eq||{};var s=ch.skinIdx||0;
+    ctx.save();ctx.translate(x,380);ctx.scale(w/1024,w/1024*ASSET_H/800);ctx.translate(-512,-ASSET_H/2);
+    if(IM['bl'])ctx.drawImage(s>0?tint('bl',SK[s]):IM['bl'],0,0,1024,ASSET_H);
+    if(IM['bh'])ctx.drawImage(s>0?tint('bh',SK[s]):IM['bh'],0,0,1024,ASSET_H);
+    if(tmpEq.outfits>=0&&IM['outfits_'+tmpEq.outfits])ctx.drawImage(IM['outfits_'+tmpEq.outfits],0,0,1024,ASSET_H);
+    if(tmpEq.faces>=0&&IM['faces_'+tmpEq.faces])ctx.drawImage(IM['faces_'+tmpEq.faces],0,0,1024,ASSET_H);
+    if(tmpEq.hairhats>=0&&IM['hairhats_'+tmpEq.hairhats])ctx.drawImage(IM['hairhats_'+tmpEq.hairhats],0,0,1024,ASSET_H);
+    ctx.restore();
+    ctx.fillStyle='rgba(61,32,64,0.5)';ctx.font='16px Nunito';ctx.textAlign='center';
+    ctx.fillText(ch.name,x,750);
+  });
+  ctx.fillStyle='rgba(61,32,64,0.3)';ctx.font='11px Nunito';ctx.textAlign='right';ctx.fillText('✨ Made with Starlet',1180,785);
+  var a=document.createElement('a');a.download='starlet-group.png';a.href=c.toDataURL();a.click();
+  showToast('📸 Group photo saved!');
+}
+
+// RUNWAY
+function startRunway(){
+  var ch=chars[ci];if(!ch)return;
+  var cv=document.getElementById('rwCv');if(!cv)return;
+  document.getElementById('rwName').textContent='✨ '+ch.name+' ✨';
+  var ctx=cv.getContext('2d');ctx.clearRect(0,0,512,700);
+  var tmpEq=ch.eq||{};var s=ch.skinIdx||0;
+  ctx.save();ctx.translate(256,350);ctx.scale(0.4,0.4);ctx.translate(-512,-ASSET_H/2);
+  if(IM['bl'])ctx.drawImage(s>0?tint('bl',SK[s]):IM['bl'],0,0,1024,ASSET_H);
+  if(IM['bh'])ctx.drawImage(s>0?tint('bh',SK[s]):IM['bh'],0,0,1024,ASSET_H);
+  if(tmpEq.outfits>=0&&IM['outfits_'+tmpEq.outfits])ctx.drawImage(IM['outfits_'+tmpEq.outfits],0,0,1024,ASSET_H);
+  if(tmpEq.faces>=0&&IM['faces_'+tmpEq.faces])ctx.drawImage(IM['faces_'+tmpEq.faces],0,0,1024,ASSET_H);
+  if(tmpEq.hairhats>=0&&IM['hairhats_'+tmpEq.hairhats])ctx.drawImage(IM['hairhats_'+tmpEq.hairhats],0,0,1024,ASSET_H);
+  ctx.restore();
+  sfxEquip();
+  // Sparkles
+  var rw=document.getElementById('rwScr');
+  for(var i=0;i<40;i++){var sp=document.createElement('div');sp.className='rw-sparkle';sp.style.left=Math.random()*100+'%';sp.style.top=Math.random()*100+'%';sp.style.width=sp.style.height=(3+Math.random()*6)+'px';sp.style.animationDelay=(Math.random()*2)+'s';rw.appendChild(sp);setTimeout(function(s){s.remove()}.bind(null,sp),4000);}
+}
+function rwTap(){showScr('dressScr');}
+
+// PHOTO BOOTH
+var pbFrame='pink',pbStamps=[];
+var PB_FRAMES=[{id:'none',e:'✕'},{id:'pink',e:'💕'},{id:'gold',e:'✨'},{id:'rainbow',e:'🌈'},{id:'stars',e:'⭐'},{id:'lav',e:'💜'}];
+var PB_STAMP_E=['⭐','💖','✨','🦋','🌈','👑','🌸','🎀','💫','🔥','😍','🎉'];
+function initPhotoBooth(){
+  pbStamps=[];pbFrame='pink';
+  var fh='';PB_FRAMES.forEach(function(f){fh+='<div class="pb-fr'+(f.id===pbFrame?' on':'')+'" onclick="pbSetFrame(\''+f.id+'\')">'+f.e+'</div>';});
+  document.getElementById('pbFrames').innerHTML=fh;
+  var sh='';PB_STAMP_E.forEach(function(e,i){sh+='<div class="pb-stamp" onclick="pbAddStamp('+i+')">'+e+'</div>';});
+  document.getElementById('pbStamps').innerHTML=sh;
+  pbRender();
+}
+function pbSetFrame(id){pbFrame=id;sfxTap();
+  var fh='';PB_FRAMES.forEach(function(f){fh+='<div class="pb-fr'+(f.id===pbFrame?' on':'')+'" onclick="pbSetFrame(\''+f.id+'\')">'+f.e+'</div>';});
+  document.getElementById('pbFrames').innerHTML=fh;pbRender();}
+function pbAddStamp(i){sfxTap();pbStamps.push({e:PB_STAMP_E[i],x:200+Math.random()*400,y:200+Math.random()*600});pbRender();}
+function pbRender(){
+  var cv=document.getElementById('pbCv');if(!cv)return;
+  var ctx=cv.getContext('2d');ctx.clearRect(0,0,800,1000);
+  ctx.fillStyle='#FFF0F5';ctx.fillRect(0,0,800,1000);
+  // Draw character centered
+  var ch=chars[ci];if(!ch)return;
+  var tmpEq=ch.eq||{};var s=ch.skinIdx||0;
+  ctx.save();ctx.translate(400,480);ctx.scale(0.6,0.6);ctx.translate(-512,-ASSET_H/2);
+  if(IM['bl'])ctx.drawImage(s>0?tint('bl',SK[s]):IM['bl'],0,0,1024,ASSET_H);
+  if(IM['bh'])ctx.drawImage(s>0?tint('bh',SK[s]):IM['bh'],0,0,1024,ASSET_H);
+  if(tmpEq.outfits>=0&&IM['outfits_'+tmpEq.outfits])ctx.drawImage(IM['outfits_'+tmpEq.outfits],0,0,1024,ASSET_H);
+  if(tmpEq.faces>=0&&IM['faces_'+tmpEq.faces])ctx.drawImage(IM['faces_'+tmpEq.faces],0,0,1024,ASSET_H);
+  if(tmpEq.hairhats>=0&&IM['hairhats_'+tmpEq.hairhats])ctx.drawImage(IM['hairhats_'+tmpEq.hairhats],0,0,1024,ASSET_H);
+  ctx.restore();
+  // Stamps
+  ctx.font='40px serif';ctx.textAlign='center';
+  pbStamps.forEach(function(s){ctx.fillText(s.e,s.x,s.y);});
+  // Frame
+  if(pbFrame==='pink'){ctx.strokeStyle='#FF6B9D';ctx.lineWidth=12;ctx.strokeRect(6,6,788,988);}
+  else if(pbFrame==='gold'){ctx.strokeStyle='#FFD700';ctx.lineWidth=12;ctx.strokeRect(6,6,788,988);}
+  else if(pbFrame==='rainbow'){ctx.lineWidth=12;var rg=ctx.createLinearGradient(0,0,800,1000);rg.addColorStop(0,'#FF6B9D');rg.addColorStop(.2,'#FFD700');rg.addColorStop(.4,'#6ee7b7');rg.addColorStop(.6,'#87CEEB');rg.addColorStop(.8,'#C8A8E9');rg.addColorStop(1,'#FF6B9D');ctx.strokeStyle=rg;ctx.strokeRect(6,6,788,988);}
+  else if(pbFrame==='stars'){ctx.strokeStyle='#FFD700';ctx.lineWidth=6;ctx.setLineDash([12,8]);ctx.strokeRect(10,10,780,980);ctx.setLineDash([]);}
+  else if(pbFrame==='lav'){ctx.strokeStyle='#C8A8E9';ctx.lineWidth=12;ctx.strokeRect(6,6,788,988);}
+  // Watermark
+  ctx.fillStyle='rgba(61,32,64,0.3)';ctx.font='11px Nunito';ctx.textAlign='right';ctx.fillText('✨ Made with Starlet',780,985);
+}
+function pbSnap(){sfxCamera();pbRender();showToast('📸 Snap!');}
+function pbSavePhoto(){var cv=document.getElementById('pbCv');var a=document.createElement('a');a.download='starlet-photo.png';a.href=cv.toDataURL();a.click();sfxSave();showToast('💾 Photo saved!');}
+
+// FULL WARDROBE SCREEN
+function renderFullWardrobe(){
+  var ch=chars[ci];
+  var el=document.getElementById('fwGrid');
+  var cnt=document.getElementById('fwCount');
+  if(!ch||!ch.wardrobe||!ch.wardrobe.length){
+    el.innerHTML='<div class="fw-empty">No saved looks yet!<br>Dress up your doll and tap 💾 in the dressing room.</div>';
+    cnt.textContent='0 looks';return;
+  }
+  cnt.textContent=ch.wardrobe.length+' look'+(ch.wardrobe.length>1?'s':'');
+  var html='';
+  ch.wardrobe.forEach(function(w,i){
+    html+='<div class="fw-item" onclick="fwLoad('+i+')"><img src="'+w.thumb+'">';
+    html+='<button class="fw-del" onclick="event.stopPropagation();fwDel('+i+')">✕</button></div>';
+  });
+  el.innerHTML=html;
+}
+function fwLoad(i){
+  var ch=chars[ci];if(!ch||!ch.wardrobe[i])return;
+  var w=ch.wardrobe[i];
+  ch.eq=JSON.parse(JSON.stringify(w.eq));
+  ch.skinIdx=w.si;ch.bgIdx=w.bi||0;
+  ch.clrVar=(w.clr||w.clrVar)?JSON.parse(JSON.stringify(w.clr||w.clrVar)):{outfits:0,faces:0,hairhats:0};
+  ch.stickers=w.st?JSON.parse(JSON.stringify(w.st)):[];
+  saveChars();sfxEquip();
+  showScr('dressScr');
+}
+function fwDel(i){
+  var ch=chars[ci];if(!ch||!ch.wardrobe)return;
+  ch.wardrobe.splice(i,1);saveChars();renderFullWardrobe();sfxTap();
+}
+function fwSaveLook(){
+  // Save current look from full wardrobe screen
+  if(!chars[ci])return;
+  loadCharIntoGlobals();
+  // Render a preview
+  var ss=selStk;selStk=-1;ren();
+  var tc=document.createElement('canvas');tc.width=tc.height=256;tc.getContext('2d').drawImage(cv,0,0,256,256);
+  var thumb=tc.toDataURL('image/jpeg',0.7);
+  selStk=ss;
+  var ch=chars[ci];
+  if(!ch.wardrobe)ch.wardrobe=[];
+  ch.wardrobe.push({eq:JSON.parse(JSON.stringify(eq)),si:si,bi:bi,poseIdx:poseIdx||0,st:JSON.parse(JSON.stringify(st)),clr:JSON.parse(JSON.stringify(clrVar)),thumb:thumb});
+  if(ch.wardrobe.length>50)ch.wardrobe.shift();
+  wardrobe=ch.wardrobe;
+  saveChars();sfxSave();showToast('✨ Look saved!');renderFullWardrobe();
+}
+
+// Update v27's save to also save to chars array
+var origDoSave=doSave;
+var origSaveToWardrobeRef=null;
+// Intercept wardrobe saves to use chars array
+var origSaveToWardrobe=typeof saveToWardrobe==='function'?saveToWardrobe:null;
+
+function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function gToast(m){showToast(m);}
+
+// Override startGame to go to home
+var _origStartGame=startGame;
+startGame=function(){
+  document.getElementById('ls').classList.add('hid');
+  if(musEnabled)toggleMusStart();
+  if(!chars.length){startCreate(0);}
+  else showScr('homeScr');
+};
+
+// Override wardrobe to use per-char storage
+var _origLoadWardrobe=loadWardrobe;
+loadWardrobe=function(){
+  // Use char's wardrobe instead of global IDB key
+  var ch=chars[ci];
+  if(ch){wardrobe=ch.wardrobe||[];}
+  return Promise.resolve();
+};
+// Override saveToWardrobe to not open old modal, just save silently
+var _origSaveToWardrobe2=saveToWardrobe;
+saveToWardrobe=function(){
+  // Save current look to wardrobe array
+  sfxSave();cft();
+  var ss=selStk,sb=breathPhase,sbk=isBlinking;selStk=-1;breathPhase=0;isBlinking=false;ren();
+  var tc=document.createElement('canvas');tc.width=tc.height=256;tc.getContext('2d').drawImage(cv,0,0,256,256);
+  var thumb=tc.toDataURL('image/jpeg',0.7);
+  selStk=ss;breathPhase=sb;isBlinking=sbk;
+  wardrobe.push({eq:JSON.parse(JSON.stringify(eq)),si:si,bi:bi,poseIdx:poseIdx,st:JSON.parse(JSON.stringify(st)),clr:JSON.parse(JSON.stringify(clrVar)),thumb:thumb});
+  if(wardrobe.length>50)wardrobe.shift();
+  // Sync to chars array
+  if(chars[ci]){chars[ci].wardrobe=wardrobe;saveChars();}
+  showToast('✨ Saved to wardrobe!');
+};
+// Topbar save-to-wardrobe button
+function doSaveToWardrobe(){saveToWardrobe();}
+
+// Override goHome to go to home screen
+goHome=function(){
+  saveCharToArray();
+  showScr('homeScr');
+};
+
+// Also save to chars when dressing room state changes
+var origBui=bui;
+bui=function(){origBui();if(chars[ci])saveCharToArray();};
+
+// Add runway button to topbar
+(function(){
+  var btns=document.querySelector('.topbar-btns');
+  if(btns){
+    var rb=document.createElement('button');rb.className='tbtn';rb.title='Runway';rb.textContent='🎤';
+    rb.onclick=function(){saveCharToArray();showScr('rwScr');};
+    btns.appendChild(rb);
+    var pb=document.createElement('button');pb.className='tbtn';pb.title='Photo Booth';pb.textContent='🖼';
+    pb.onclick=function(){saveCharToArray();showScr('pbScr');};
+    btns.appendChild(pb);
+  }
+})();
+
 // INIT SPLASH STARS
 (function(){var c=document.getElementById('lsStars');for(var i=0;i<25;i++){var s=document.createElement('div');s.className='ls-star';s.style.left=Math.random()*100+'%';s.style.top=Math.random()*100+'%';s.style.animationDelay=Math.random()*4+'s';s.style.animationDuration=(3+Math.random()*3)+'s';var sz=3+Math.random()*8;s.style.width=s.style.height=sz+'px';var colors=['rgba(255,215,100,0.9)','rgba(255,180,200,0.8)','rgba(255,255,255,0.9)','rgba(255,200,100,0.85)'];var col=colors[Math.floor(Math.random()*colors.length)];s.style.background='radial-gradient(circle,'+col+' 0%,transparent 70%)';s.style.boxShadow='0 0 '+(sz*2)+'px '+col;c.appendChild(s);}})();
 
@@ -1253,7 +1818,14 @@ function autoFetch(){
 }
 
 dbo().then(function(){
-  autoFetch();
+  // Load saved characters
+  return dbg('chars').then(function(s){
+    if(s){try{chars=JSON.parse(s);}catch(e){chars=[];}}
+  }).then(function(){
+    return dbg('ci').then(function(v){if(v!==undefined)ci=v;});
+  }).then(function(){
+    autoFetch();
+  });
 }).catch(function(){document.getElementById('ls').classList.remove('hid')});
 window.addEventListener('resize',function(){if(selStk>=0)updateStkTb()});
 requestAnimationFrame(animLoop);
