@@ -3,19 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>✨ Starlet v4 ✨</title>
+<title>✨ Starlet v4.1 ✨</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;}
 html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background:#2a2035;display:flex;align-items:center;justify-content:center;}
 .app{display:flex;flex-direction:column;width:1194px;height:834px;max-width:100vw;max-height:100vh;position:relative;overflow:hidden;background:#FFF0F5;border-radius:0;box-shadow:0 0 60px rgba(0,0,0,0.3);}
 
-/* TOPBAR — minimal */
-.topbar{background:linear-gradient(135deg,#FF6B9D,#FF8C69,#FFB347);padding:8px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;z-index:10;box-shadow:0 2px 10px rgba(255,107,157,0.25);}
+/* TOPBAR — minimal: logo + menu button only */
+.topbar{background:linear-gradient(135deg,#FF6B9D,#FF8C69,#FFB347);padding:6px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;z-index:10;box-shadow:0 2px 10px rgba(255,107,157,0.25);}
 .topbar h1{font-size:18px;font-weight:900;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,0.3);letter-spacing:1px;}
 .topbar-btns{display:flex;gap:6px;}
-.tbtn{background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.15);width:38px;height:38px;border-radius:50%;font-size:17px;cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center;transition:0.15s;}
-.tbtn:active{transform:scale(0.88);background:rgba(255,255,255,0.35);}
+.menu-btn{background:rgba(255,255,255,0.3);border:2px solid rgba(255,255,255,0.4);width:46px;height:46px;border-radius:50%;font-size:22px;cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center;transition:0.2s;box-shadow:0 2px 8px rgba(0,0,0,0.15);}
+.menu-btn:active{transform:scale(0.88);background:rgba(255,255,255,0.5);}
+
+/* MENU OVERLAY — big fun buttons for kids */
+.menu-overlay{position:absolute;inset:0;z-index:90;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(255,240,245,0.97);backdrop-filter:blur(8px);}
+.menu-overlay.open{display:flex;}
+.menu-close{position:absolute;top:16px;right:16px;width:50px;height:50px;border-radius:50%;border:none;background:#FF6B9D;color:#fff;font-size:24px;font-weight:900;cursor:pointer;box-shadow:0 4px 12px rgba(255,107,157,0.3);}
+.menu-close:active{transform:scale(0.9);}
+.menu-title{font-size:22px;font-weight:900;color:#FF6B9D;margin-bottom:20px;text-shadow:0 1px 4px rgba(255,107,157,0.2);}
+.menu-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding:0 20px;max-width:480px;width:100%;}
+.menu-card{display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 8px;border-radius:20px;border:3px solid transparent;background:#fff;cursor:pointer;transition:0.2s;box-shadow:0 4px 16px rgba(0,0,0,0.06);}
+.menu-card:active{transform:scale(0.92);border-color:#FF6B9D;}
+.menu-card .mc-icon{width:60px;height:60px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:32px;}
+.menu-card .mc-icon img{width:54px;height:54px;object-fit:contain;}
+.menu-card .mc-label{font-size:13px;font-weight:800;color:#3d2040;text-align:center;}
 
 /* STAGE — maximum space */
 .app-body{display:flex;flex-direction:column;flex:1;min-height:0;}
@@ -23,9 +36,9 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .stage canvas{max-width:100%;max-height:100%;object-fit:contain;position:relative;z-index:2;transition:transform 0.25s cubic-bezier(0.34,1.56,0.64,1);}
 .stage canvas.bounce{transform:scale(1.03);}
 
-/* FLOATING ACTION BUTTONS — on canvas edge */
-.fab-row{position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:5;display:flex;gap:5px;}
-.fab{width:36px;height:36px;border-radius:50%;border:none;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:0.15s;background:rgba(255,107,157,0.85);color:#fff;backdrop-filter:blur(6px);box-shadow:0 2px 8px rgba(255,107,157,0.3);}
+/* FLOATING ACTION BUTTONS — on canvas, big and friendly */
+.fab-row{position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:5;display:flex;gap:8px;}
+.fab{width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,255,255,0.5);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:0.15s;background:rgba(255,107,157,0.85);color:#fff;backdrop-filter:blur(6px);box-shadow:0 3px 12px rgba(255,107,157,0.3);}
 .fab:active{transform:scale(0.88);background:#FF6B9D;}
 
 .pose-label{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);z-index:3;background:rgba(255,107,157,0.8);color:#fff;font-size:9px;font-weight:700;padding:2px 10px;border-radius:10px;pointer-events:none;opacity:0;transition:opacity 0.3s;}
@@ -43,7 +56,7 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .cattab .cicon{width:36px;height:36px;object-fit:contain;transition:transform 0.2s;}
 .cattab.on .cicon{transform:scale(1.15);}
 .topbar-logo{height:34px;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.2));}
-.tbtn img{width:22px;height:22px;object-fit:contain;}
+.menu-card .mc-icon img{width:54px;height:54px;object-fit:contain;}
 .h-btn img{width:20px;height:20px;object-fit:contain;vertical-align:middle;margin-right:4px;}
 .cattab .clabel{font-size:10px;font-weight:800;color:rgba(180,100,140,0.5);transition:color 0.2s;}
 .cattab.on{border-color:#FF6B9D;background:rgba(255,107,157,0.12);box-shadow:0 2px 8px rgba(255,107,157,0.15);}
@@ -241,14 +254,16 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .cr-input:focus{border-color:#FF6B9D;box-shadow:0 0 16px rgba(255,107,157,.15);}
 
 /* DOLLHOUSE SCREEN */
-.dh-scr{background:linear-gradient(160deg,#FFF0F5,#FFE8F0);padding:0;position:relative;}
-.dh-room{flex:1;position:relative;overflow:hidden;}
-.dh-wall{position:absolute;top:0;left:0;right:0;height:55%;background:linear-gradient(180deg,#FFE8D6,#FFD4C0);}
+.dh-scr{background:#FFE8F0;padding:0;position:relative;}
+.dh-room{flex:1;position:relative;overflow:hidden;min-height:200px;background:linear-gradient(180deg,#FFE8D6 0%,#FFE8D6 55%,#D4A574 55%,#C4955A 100%);}
+.dh-wall{position:absolute;top:0;left:0;right:0;height:55%;background:linear-gradient(180deg,#FFE8D6,#FFD4C0);border-bottom:4px solid #B8956A;}
 .dh-floor{position:absolute;bottom:0;left:0;right:0;height:45%;background:repeating-linear-gradient(90deg,#D4A574 0px,#C4955A 60px,#D4A574 120px);}
-.dh-rug{position:absolute;bottom:15%;left:25%;width:50%;height:20%;border-radius:50%;background:radial-gradient(ellipse,#E8A0C0,#D080A0);opacity:.4;}
-.dh-doll{position:absolute;cursor:grab;touch-action:none;transition:none;}
+.dh-rug{position:absolute;bottom:15%;left:25%;width:50%;height:20%;border-radius:50%;background:radial-gradient(ellipse,#E8A0C0,#D080A0);opacity:.5;z-index:1;}
+.dh-doll{position:absolute;cursor:grab;touch-action:none;transition:none;z-index:5;}
 .dh-doll:active{cursor:grabbing;}
-.dh-topbar{position:absolute;top:0;left:0;right:0;padding:8px 16px;display:flex;justify-content:space-between;align-items:center;z-index:10;background:linear-gradient(180deg,rgba(255,240,245,.9),transparent);}
+.dh-topbar{position:absolute;top:0;left:0;right:0;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;z-index:10;background:linear-gradient(180deg,rgba(255,240,245,.95),rgba(255,240,245,.6),transparent);}
+.dh-empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2;}
+.dh-empty div{background:rgba(255,255,255,.85);padding:20px 30px;border-radius:20px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.08);}
 
 /* PHOTO BOOTH */
 .pb-scr{background:#1a1028;align-items:center;justify-content:center;padding:20px;gap:16px;}
@@ -319,13 +334,23 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
   <!-- DRESSING ROOM (existing v27) -->
   <div class="scr" id="dressScr">
   <div class="topbar"><h1 id="logoArea">✨ Starlet <span style="font-size:9px;opacity:0.7;font-weight:700;">by BrightBox</span></h1><div class="topbar-btns">
-    <button class="tbtn" onclick="goHome()" title="Home">🏠</button>
-    <button class="tbtn" onclick="saveCharToArray();showScr('rwScr')" title="Runway">🎤</button>
-    <button class="tbtn" onclick="saveCharToArray();showScr('pbScr')" title="Photo Booth">🖼</button>
-    <button class="tbtn" onclick="doSaveToWardrobe()" title="Save to wardrobe">💾</button>
-    <button class="tbtn" onclick="saveCharToArray();fwFrom='dressScr';showScr('fwScr')" title="Wardrobe">👜</button>
-    <button class="tbtn" onclick="showSet()" title="Settings">⚙️</button>
+    <button class="menu-btn" onclick="toggleMenu()" title="Menu">☰</button>
   </div></div>
+  <!-- FUN MENU OVERLAY -->
+  <div class="menu-overlay" id="menuOverlay">
+    <button class="menu-close" onclick="toggleMenu()">✕</button>
+    <div class="menu-title">What do you want to do? ✨</div>
+    <div class="menu-grid" id="menuGrid">
+      <div class="menu-card" onclick="menuGo('home')"><div class="mc-icon" style="background:#FFE8EE;" data-ic="home">🏠</div><div class="mc-label">Home</div></div>
+      <div class="menu-card" onclick="menuGo('runway')"><div class="mc-icon" style="background:#E8F5E9;" data-ic="runway">🎤</div><div class="mc-label">Runway!</div></div>
+      <div class="menu-card" onclick="menuGo('photo')"><div class="mc-icon" style="background:#E3F2FD;" data-ic="photobooth">📸</div><div class="mc-label">Photos</div></div>
+      <div class="menu-card" onclick="menuGo('wardrobe')"><div class="mc-icon" style="background:#FFF3E0;" data-ic="wardrobe">👜</div><div class="mc-label">My Looks</div></div>
+      <div class="menu-card" onclick="menuGo('dollhouse')"><div class="mc-icon" style="background:#FCE4EC;" data-ic="dollhouse">🏠</div><div class="mc-label">Dollhouse</div></div>
+      <div class="menu-card" onclick="menuGo('save')"><div class="mc-icon" style="background:#F3E5F5;" data-ic="save">💾</div><div class="mc-label">Save Look</div></div>
+      <div class="menu-card" onclick="menuGo('settings')"><div class="mc-icon" style="background:#ECEFF1;" data-ic="settings">⚙️</div><div class="mc-label">Settings</div></div>
+    </div>
+    <div style="margin-top:16px;font-size:10px;color:rgba(100,70,130,0.3);font-weight:700;">v4.1</div>
+  </div>
   <div class="app-body">
   <div class="stage" id="stg">
     <canvas id="cv" width="1024" height="1024"></canvas>
@@ -361,6 +386,7 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
     <input type="file" id="sfp" accept=".json" style="display:none" onchange="handleSoundFile(this)">
     <button class="mbt" onclick="clrDB()">🗑️ Clear All Data</button><br>
     <button class="mbt gy" onclick="hideSet()">Close</button>
+    <div style="margin-top:10px;font-size:10px;color:rgba(100,70,130,.3);font-weight:700;text-align:center;">Starlet v4.1</div>
   </div></div>
 
   <!-- CREATE SCREEN -->
@@ -1008,12 +1034,41 @@ function startGame(){
 }
 
 function goHome(){
-  // Pause music
+  toggleMenu(false);
+  saveCharToArray();
   if(bgMusic){bgMusic.pause();}
   if(musInterval){clearInterval(musInterval);musInterval=null;}
-  // Show splash
-  document.getElementById('ls').classList.remove('hid');
-  if(gameReady) showPlayReady();
+  showScr('homeScr');
+}
+function toggleMenu(forceState){
+  var el=document.getElementById('menuOverlay');
+  if(typeof forceState==='boolean'){
+    el.classList.toggle('open',forceState);
+  } else {
+    el.classList.toggle('open');
+  }
+  // Apply icons to menu cards if available
+  if(el.classList.contains('open')&&UI_ASSETS&&UI_ASSETS.icons){
+    document.querySelectorAll('.mc-icon[data-ic]').forEach(function(icon){
+      var key=icon.getAttribute('data-ic');
+      if(UI_ASSETS.icons[key]&&!icon.querySelector('img')){
+        icon.innerHTML='<img src="'+UI_ASSETS.icons[key]+'">';
+      }
+    });
+  }
+}
+function menuGo(action){
+  toggleMenu(false);
+  sfxTap();
+  switch(action){
+    case 'home':goHome();break;
+    case 'runway':saveCharToArray();showScr('rwScr');break;
+    case 'photo':saveCharToArray();showScr('pbScr');break;
+    case 'wardrobe':saveCharToArray();fwFrom='dressScr';showScr('fwScr');break;
+    case 'dollhouse':showScr('dhScr');break;
+    case 'save':doSaveToWardrobe();break;
+    case 'settings':showSet();break;
+  }
 }
 
 function toggleMusStart(){
@@ -1163,23 +1218,11 @@ function bCt(){
   document.getElementById('cattabs').innerHTML=h;
 }
 
-// Apply all UI_ASSETS icons to topbar, home screen, dollhouse, etc.
+// Apply all UI_ASSETS icons to menu, home screen, dollhouse, etc.
 function applyUIIcons(){
-  if(!UI_ASSETS||!UI_ASSETS.icons)return;
-  var ic=UI_ASSETS.icons;
-  // Topbar buttons — find by title or content and replace emoji with icon
-  var tbMap={'Home':'home','Save to wardrobe':'save','⚙️':'settings'};
-  document.querySelectorAll('.tbtn').forEach(function(btn){
-    var key=tbMap[btn.title]||tbMap[btn.textContent.trim()];
-    if(!key&&btn.textContent.includes('🏠'))key='home';
-    if(!key&&btn.textContent.includes('👜'))key='wardrobe';
-    if(!key&&btn.textContent.includes('📸'))key='photobooth';
-    if(!key&&btn.textContent.includes('🖼'))key='photobooth';
-    if(!key&&btn.textContent.includes('💾'))key='save';
-    if(!key&&btn.textContent.includes('⚙'))key='settings';
-    if(!key&&btn.textContent.includes('🎤'))key='runway';
-    if(key&&ic[key])btn.innerHTML='<img src="'+ic[key]+'">';
-  });
+  if(!UI_ASSETS)return;
+  var ic=UI_ASSETS.icons||{};
+  // Menu overlay icons — handled by toggleMenu() when opened
   // Home screen buttons
   document.querySelectorAll('.h-btn').forEach(function(btn){
     var txt=btn.textContent;
@@ -1189,24 +1232,28 @@ function applyUIIcons(){
     if(txt.includes('Group Photo')&&ic.photobooth)btn.innerHTML='<img src="'+ic.photobooth+'"> Group Photo';
   });
   // Dollhouse room background
+  applyDollhouseAssets();
+}
+
+function applyDollhouseAssets(){
+  if(!UI_ASSETS)return;
   if(UI_ASSETS.dollhouse&&UI_ASSETS.dollhouse.room){
     var dhRoom=document.getElementById('dhRoom');
     if(dhRoom){
       dhRoom.style.backgroundImage='url('+UI_ASSETS.dollhouse.room+')';
       dhRoom.style.backgroundSize='cover';
       dhRoom.style.backgroundPosition='center';
-      // Hide CSS placeholders when AI room is loaded
       var wall=dhRoom.querySelector('.dh-wall');if(wall)wall.style.display='none';
       var floor=dhRoom.querySelector('.dh-floor');if(floor)floor.style.display='none';
       var rug=dhRoom.querySelector('.dh-rug');if(rug)rug.style.display='none';
     }
   }
-  // Add dollhouse furniture if available
+  // Dollhouse furniture
   if(UI_ASSETS.dollhouse){
-    var dhDolls=document.getElementById('dhDolls');
-    if(dhDolls){
+    var dhRoom2=document.getElementById('dhRoom');
+    if(dhRoom2&&!dhRoom2.querySelector('.dh-furniture')){
       var furnitureHTML='';
-      var furnitureItems=[
+      var items=[
         {key:'bookshelf',x:'5%',y:'20%',w:'120px'},
         {key:'lamp',x:'82%',y:'15%',w:'60px'},
         {key:'mirror',x:'40%',y:'10%',w:'80px'},
@@ -1214,13 +1261,12 @@ function applyUIIcons(){
         {key:'dresser',x:'15%',y:'50%',w:'100px'},
         {key:'window',x:'45%',y:'2%',w:'100px'}
       ];
-      furnitureItems.forEach(function(f){
+      items.forEach(function(f){
         if(UI_ASSETS.dollhouse[f.key]){
-          furnitureHTML+='<img src="'+UI_ASSETS.dollhouse[f.key]+'" style="position:absolute;left:'+f.x+';top:'+f.y+';width:'+f.w+';object-fit:contain;pointer-events:none;z-index:1;">';
+          furnitureHTML+='<img class="dh-furniture" src="'+UI_ASSETS.dollhouse[f.key]+'" style="position:absolute;left:'+f.x+';top:'+f.y+';width:'+f.w+';object-fit:contain;pointer-events:none;z-index:1;">';
         }
       });
-      // Prepend furniture before dolls
-      dhDolls.insertAdjacentHTML('beforebegin',furnitureHTML);
+      dhRoom2.insertAdjacentHTML('afterbegin',furnitureHTML);
     }
   }
 }
@@ -1392,6 +1438,7 @@ var curScr='ls'; // current screen id
 var fwFrom='homeScr'; // where full wardrobe returns to
 
 function showScr(id){
+  toggleMenu(false);
   // Hide all screens
   document.querySelectorAll('.scr').forEach(function(s){s.classList.remove('on');});
   // Also handle splash
@@ -1403,7 +1450,7 @@ function showScr(id){
   // Screen-specific setup
   if(id==='homeScr')renderHome();
   if(id==='dressScr'){loadCharIntoGlobals();bui();checkOnboard();}
-  if(id==='dhScr')renderDollhouse();
+  if(id==='dhScr'){applyDollhouseAssets();renderDollhouse();}
   if(id==='fwScr')renderFullWardrobe();
   if(id==='createScr')renderCreateStep();
   if(id==='rwScr')startRunway();
@@ -1587,7 +1634,10 @@ function crFinish(){
 // DOLLHOUSE
 function renderDollhouse(){
   var el=document.getElementById('dhDolls');if(!el)return;
-  if(!chars.length){el.innerHTML='<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(100,70,130,.5);font-size:16px;font-weight:600;">Create your first doll! 🎀</div>';return;}
+  if(!chars.length){
+    el.innerHTML='<div class="dh-empty"><div><div style="font-size:48px;margin-bottom:8px;">🏠</div><div style="font-size:18px;font-weight:800;color:#3d2040;margin-bottom:4px;">Your dollhouse is empty!</div><div style="font-size:13px;color:rgba(100,70,130,.5);">Go home and create a doll first 🎀</div><br><button class="h-btn h-btn-p" onclick="goHome()" style="font-size:14px;">← Go Home</button></div></div>';
+    return;
+  }
   var html='';
   chars.forEach(function(ch,i){
     var x=20+i*30,y=40;
@@ -1821,8 +1871,6 @@ goHome=function(){
 // Also save to chars when dressing room state changes
 var origBui=bui;
 bui=function(){origBui();if(chars[ci])saveCharToArray();};
-
-// Runway + Photo Booth buttons are in topbar HTML directly
 
 // INIT SPLASH STARS
 (function(){var c=document.getElementById('lsStars');for(var i=0;i<25;i++){var s=document.createElement('div');s.className='ls-star';s.style.left=Math.random()*100+'%';s.style.top=Math.random()*100+'%';s.style.animationDelay=Math.random()*4+'s';s.style.animationDuration=(3+Math.random()*3)+'s';var sz=3+Math.random()*8;s.style.width=s.style.height=sz+'px';var colors=['rgba(255,215,100,0.9)','rgba(255,180,200,0.8)','rgba(255,255,255,0.9)','rgba(255,200,100,0.85)'];var col=colors[Math.floor(Math.random()*colors.length)];s.style.background='radial-gradient(circle,'+col+' 0%,transparent 70%)';s.style.boxShadow='0 0 '+(sz*2)+'px '+col;c.appendChild(s);}})();
