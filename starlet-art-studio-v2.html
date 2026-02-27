@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>✨ Starlet Art Studio v2</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700&display=swap');
+:root{--pink:#FF6B9D;--pink-light:#FFB5C5;--coral:#FF8C69;--gold:#FFD700;--lav:#FFF0F5;--bg:#FDF6F0;--panel:#fff;--text:#4A3728;--text-light:#8B7355;--radius:16px;--shadow:0 4px 20px rgba(255,107,157,.15);--shadow-hover:0 8px 32px rgba(255,107,157,.25);--green:#4ADE80;--red:#EF4444;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+header{background:linear-gradient(135deg,var(--pink),var(--coral));padding:16px 28px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 24px rgba(255,107,157,.3);gap:16px;flex-wrap:wrap;}
+header h1{font-family:'Fredoka',sans-serif;font-weight:700;font-size:24px;color:white;text-shadow:0 2px 8px rgba(0,0,0,.15);white-space:nowrap;}
+.hdr-r{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.api-in{font-family:'Nunito',sans-serif;padding:8px 14px;border:2px solid rgba(255,255,255,.4);border-radius:10px;background:rgba(255,255,255,.2);color:white;font-size:13px;width:260px;outline:none;}
+.api-in::placeholder{color:rgba(255,255,255,.6);}
+.api-in:focus{background:rgba(255,255,255,.3);border-color:#fff;}
+.api-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.3);flex-shrink:0;}
+.api-dot.on{background:var(--green);box-shadow:0 0 8px var(--green);}
+.hdr-btn{font-family:'Fredoka',sans-serif;font-weight:600;font-size:13px;padding:8px 16px;border:1.5px solid rgba(255,255,255,.35);border-radius:10px;background:rgba(255,255,255,.15);color:#fff;cursor:pointer;transition:.2s;white-space:nowrap;}
+.hdr-btn:hover{background:rgba(255,255,255,.3);}
+.hdr-btn:active{transform:scale(.96);}
+
+.main{display:flex;height:calc(100vh - 64px);}
+
+/* SIDEBAR */
+.sb{width:270px;background:var(--panel);border-right:1px solid rgba(255,107,157,.1);overflow-y:auto;flex-shrink:0;padding:0 0 20px;}
+.sb-cat{padding:0 12px;}
+.sb-hdr{font-family:'Fredoka',sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:1.2px;color:var(--text-light);padding:14px 14px 6px;position:sticky;top:0;background:var(--panel);z-index:2;}
+.sb-btn{display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;border:2px solid transparent;border-radius:11px;background:var(--lav);cursor:pointer;font-family:'Nunito',sans-serif;font-size:13px;font-weight:600;color:var(--text);transition:.15s;margin-bottom:5px;text-align:left;}
+.sb-btn:hover{border-color:var(--pink-light);transform:translateX(2px);}
+.sb-btn.active{border-color:var(--pink);background:#fff;box-shadow:var(--shadow);}
+.sb-ico{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px;background:#fff;flex-shrink:0;}
+.sb-chk{margin-left:auto;font-size:14px;opacity:0;}
+.sb-btn.has .sb-chk{opacity:1;}
+.sb-btn.srv .sb-ico{box-shadow:0 0 0 2px var(--green);}
+.sb-btn.srv .sb-chk{opacity:1;color:var(--green);}
+
+/* WORKSPACE */
+.ws{flex:1;padding:20px 28px;overflow-y:auto;display:flex;flex-direction:column;gap:18px;}
+.card{background:var(--panel);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);}
+.card h2{font-family:'Fredoka',sans-serif;font-size:20px;color:var(--pink);margin-bottom:4px;}
+.card .sub{font-size:13px;color:var(--text-light);margin-bottom:14px;}
+.note{background:linear-gradient(135deg,#FFF8E1,#FFF0F5);border-radius:10px;padding:12px 14px;font-size:12px;color:var(--text-light);line-height:1.5;border-left:4px solid var(--gold);margin-bottom:12px;}
+.note strong{color:var(--text);}
+
+textarea{width:100%;min-height:90px;padding:12px 14px;border:2px solid #EEE;border-radius:10px;font-family:'Nunito',sans-serif;font-size:13px;color:var(--text);resize:vertical;outline:none;line-height:1.5;}
+textarea:focus{border-color:var(--pink-light);}
+
+.ctrl{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap;}
+.btn{font-family:'Fredoka',sans-serif;font-weight:600;font-size:14px;padding:9px 20px;border:none;border-radius:10px;cursor:pointer;transition:.2s;display:flex;align-items:center;gap:6px;}
+.btn:active{transform:scale(.96);}
+.btn-p{background:linear-gradient(135deg,var(--pink),var(--coral));color:#fff;box-shadow:0 4px 16px rgba(255,107,157,.3);}
+.btn-p:hover{transform:translateY(-1px);box-shadow:var(--shadow-hover);}
+.btn-p:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+.btn-s{background:var(--lav);color:var(--pink);}
+.btn-s:hover{background:var(--pink-light);color:#fff;}
+.btn-o{background:transparent;color:var(--text-light);border:2px solid #EEE;}
+.btn-o:hover{border-color:var(--pink-light);color:var(--pink);}
+
+.prev-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-top:14px;}
+.prev-item{border-radius:10px;overflow:hidden;border:2px solid #EEE;background:#FAFAFA;position:relative;transition:.2s;}
+.prev-item:hover{border-color:var(--pink-light);box-shadow:var(--shadow);}
+.prev-item img{width:100%;display:block;aspect-ratio:1;object-fit:cover;cursor:zoom-in;background:repeating-conic-gradient(#F0F0F0 0% 25%,#fff 0% 50%) 50%/20px 20px;}
+.prev-item.landscape img{aspect-ratio:16/9;}
+.prev-act{padding:8px 10px;display:flex;align-items:center;gap:6px;background:#fff;}
+.prev-act .lbl{font-size:12px;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.prev-act .src-tag{font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;text-transform:uppercase;}
+.src-server{background:#DCFCE7;color:#166534;}
+.src-local{background:#FEF3C7;color:#92400E;}
+.src-new{background:#DBEAFE;color:#1E40AF;}
+.prev-act button{background:none;border:none;cursor:pointer;font-size:16px;padding:2px;border-radius:4px;transition:background .15s;}
+.prev-act button:hover{background:var(--lav);}
+
+.spinner{width:40px;height:40px;border:4px solid var(--pink-light);border-top-color:var(--pink);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.gen-status{display:flex;flex-direction:column;align-items:center;padding:30px;gap:12px;}
+.gen-status .st{font-family:'Fredoka',sans-serif;font-size:15px;color:var(--pink);}
+
+.export{background:linear-gradient(135deg,var(--lav),#FFF8E1);border-radius:var(--radius);padding:18px 22px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.export .info{flex:1;min-width:180px;}
+.export h3{font-family:'Fredoka',sans-serif;font-size:15px;color:var(--text);}
+.export p{font-size:12px;color:var(--text-light);}
+
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:50;backdrop-filter:blur(4px);}
+.modal.open{display:flex;}
+.modal img{max-width:90vw;max-height:90vh;border-radius:12px;box-shadow:0 24px 80px rgba(0,0,0,.4);}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--text);color:#fff;padding:12px 18px;border-radius:10px;font-family:'Fredoka',sans-serif;font-size:13px;box-shadow:0 8px 32px rgba(0,0,0,.2);transform:translateY(80px);opacity:0;transition:.3s;z-index:100;}
+.toast.show{transform:translateY(0);opacity:1;}
+::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-thumb{background:var(--pink-light);border-radius:3px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>✨ Starlet Art Studio v2</h1>
+  <div class="hdr-r">
+    <button class="hdr-btn" onclick="loadFromServer()">📥 Load from Server</button>
+    <button class="hdr-btn" onclick="exportJSON()">📦 Export starlet-ui.json</button>
+    <input type="password" class="api-in" id="apiKey" placeholder="Paste OpenAI API key...">
+    <div class="api-dot" id="apiDot"></div>
+  </div>
+</header>
+<div class="main">
+  <div class="sb" id="sidebar"></div>
+  <div class="ws" id="workspace"></div>
+</div>
+<div class="modal" id="lightbox" onclick="closeLB()"><img id="lbImg" src="" onclick="event.stopPropagation()"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// ASSET DEFINITIONS — Complete inventory for Starlet v4
+// ============================================================
+const STYLE = `Kawaii-inspired children's illustration, Toca Boca style with rounded shapes and soft colors. Bold dark chocolate brown outlines. Warm, inviting, and playful.`;
+const ICON_STYLE = `Single centered icon on clean white background. Simple bold shape, minimal detail, reads clearly at 60px. Bold dark chocolate brown outline. Children's app icon style, flat illustration. No text, no other objects. Generous padding.`;
+
+const ASSETS = {
+  // ── LOGO ──
+  logo: {
+    name:'Starlet Logo', cat:'Logo', emoji:'⭐',
+    desc:'The main "Starlet" wordmark for the game', size:'1024x1024',
+    note:'Text-focused with "Starlet" prominent. Transparent-friendly. Cute, sparkly, playful — kids\' fashion brand.',
+    prompt:`The word "Starlet" written in a cute, bubbly, rounded hand-lettered style. Kawaii-inspired lettering with soft pink and gold colors. Small sparkles and tiny stars decorating the letters. Clean white background. No other text or objects. Children's app logo style. High quality vector-like rendering.`,
+    jsonPath:'ui.logo'
+  },
+
+  // ── DRESSING ROOM BACKGROUNDS (indices 0-7) ──
+  bg_0:{name:'Dance Party',cat:'Backgrounds',emoji:'💃',
+    desc:'Fun kid-friendly dance floor scene',size:'1024x1024',
+    note:'Game backgrounds are 1024×1024. Character stands center-bottom. Keep interesting details upper half & sides. No people.',
+    prompt:`A cute kawaii dance party room for children. Colorful disco ball casting rainbow sparkles, pastel stage lights, shiny dance floor with star patterns. Bunting and streamers in pink, gold, lavender. Cute speakers with smiley faces. No people. ${STYLE}`,
+    jsonPath:'backgrounds.0'},
+  bg_1:{name:'Stage Show',cat:'Backgrounds',emoji:'🎭',
+    desc:'Theatrical stage with curtains and spotlights',size:'1024x1024',
+    note:'Character stands center — leave that area clear. Rich curtains and stage details around edges.',
+    prompt:`A cute kawaii theater stage for children. Plush red velvet curtains with gold tassels, warm spotlights, wooden stage floor with stars. Fairy lights along top. Cute plush seats at bottom. No people. ${STYLE}`,
+    jsonPath:'backgrounds.1'},
+  bg_2:{name:'Cozy Bedroom',cat:'Backgrounds',emoji:'🛏️',
+    desc:'A cute kid\'s bedroom for trying on outfits',size:'1024x1024',
+    note:'Dressing room/bedroom. Mirror, wardrobe, fairy lights. Character stands center.',
+    prompt:`A cute kawaii child's bedroom for a dress-up game. Pastel pink walls, full-length mirror, open wardrobe with colorful clothes, fairy lights. Fluffy rug, stuffed animals on shelf. Warm cozy lighting. No people. ${STYLE}`,
+    jsonPath:'backgrounds.2'},
+  bg_3:{name:'Sunny Park',cat:'Backgrounds',emoji:'🌳',
+    desc:'Bright cheerful outdoor park',size:'1024x1024',
+    note:'Bright sunny day, green grass, flowers. Character stands center on grass.',
+    prompt:`A cute kawaii sunny park scene. Bright green grass with flowers, winding path, leafy trees, blue sky with fluffy clouds. Wooden bench, butterflies, small pond with ducks. Golden sunlight. No people. ${STYLE}`,
+    jsonPath:'backgrounds.3'},
+  bg_4:{name:'Tropical Beach',cat:'Backgrounds',emoji:'🏖️',
+    desc:'Fun beach scene with sand and waves',size:'1024x1024',
+    note:'Sandy beach, gentle waves, palm trees. Character stands center on sand.',
+    prompt:`A cute kawaii tropical beach. Soft golden sand, turquoise waves, palm trees, seashells and starfish. Beach umbrella, sand castle. Sunny sky with puffy clouds. No people. ${STYLE}`,
+    jsonPath:'backgrounds.4'},
+  bg_5:{name:'City Adventure',cat:'Backgrounds',emoji:'🏙️',
+    desc:'Colorful cartoon city street',size:'1024x1024',
+    note:'Cute shops, colorful buildings. Character stands center on sidewalk.',
+    prompt:`A cute kawaii city street. Pastel buildings with round windows and awnings, flower shop, ice cream parlor, cute lampposts. Cobblestone sidewalk, potted plants, clear blue sky. Bunting between buildings. No people. ${STYLE}`,
+    jsonPath:'backgrounds.5'},
+  bg_6:{name:'Autumn Forest',cat:'Backgrounds',emoji:'🍂',
+    desc:'Cozy autumn woodland scene',size:'1024x1024',
+    note:'Warm fall colors — oranges, reds, golds. Falling leaves. Character stands center.',
+    prompt:`A cute kawaii autumn forest. Trees with round canopies in orange, red, golden yellow. Falling leaves, mossy path, cute mushrooms, squirrel peeking from behind tree. Golden hour lighting. No people. ${STYLE}`,
+    jsonPath:'backgrounds.6'},
+  bg_7:{name:'Outer Space',cat:'Backgrounds',emoji:'🚀',
+    desc:'Whimsical kid-friendly space scene',size:'1024x1024',
+    note:'Fun and dreamy, not scary. Cute planets, stars, moon. Character stands center.',
+    prompt:`A cute kawaii outer space scene. Purple/navy sky with twinkling stars, smiling planets in pastel colors, friendly crescent moon, small rocket ship, swirling pink/blue galaxies. Sparkly stardust. No people. ${STYLE}`,
+    jsonPath:'backgrounds.7'},
+
+  // ── DOLLHOUSE BACKGROUNDS ──
+  dh_room:{name:'Dollhouse Room',cat:'Dollhouse',emoji:'🏠',
+    desc:'Main illustrated room background for the dollhouse',size:'1024x1024',
+    note:'A cute playroom/bedroom viewed from the front. Wall in upper half, floor in lower half. Warm and cozy. Dolls will be placed on top.',
+    prompt:`A cute kawaii children's playroom seen from the front. Warm peach/pink wallpaper with tiny stars, a wooden floor with a round fluffy pink rug. A window with cute curtains showing blue sky. Picture frames on walls, bunting, fairy lights. Cozy and inviting. Wide composition, no people or dolls. ${STYLE}`,
+    jsonPath:'dollhouse.room'},
+  dh_bookshelf:{name:'Bookshelf',cat:'Dollhouse',emoji:'📚',
+    desc:'Cute bookshelf furniture for dollhouse',size:'1024x1024',
+    note:'Single furniture piece with transparent background for layering.',
+    prompt:`A single cute kawaii wooden bookshelf with colorful books, a small plant, and a tiny teddy bear on top. Clean white background for transparency. Simple rounded shapes. ${STYLE}`,
+    jsonPath:'dollhouse.bookshelf'},
+  dh_lamp:{name:'Floor Lamp',cat:'Dollhouse',emoji:'💡',
+    desc:'Cute lamp for dollhouse',size:'1024x1024',
+    note:'Single furniture piece with transparent background.',
+    prompt:`A single cute kawaii floor lamp with a round pink lampshade, glowing warmly. Simple wooden stand. Clean white background for transparency. Rounded shapes. ${STYLE}`,
+    jsonPath:'dollhouse.lamp'},
+  dh_mirror:{name:'Vanity Mirror',cat:'Dollhouse',emoji:'🪞',
+    desc:'Vanity mirror for dollhouse',size:'1024x1024',
+    note:'Single furniture piece with transparent background.',
+    prompt:`A single cute kawaii vanity mirror on a small pink table. Round mirror with decorative gold frame, small perfume bottles and a hairbrush on the table. Clean white background. ${STYLE}`,
+    jsonPath:'dollhouse.mirror'},
+  dh_bed:{name:'Cute Bed',cat:'Dollhouse',emoji:'🛏️',
+    desc:'A small bed for the dollhouse',size:'1024x1024',
+    note:'Viewed from front/side. Transparent background.',
+    prompt:`A single cute kawaii small bed with a pink star-patterned blanket, fluffy pillows, and a small teddy bear. Wooden frame with rounded edges. Clean white background. ${STYLE}`,
+    jsonPath:'dollhouse.bed'},
+  dh_dresser:{name:'Dresser',cat:'Dollhouse',emoji:'🗄️',
+    desc:'Clothing dresser for dollhouse',size:'1024x1024',
+    note:'Transparent background. Cute drawer pulls.',
+    prompt:`A single cute kawaii wooden dresser with 3 drawers, each with a different cute knob (star, heart, flower). A small vase of flowers on top. Pastel pink/cream colors. Clean white background. ${STYLE}`,
+    jsonPath:'dollhouse.dresser'},
+  dh_window:{name:'Window',cat:'Dollhouse',emoji:'🪟',
+    desc:'A cute window decoration',size:'1024x1024',
+    note:'Transparent background. Shows blue sky through window.',
+    prompt:`A single cute kawaii arched window with pink curtains tied back, showing a bright blue sky with fluffy clouds outside. Wooden frame. Clean white background. ${STYLE}`,
+    jsonPath:'dollhouse.window'},
+
+  // ── RUNWAY ──
+  rw_stage:{name:'Runway Stage',cat:'Runway',emoji:'🎤',
+    desc:'Glamour runway/catwalk background',size:'1024x1024',
+    note:'Viewed from front. Character walks down center. Dark/dramatic but kid-friendly.',
+    prompt:`A cute kawaii fashion runway stage for children. Dark purple/navy background with warm golden spotlights shining down. A pink carpet runway going toward the viewer, sparkly gold railings on sides. Twinkling fairy lights and stars. Glamorous but kid-friendly. No people. ${STYLE}`,
+    jsonPath:'runway.stage'},
+
+  // ── PHOTO BOOTH FRAMES ──
+  pb_pink:{name:'Pink Hearts Frame',cat:'Photo Booth',emoji:'💕',
+    desc:'Illustrated photo frame with hearts',size:'1024x1024',
+    note:'Frame border only — center must be empty/transparent for photo. Oriented portrait.',
+    prompt:`A cute kawaii photo frame border on clean white background. Pink rounded corners decorated with small hearts, tiny stars, and sparkles. The center is completely empty white. Feminine and cute, not too busy. ${STYLE}`,
+    jsonPath:'photobooth.frame_pink'},
+  pb_gold:{name:'Gold Stars Frame',cat:'Photo Booth',emoji:'✨',
+    desc:'Illustrated photo frame with stars',size:'1024x1024',
+    note:'Frame border only — center must be empty.',
+    prompt:`A cute kawaii photo frame border on clean white background. Golden/yellow rounded corners with small stars, moons, and sparkles. Center completely empty white. Glamorous and fun. ${STYLE}`,
+    jsonPath:'photobooth.frame_gold'},
+  pb_rainbow:{name:'Rainbow Frame',cat:'Photo Booth',emoji:'🌈',
+    desc:'Colorful rainbow photo frame',size:'1024x1024',
+    note:'Frame border only — center must be empty.',
+    prompt:`A cute kawaii photo frame border on clean white background. Rainbow-colored rounded border with small clouds at corners. Colors flow pink, orange, yellow, green, blue, purple. Center completely empty white. Cheerful and bright. ${STYLE}`,
+    jsonPath:'photobooth.frame_rainbow'},
+  pb_flowers:{name:'Flower Frame',cat:'Photo Booth',emoji:'🌸',
+    desc:'Illustrated photo frame with flowers',size:'1024x1024',
+    note:'Frame border only — center must be empty.',
+    prompt:`A cute kawaii photo frame border on clean white background. Decorated with small kawaii flowers, leaves, and tiny butterflies around the edges. Pastel pink, lavender, and mint green. Center completely empty white. Spring garden feeling. ${STYLE}`,
+    jsonPath:'photobooth.frame_flowers'},
+
+  // ── CATEGORY TAB ICONS (existing) ──
+  icon_outfits:{name:'Outfits',cat:'Category Icons',emoji:'👗',
+    desc:'Tab icon for Outfits category',size:'1024x1024',
+    note:'Displayed at ~60px. Must read clearly small. Simple bold shape.',
+    prompt:`A single cute kawaii pink dress with a bow. ${ICON_STYLE}`,
+    jsonPath:'icons.outfits'},
+  icon_faces:{name:'Faces',cat:'Category Icons',emoji:'😊',
+    desc:'Tab icon for Faces category',size:'1024x1024',
+    note:'Simple smiley face. Bold and readable small.',
+    prompt:`A single cute kawaii smiley face with rosy cheeks and happy closed-eye smile. Warm peach skin. ${ICON_STYLE}`,
+    jsonPath:'icons.faces'},
+  icon_hair:{name:'Hair',cat:'Category Icons',emoji:'💇',
+    desc:'Tab icon for Hair/Hats category',size:'1024x1024',
+    note:'Hair/wig icon. Simple and bold.',
+    prompt:`A single cute kawaii bob hairstyle in warm brown with a small pink hair clip. Round soft shape. ${ICON_STYLE}`,
+    jsonPath:'icons.hair'},
+  icon_stickers:{name:'Stickers',cat:'Category Icons',emoji:'⭐',
+    desc:'Tab icon for Stickers category',size:'1024x1024',
+    note:'Star/sparkle sticker icon.',
+    prompt:`A single cute kawaii golden five-pointed star with a happy face and small sparkles. ${ICON_STYLE}`,
+    jsonPath:'icons.stickers'},
+  icon_scene:{name:'Scene',cat:'Category Icons',emoji:'🎨',
+    desc:'Tab icon for Scene/Background category',size:'1024x1024',
+    note:'Landscape/scene icon.',
+    prompt:`A single cute kawaii picture frame icon with tiny landscape (sun and hills) inside. Pastel colors, pink frame. ${ICON_STYLE}`,
+    jsonPath:'icons.scene'},
+
+  // ── NAV & ACTION ICONS (new) ──
+  icon_home:{name:'Home',cat:'Nav Icons',emoji:'🏠',
+    desc:'Home button icon',size:'1024x1024',
+    note:'House/home icon for navigation.',
+    prompt:`A single cute kawaii small house with a pink roof, round door, and a tiny heart on the chimney. ${ICON_STYLE}`,
+    jsonPath:'icons.home'},
+  icon_dollhouse:{name:'Dollhouse',cat:'Nav Icons',emoji:'🏡',
+    desc:'Dollhouse button icon',size:'1024x1024',
+    note:'Dollhouse icon — a cute small house with open front.',
+    prompt:`A single cute kawaii dollhouse with an open front showing tiny furniture inside. Pink and cream colors. ${ICON_STYLE}`,
+    jsonPath:'icons.dollhouse'},
+  icon_wardrobe:{name:'Wardrobe',cat:'Nav Icons',emoji:'👜',
+    desc:'Wardrobe/closet button icon',size:'1024x1024',
+    note:'Handbag or closet icon for saved looks.',
+    prompt:`A single cute kawaii pink handbag/purse with a small golden clasp and tiny heart decoration. ${ICON_STYLE}`,
+    jsonPath:'icons.wardrobe'},
+  icon_runway:{name:'Runway',cat:'Nav Icons',emoji:'🎤',
+    desc:'Runway/stage button icon',size:'1024x1024',
+    note:'Microphone or spotlight icon for runway feature.',
+    prompt:`A single cute kawaii golden spotlight shining down, with small sparkles. Simple cone of light shape. ${ICON_STYLE}`,
+    jsonPath:'icons.runway'},
+  icon_photobooth:{name:'Photo Booth',cat:'Nav Icons',emoji:'📸',
+    desc:'Photo booth/camera button icon',size:'1024x1024',
+    note:'Camera icon for photo booth.',
+    prompt:`A single cute kawaii pink camera with a round lens and small flash. Heart-shaped viewfinder dot. ${ICON_STYLE}`,
+    jsonPath:'icons.photobooth'},
+  icon_settings:{name:'Settings',cat:'Nav Icons',emoji:'⚙️',
+    desc:'Settings gear icon',size:'1024x1024',
+    note:'Gear/cog icon for settings.',
+    prompt:`A single cute kawaii pink gear/cog wheel with rounded teeth and a small heart in the center. ${ICON_STYLE}`,
+    jsonPath:'icons.settings'},
+  icon_save:{name:'Save',cat:'Nav Icons',emoji:'💾',
+    desc:'Save/download button icon',size:'1024x1024',
+    note:'Floppy disk or download icon.',
+    prompt:`A single cute kawaii pink floppy disk with a small star sticker on it. Rounded shapes. ${ICON_STYLE}`,
+    jsonPath:'icons.save'},
+  icon_surprise:{name:'Surprise',cat:'Nav Icons',emoji:'🎲',
+    desc:'Random/surprise button icon',size:'1024x1024',
+    note:'Dice or magic wand icon for randomize feature.',
+    prompt:`A single cute kawaii golden magic wand with a star tip and small sparkles around it. ${ICON_STYLE}`,
+    jsonPath:'icons.surprise'},
+  icon_back:{name:'Back Arrow',cat:'Nav Icons',emoji:'←',
+    desc:'Back navigation arrow icon',size:'1024x1024',
+    note:'Simple left arrow for back navigation.',
+    prompt:`A single cute kawaii rounded left-pointing arrow in pink with a small sparkle trail. ${ICON_STYLE}`,
+    jsonPath:'icons.back'},
+  icon_create:{name:'Create/Add',cat:'Nav Icons',emoji:'✚',
+    desc:'Create new doll / add button icon',size:'1024x1024',
+    note:'Plus sign for creating new dolls.',
+    prompt:`A single cute kawaii pink circle with a white plus sign inside and small sparkles around it. ${ICON_STYLE}`,
+    jsonPath:'icons.create'},
+};
+
+// ============================================================
+// STATE
+// ============================================================
+let currentAsset = 'logo';
+let generatedImages = {}; // { assetId: [{ dataUrl, source:'local'|'server'|'new' }] }
+let activeGens = new Set();
+let batchRunning = false, batchAbort = false;
+let serverData = null; // raw starlet-ui.json contents
+
+// ============================================================
+// INIT
+// ============================================================
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem('starlet_art2_key');
+  if(saved){document.getElementById('apiKey').value=saved;document.getElementById('apiDot').classList.add('on');}
+  document.getElementById('apiKey').addEventListener('input',e=>{
+    const k=e.target.value.trim();
+    localStorage.setItem('starlet_art2_key',k);
+    document.getElementById('apiDot').classList.toggle('on',k.startsWith('sk-'));
+  });
+  // Restore local images
+  try{const d=localStorage.getItem('starlet_art2_gen');if(d){generatedImages=JSON.parse(d);}}catch(e){}
+  buildSidebar();
+  renderWorkspace();
+  // Auto-load from server
+  loadFromServer();
+});
+
+// ============================================================
+// SIDEBAR (built dynamically from ASSETS)
+// ============================================================
+function buildSidebar(){
+  const sb=document.getElementById('sidebar');
+  let cats={};
+  Object.entries(ASSETS).forEach(([id,a])=>{if(!cats[a.cat])cats[a.cat]=[];cats[a.cat].push(id);});
+  let h='';
+  Object.entries(cats).forEach(([cat,ids])=>{
+    h+=`<div class="sb-hdr">${cat}</div><div class="sb-cat">`;
+    ids.forEach(id=>{
+      const a=ASSETS[id];
+      const hasImg=(generatedImages[id]||[]).length>0;
+      const fromServer=(generatedImages[id]||[]).some(i=>i.source==='server');
+      h+=`<button class="sb-btn${currentAsset===id?' active':''}${hasImg?' has':''}${fromServer?' srv':''}" data-id="${id}" onclick="selectAsset('${id}')">
+        <div class="sb-ico">${a.emoji}</div><span>${a.name}</span><span class="sb-chk">${fromServer?'🟢':'✅'}</span>
+      </button>`;
+    });
+    h+=`</div>`;
+  });
+  sb.innerHTML=h;
+}
+
+// ============================================================
+// LOAD FROM SERVER (starlet-ui.json)
+// ============================================================
+async function loadFromServer(){
+  try{
+    const r=await fetch('starlet-ui.json?t='+Date.now());
+    if(!r.ok)throw new Error('Not found');
+    serverData=await r.json();
+    let loaded=0;
+    // Map server data into generatedImages using jsonPath
+    Object.entries(ASSETS).forEach(([id,a])=>{
+      if(!a.jsonPath)return;
+      const val=getNestedVal(serverData,a.jsonPath);
+      if(!val)return;
+      // Check if we already have a server image for this
+      if(!generatedImages[id])generatedImages[id]=[];
+      const hasServer=generatedImages[id].some(i=>i.source==='server');
+      if(!hasServer){
+        // Prepend server image (so it shows first)
+        generatedImages[id].unshift({dataUrl:val,source:'server'});
+        loaded++;
+      }
+    });
+    saveLocal();
+    buildSidebar();
+    renderWorkspace();
+    toast(`📥 Loaded ${loaded} existing assets from server`);
+  }catch(e){
+    toast('📥 No starlet-ui.json found on server (OK for first run)');
+  }
+}
+
+function getNestedVal(obj,path){
+  return path.split('.').reduce((o,k)=>o&&o[k],obj);
+}
+function setNestedVal(obj,path,val){
+  const parts=path.split('.');
+  let o=obj;
+  for(let i=0;i<parts.length-1;i++){if(!o[parts[i]])o[parts[i]]={};o=o[parts[i]];}
+  o[parts[parts.length-1]]=val;
+}
+
+// ============================================================
+// SELECT ASSET
+// ============================================================
+function selectAsset(id){
+  currentAsset=id;
+  document.querySelectorAll('.sb-btn').forEach(b=>b.classList.toggle('active',b.dataset.id===id));
+  renderWorkspace();
+}
+
+// ============================================================
+// RENDER WORKSPACE
+// ============================================================
+function renderWorkspace(){
+  const a=ASSETS[currentAsset];
+  const images=generatedImages[currentAsset]||[];
+  const isGen=activeGens.has(currentAsset);
+  const ws=document.getElementById('workspace');
+  const totalGen=Object.values(generatedImages).reduce((s,arr)=>s+arr.length,0);
+  const totalAssets=Object.keys(ASSETS).length;
+  const withImages=Object.keys(ASSETS).filter(id=>(generatedImages[id]||[]).length>0).length;
+
+  ws.innerHTML=`
+    ${batchRunning?`<div class="card" style="border-left:4px solid var(--gold)">
+      <h2>🚀 Batch Running...</h2><p class="sub" id="batchMsg">Generating sequentially...</p>
+      <button class="btn btn-o" onclick="batchAbort=true" style="border-color:var(--red);color:var(--red);margin-top:8px;">⏹ Stop</button>
+    </div>`:''}
+    <div class="card">
+      <h2>${a.emoji} ${a.name}</h2>
+      <p class="sub">${a.desc}</p>
+      <div class="note"><strong>💡 Notes:</strong> ${a.note}<br><strong>Size:</strong> ${a.size} · <strong>Category:</strong> ${a.cat} · <strong>JSON path:</strong> <code>${a.jsonPath}</code></div>
+      <textarea id="promptTxt">${a.prompt}</textarea>
+      <div class="ctrl">
+        <button class="btn btn-p" onclick="generate()" ${isGen?'disabled':''}>${isGen?'⏳ Generating...':'✨ Generate'}</button>
+        <button class="btn btn-s" onclick="document.getElementById('promptTxt').value=ASSETS[currentAsset].prompt;toast('Reset')">↺ Reset</button>
+        <button class="btn btn-o" onclick="generate(true)">🎲 Variation</button>
+        <button class="btn btn-o" onclick="uploadImage()">📁 Upload PNG</button>
+        <input type="file" id="fileIn" accept="image/*" style="display:none" onchange="handleUpload(this)">
+        <span style="margin-left:auto;font-size:12px;color:var(--text-light)">${images.length} image${images.length!==1?'s':''}</span>
+      </div>
+    </div>
+    ${isGen?`<div class="card gen-status"><div class="spinner"></div><div class="st">Generating ${a.name}...</div><div style="font-size:12px;color:var(--text-light)">~10-20 seconds</div></div>`:''}
+    ${images.length?`<div class="card">
+      <h2>Images</h2>
+      <p class="sub">Click to preview · 💾 download · ✅ use as active · 🗑️ remove</p>
+      <div class="prev-grid">${images.map((img,i)=>{
+        const srcCls=img.source==='server'?'src-server':img.source==='new'?'src-new':'src-local';
+        const srcLbl=img.source==='server'?'Server':img.source==='new'?'New':'Local';
+        return `<div class="prev-item">
+          <img src="${img.dataUrl}" onclick="openLB(this.src)">
+          <div class="prev-act">
+            <span class="lbl">#${i+1}</span>
+            <span class="src-tag ${srcCls}">${srcLbl}</span>
+            ${i>0?`<button onclick="promoteImage('${currentAsset}',${i})" title="Use as primary">⬆️</button>`:''}
+            <button onclick="dlImage('${currentAsset}',${i})" title="Download">💾</button>
+            <button onclick="rmImage('${currentAsset}',${i})" title="Remove">🗑️</button>
+          </div>
+        </div>`;
+      }).join('')}</div>
+    </div>`:''}
+    <div class="export">
+      <div class="info"><h3>📦 Export for Game</h3><p>${withImages}/${totalAssets} categories · ${totalGen} total images · First image per slot is used in export</p></div>
+      ${!batchRunning?`<button class="btn btn-p" onclick="generateAll()" style="background:linear-gradient(135deg,var(--gold),var(--coral))">🚀 Generate All Missing</button>`:''}
+      <button class="btn btn-p" onclick="exportJSON()">📦 Export JSON</button>
+    </div>`;
+}
+
+// ============================================================
+// GENERATION
+// ============================================================
+async function generateOne(assetId,prompt,variation=false){
+  const key=document.getElementById('apiKey').value.trim();
+  if(!key)throw new Error('No API key');
+  const a=ASSETS[assetId];
+  const body={model:'dall-e-3',prompt:variation?prompt+' [Create a completely different variation with same style]':prompt,n:1,size:a.size,quality:'hd',response_format:'b64_json'};
+  const resp=await fetch('https://api.openai.com/v1/images/generations',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify(body)});
+  if(!resp.ok){const err=await resp.json();throw new Error(err.error?.message||'API error '+resp.status);}
+  const data=await resp.json();
+  return 'data:image/png;base64,'+data.data[0].b64_json;
+}
+
+async function generate(variation=false){
+  const key=document.getElementById('apiKey').value.trim();
+  if(!key){toast('⚠️ Enter your OpenAI API key');document.getElementById('apiKey').focus();return;}
+  const prompt=document.getElementById('promptTxt')?.value.trim();
+  if(!prompt){toast('⚠️ Prompt is empty');return;}
+  const target=currentAsset;
+  activeGens.add(target);renderWorkspace();
+  try{
+    const url=await generateOne(target,prompt,variation);
+    if(!generatedImages[target])generatedImages[target]=[];
+    generatedImages[target].push({dataUrl:url,source:'new'});
+    saveLocal();buildSidebar();
+    toast('✅ '+ASSETS[target].name+' generated!');
+  }catch(e){toast('❌ '+ASSETS[target].name+': '+e.message);}
+  finally{activeGens.delete(target);renderWorkspace();}
+}
+
+async function generateAll(){
+  const key=document.getElementById('apiKey').value.trim();
+  if(!key){toast('⚠️ Enter API key');return;}
+  const missing=Object.keys(ASSETS).filter(id=>!(generatedImages[id]||[]).length);
+  if(!missing.length){toast('✅ All assets have images!');return;}
+  if(!confirm(`Generate ${missing.length} missing assets?\n~$${(missing.length*.08).toFixed(2)} at HD pricing.\n\n${missing.map(id=>ASSETS[id].name).join(', ')}`))return;
+  batchRunning=true;batchAbort=false;renderWorkspace();
+  let done=0,errors=0;
+  for(const id of missing){
+    if(batchAbort)break;
+    const a=ASSETS[id];done++;
+    const msg=document.getElementById('batchMsg');if(msg)msg.textContent=`${done}/${missing.length}: ${a.name}...`;
+    selectAsset(id);activeGens.add(id);renderWorkspace();
+    try{
+      const url=await generateOne(id,a.prompt);
+      if(!generatedImages[id])generatedImages[id]=[];
+      generatedImages[id].push({dataUrl:url,source:'new'});
+      saveLocal();buildSidebar();toast(`✅ ${a.name} (${done}/${missing.length})`);
+    }catch(e){errors++;toast(`❌ ${a.name}: ${e.message}`);
+      if(e.message.includes('rate')||e.message.includes('429')){if(msg)msg.textContent='Rate limited — waiting 30s...';await new Promise(r=>setTimeout(r,30000));}
+    }finally{activeGens.delete(id);}
+    if(!batchAbort&&done<missing.length)await new Promise(r=>setTimeout(r,2000));
+  }
+  batchRunning=false;renderWorkspace();
+  toast(`🎉 Batch done! ${done-errors} ok, ${errors} failed`);
+}
+
+// ============================================================
+// IMAGE MANAGEMENT
+// ============================================================
+function uploadImage(){document.getElementById('fileIn').click();}
+function handleUpload(inp){
+  if(!inp.files||!inp.files[0])return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    if(!generatedImages[currentAsset])generatedImages[currentAsset]=[];
+    generatedImages[currentAsset].push({dataUrl:e.target.result,source:'local'});
+    saveLocal();buildSidebar();renderWorkspace();toast('📁 Image uploaded');
+  };
+  reader.readAsDataURL(inp.files[0]);inp.value='';
+}
+function promoteImage(id,i){
+  const arr=generatedImages[id];if(!arr||i<1)return;
+  const item=arr.splice(i,1)[0];arr.unshift(item);
+  saveLocal();renderWorkspace();toast('⬆️ Moved to primary');
+}
+function rmImage(id,i){
+  if(!confirm('Remove?'))return;
+  generatedImages[id].splice(i,1);
+  if(!generatedImages[id].length)delete generatedImages[id];
+  saveLocal();buildSidebar();renderWorkspace();toast('Removed');
+}
+function dlImage(id,i){
+  const img=generatedImages[id][i];
+  const a=document.createElement('a');a.href=img.dataUrl;a.download=`starlet_${id}.png`;a.click();
+}
+
+// ============================================================
+// EXPORT starlet-ui.json (first image per slot)
+// ============================================================
+function exportJSON(){
+  const out={};
+  Object.entries(ASSETS).forEach(([id,a])=>{
+    if(!a.jsonPath)return;
+    const imgs=generatedImages[id]||[];
+    if(!imgs.length)return;
+    setNestedVal(out,a.jsonPath,imgs[0].dataUrl);
+  });
+  const json=JSON.stringify(out);
+  const blob=new Blob([json],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='starlet-ui.json';a.click();
+  const filled=Object.keys(ASSETS).filter(id=>(generatedImages[id]||[]).length>0).length;
+  toast(`📦 Exported starlet-ui.json (${filled}/${Object.keys(ASSETS).length} slots filled)`);
+}
+
+// ============================================================
+// PERSISTENCE
+// ============================================================
+function saveLocal(){
+  try{localStorage.setItem('starlet_art2_gen',JSON.stringify(generatedImages));}
+  catch(e){toast('⚠️ Storage full — download and clear old images');}
+}
+
+// ============================================================
+// UI HELPERS
+// ============================================================
+function openLB(src){document.getElementById('lbImg').src=src;document.getElementById('lightbox').classList.add('open');}
+function closeLB(){document.getElementById('lightbox').classList.remove('open');}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLB();});
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2800);}
+</script>
+</body>
+</html>
