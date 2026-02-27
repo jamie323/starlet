@@ -217,34 +217,60 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 #gToast{position:fixed;top:50px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#FF6B9D,#C850C0);color:#fff;padding:8px 20px;border-radius:20px;font-weight:800;font-size:12px;z-index:200;opacity:0;transition:opacity 0.3s;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,0.3);}
 #gToast.show{opacity:1;}
 
-/* BOTTOM NAV — floating toy shelf dock */
-.bnav{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);width:calc(100% - 40px);max-width:560px;height:auto;
-  background:linear-gradient(180deg,#FFF5F0 0%,#FFE8DD 40%,#FDDDD0 100%);
-  border-radius:32px;display:flex;justify-content:space-around;align-items:center;z-index:100;
-  padding:10px 8px 8px;
-  box-shadow:0 8px 32px rgba(180,100,120,.18),0 2px 8px rgba(180,100,120,.1),inset 0 2px 0 rgba(255,255,255,.7),inset 0 -2px 4px rgba(180,100,120,.08);
-  border:2px solid rgba(255,220,210,.6);
+/* BOTTOM NAV — physical toy shelf dock */
+.bnav{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:580px;
+  background:linear-gradient(180deg,#FFF5EE 0%,#FFE4D6 50%,#FDDAC8 100%);
+  border-radius:28px;display:flex;justify-content:space-evenly;align-items:center;z-index:100;
+  padding:6px 4px 10px;
+  /* Physical depth — top highlight, bottom shadow, inner bevel */
+  box-shadow:
+    0 10px 30px rgba(160,80,60,.15),
+    0 4px 8px rgba(160,80,60,.1),
+    inset 0 2px 0 rgba(255,255,255,.85),
+    inset 0 -3px 6px rgba(160,80,60,.08);
+  border:1.5px solid rgba(255,210,190,.5);
+  /* Top highlight strip — light hitting plastic */
+  background-image:linear-gradient(180deg,rgba(255,255,255,.6) 0%,transparent 4px,transparent 100%);
 }
+/* Tiny feet */
+.bnav::before,.bnav::after{content:'';position:absolute;bottom:-4px;width:20px;height:6px;border-radius:0 0 6px 6px;background:linear-gradient(180deg,#FDDAC8,#E8C0A8);box-shadow:0 2px 4px rgba(160,80,60,.12);}
+.bnav::before{left:40px;}
+.bnav::after{right:40px;}
 .bnav.hid{display:none;}
-.bnav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 6px 6px;border:none;background:none;cursor:pointer;border-radius:20px;transition:all .25s cubic-bezier(.34,1.56,.64,1);min-width:52px;font-family:inherit;position:relative;-webkit-tap-highlight-color:transparent;}
-.bnav-btn:active{transform:scale(.92);}
-.bnav-btn.on{transform:translateY(-6px);}
-.bnav-btn.on .bnav-pill{opacity:1;transform:scale(1);}
-.bnav-pill{position:absolute;inset:-2px -4px;border-radius:22px;
-  background:linear-gradient(135deg,#FFB8C6 0%,#FFCBA4 100%);
-  opacity:0;transform:scale(.8);transition:all .3s cubic-bezier(.34,1.56,.64,1);z-index:0;
-  box-shadow:0 4px 16px rgba(255,140,160,.3),inset 0 1px 0 rgba(255,255,255,.5);
+
+.bnav-btn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 6px 2px;border:none;background:none;cursor:pointer;border-radius:18px;transition:all .25s cubic-bezier(.34,1.56,.64,1);min-width:60px;font-family:inherit;position:relative;-webkit-tap-highlight-color:transparent;}
+.bnav-btn:active{transform:scale(.88);}
+.bnav-btn.on{transform:translateY(-8px);}
+
+/* Active pill — pops out of shelf */
+.bnav-pill{position:absolute;inset:-4px -6px;border-radius:20px;
+  background:linear-gradient(180deg,#FFD0DC 0%,#FFB0C4 60%,#FFA0B8 100%);
+  opacity:0;transform:scale(.7);transition:all .3s cubic-bezier(.34,1.56,.64,1);z-index:0;
+  box-shadow:0 6px 20px rgba(255,120,150,.35),0 2px 6px rgba(255,120,150,.2),inset 0 2px 0 rgba(255,255,255,.5);
 }
-.bnav-ico{font-size:26px;line-height:1;position:relative;z-index:1;filter:drop-shadow(0 2px 3px rgba(140,80,100,.15));transition:transform .25s cubic-bezier(.34,1.56,.64,1);}
-.bnav-btn.on .bnav-ico{transform:scale(1.15);filter:drop-shadow(0 2px 6px rgba(255,140,160,.4));}
-.bnav-ico img{width:30px;height:30px;object-fit:contain;filter:drop-shadow(0 2px 3px rgba(140,80,100,.15));}
-.bnav-btn.on .bnav-ico img{width:34px;height:34px;filter:drop-shadow(0 2px 6px rgba(255,140,160,.4)) brightness(1.1);}
-.bnav-lbl{font-size:9px;font-weight:800;letter-spacing:.5px;color:rgba(140,80,100,.45);position:relative;z-index:1;transition:all .2s;}
-.bnav-btn.on .bnav-lbl{color:#fff;font-size:10px;text-shadow:0 1px 3px rgba(180,80,100,.3);}
+.bnav-btn.on .bnav-pill{opacity:1;transform:scale(1);}
+
+/* Icons — BIG, 36px, chunky */
+.bnav-ico{font-size:34px;line-height:1;position:relative;z-index:1;filter:drop-shadow(0 2px 4px rgba(120,60,80,.2));transition:all .25s cubic-bezier(.34,1.56,.64,1);}
+.bnav-btn.on .bnav-ico{transform:scale(1.12);filter:drop-shadow(0 3px 8px rgba(255,120,150,.4));}
+.bnav-ico img{width:38px;height:38px;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(120,60,80,.2));}
+.bnav-btn.on .bnav-ico img{width:42px;height:42px;filter:drop-shadow(0 3px 8px rgba(255,120,150,.4));}
+
+/* Labels — warm brown, bigger */
+.bnav-lbl{font-size:10px;font-weight:800;letter-spacing:.3px;color:rgba(120,60,50,.5);position:relative;z-index:1;transition:all .2s;}
+.bnav-btn.on .bnav-lbl{color:#fff;font-size:10.5px;text-shadow:0 1px 3px rgba(160,60,80,.3);}
+
+/* Idle shimmer on active icon */
+.bnav-btn.on .bnav-ico{animation:bnavShimmer 3s ease-in-out infinite;}
+@keyframes bnavShimmer{0%,100%{filter:drop-shadow(0 3px 8px rgba(255,120,150,.4));}50%{filter:drop-shadow(0 3px 14px rgba(255,180,200,.6));}}
 
 /* Bounce animation on tap */
-@keyframes bnavBounce{0%{transform:scale(.92);}40%{transform:scale(1.08) translateY(-6px);}70%{transform:scale(.97) translateY(-6px);}100%{transform:translateY(-6px);}}
+@keyframes bnavBounce{0%{transform:scale(.88);}40%{transform:scale(1.1) translateY(-8px);}70%{transform:scale(.96) translateY(-8px);}100%{transform:translateY(-8px);}}
 .bnav-btn.bounce{animation:bnavBounce .4s cubic-bezier(.34,1.56,.64,1);}
+
+/* Old tab drops back */
+@keyframes bnavDropBack{0%{transform:translateY(-8px);}50%{transform:translateY(2px);}100%{transform:none;}}
+.bnav-btn.dropback{animation:bnavDropBack .3s ease-out;}
 
 /* Sparkle burst on tap */
 .bnav-spark{position:absolute;width:4px;height:4px;border-radius:50%;pointer-events:none;z-index:10;animation:bnavSpark .6s ease-out forwards;}
@@ -1162,6 +1188,13 @@ function menuGo(action){
 
 // BOTTOM NAV BAR — toy shelf with bounce + sparkles
 function bnavTap(btn,action){
+  // Animate old active tab dropping back
+  var nav=document.getElementById('bnav');
+  if(nav){
+    nav.querySelectorAll('.bnav-btn.on').forEach(function(old){
+      if(old!==btn){old.classList.add('dropback');setTimeout(function(){old.classList.remove('dropback');},300);}
+    });
+  }
   // Bounce animation
   btn.classList.remove('bounce');btn.offsetHeight;btn.classList.add('bounce');
   setTimeout(function(){btn.classList.remove('bounce');},400);
@@ -1780,27 +1813,30 @@ function renderDollhouse(){
     el.innerHTML='<div class="dh-empty"><div><div style="font-size:48px;margin-bottom:8px;">🏠</div><div style="font-size:18px;font-weight:800;color:#3d2040;margin-bottom:4px;">Your dollhouse is empty!</div><div style="font-size:13px;color:rgba(100,70,130,.5);">Go home and create a doll first 🎀</div><br><button class="h-btn h-btn-p" onclick="goHome()" style="font-size:14px;">← Go Home</button></div></div>';
     return;
   }
+  // Scale dolls based on room size and count
+  var DW=320,DH=440;
   var html='';
   chars.forEach(function(ch,i){
-    var x=20+i*30,y=40;
-    html+='<div class="dh-doll" id="dhD'+i+'" style="left:'+x+'%;top:'+y+'%;width:180px;" data-idx="'+i+'">';
-    html+='<canvas width="180" height="250" id="dhC'+i+'"></canvas>';
-    html+='<div style="text-align:center;font-size:11px;font-weight:700;color:#3d2040;margin-top:2px;">'+esc(ch.name)+'</div></div>';
+    var n=chars.length;
+    var spacing=Math.min(30,80/n);
+    var x=Math.max(5,50-n*spacing/2+i*spacing);
+    var y=15;
+    html+='<div class="dh-doll" id="dhD'+i+'" style="left:'+x+'%;top:'+y+'%;width:'+DW+'px;" data-idx="'+i+'">';
+    html+='<canvas width="'+DW+'" height="'+DH+'" id="dhC'+i+'"></canvas>';
+    html+='<div style="text-align:center;font-size:14px;font-weight:800;color:#3d2040;margin-top:4px;text-shadow:0 1px 3px rgba(255,255,255,.8);">'+esc(ch.name)+'</div></div>';
   });
   el.innerHTML=html;
-  // Draw dolls
   chars.forEach(function(ch,i){
     var cv=document.getElementById('dhC'+i);if(!cv)return;
-    var ctx=cv.getContext('2d');ctx.clearRect(0,0,180,250);
+    var ctx=cv.getContext('2d');ctx.clearRect(0,0,DW,DH);
     var tmpEq=ch.eq||{outfits:-1,faces:-1,hairhats:-1};
     var s=ch.skinIdx||0;
-    if(IM['bl']){var im=s>0?tint('bl',SK[s]):IM['bl'];if(im)ctx.drawImage(im,0,-30,180,180*ASSET_H/1024);}
-    if(IM['bh']){var im=s>0?tint('bh',SK[s]):IM['bh'];if(im)ctx.drawImage(im,0,-30,180,180*ASSET_H/1024);}
-    if(tmpEq.outfits>=0&&IM['outfits_'+tmpEq.outfits])ctx.drawImage(IM['outfits_'+tmpEq.outfits],0,-30,180,180*ASSET_H/1024);
-    if(tmpEq.faces>=0&&IM['faces_'+tmpEq.faces])ctx.drawImage(IM['faces_'+tmpEq.faces],0,-30,180,180*ASSET_H/1024);
-    if(tmpEq.hairhats>=0&&IM['hairhats_'+tmpEq.hairhats])ctx.drawImage(IM['hairhats_'+tmpEq.hairhats],0,-30,180,180*ASSET_H/1024);
+    if(IM['bl']){var im=s>0?tint('bl',SK[s]):IM['bl'];if(im)ctx.drawImage(im,0,-50,DW,DW*ASSET_H/1024);}
+    if(IM['bh']){var im=s>0?tint('bh',SK[s]):IM['bh'];if(im)ctx.drawImage(im,0,-50,DW,DW*ASSET_H/1024);}
+    if(tmpEq.outfits>=0&&IM['outfits_'+tmpEq.outfits])ctx.drawImage(IM['outfits_'+tmpEq.outfits],0,-50,DW,DW*ASSET_H/1024);
+    if(tmpEq.faces>=0&&IM['faces_'+tmpEq.faces])ctx.drawImage(IM['faces_'+tmpEq.faces],0,-50,DW,DW*ASSET_H/1024);
+    if(tmpEq.hairhats>=0&&IM['hairhats_'+tmpEq.hairhats])ctx.drawImage(IM['hairhats_'+tmpEq.hairhats],0,-50,DW,DW*ASSET_H/1024);
   });
-  // Make draggable
   document.querySelectorAll('.dh-doll').forEach(function(d){
     var startX,startY,origL,origT;
     function onDown(e){
