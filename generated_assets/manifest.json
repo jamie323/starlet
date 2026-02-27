@@ -1,0 +1,65 @@
+{
+  "converter": "qlmanage thumbnailer",
+  "assets": [
+    {
+      "file": "outfit_princess_dress.png",
+      "category": "outfits",
+      "name": "Layered sparkle princess gown",
+      "path": "generated_assets/outfit_princess_dress.png"
+    },
+    {
+      "file": "outfit_jeans_top.png",
+      "category": "outfits",
+      "name": "Bright top + comfy jeans",
+      "path": "generated_assets/outfit_jeans_top.png"
+    },
+    {
+      "file": "outfit_ballet.png",
+      "category": "outfits",
+      "name": "Ballet leotard with tutu",
+      "path": "generated_assets/outfit_ballet.png"
+    },
+    {
+      "file": "hair_long_blonde.png",
+      "category": "hairhats",
+      "name": "Long flowing blonde hair",
+      "path": "generated_assets/hair_long_blonde.png"
+    },
+    {
+      "file": "hair_bun_brown.png",
+      "category": "hairhats",
+      "name": "Chic brown bun",
+      "path": "generated_assets/hair_bun_brown.png"
+    },
+    {
+      "file": "shoes_heels.png",
+      "category": "shoes",
+      "name": "Pink party heels",
+      "path": "generated_assets/shoes_heels.png"
+    },
+    {
+      "file": "shoes_sneakers.png",
+      "category": "shoes",
+      "name": "Bright white sneakers",
+      "path": "generated_assets/shoes_sneakers.png"
+    },
+    {
+      "file": "accessory_glasses.png",
+      "category": "accessories",
+      "name": "Round glitter glasses",
+      "path": "generated_assets/accessory_glasses.png"
+    },
+    {
+      "file": "accessory_handbag.png",
+      "category": "accessories",
+      "name": "Pink bow handbag",
+      "path": "generated_assets/accessory_handbag.png"
+    },
+    {
+      "file": "sticker_star.png",
+      "category": "stickers",
+      "name": "Golden sparkle star",
+      "path": "generated_assets/sticker_star.png"
+    }
+  ]
+}
