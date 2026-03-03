@@ -858,13 +858,9 @@ function createMaskBlob(maskType){
 // DIFF-BASED outfit extraction — compares inpainted result vs original body
 // Keeps pixels that CHANGED (= the outfit). Immune to white outfits.
 function extractOutfitDiff(resultDataUrl){
-  console.log('🟢 extractOutfitDiff v9 — WHITE-COMPOSITE + SILHOUETTE');
+  console.log('🟢 extractOutfitDiff v10 — WHITE-COMPOSITE + BIG SILHOUETTE');
   return loadImg(resultDataUrl).then(function(resImg){
-    // DALL-E returns result on WHITE background.
-    // Original body has TRANSPARENT background.
-    // Fix: composite original onto white FIRST so both share the same baseline.
-
-    // Original body composited onto white
+    // Composite original body onto white so both images share same baseline
     var oc=document.createElement('canvas');oc.width=oc.height=1024;
     var octx=oc.getContext('2d');
     octx.fillStyle='#FFFFFF';
@@ -872,21 +868,21 @@ function extractOutfitDiff(resultDataUrl){
     octx.drawImage(bodyFull.img,0,0,1024,1024);
     var od=octx.getImageData(0,0,1024,1024).data;
 
-    // Also get raw original alpha for silhouette building
+    // Raw alpha for "is this pixel part of original body?"
     var rawC=document.createElement('canvas');rawC.width=rawC.height=1024;
     rawC.getContext('2d').drawImage(bodyFull.img,0,0,1024,1024);
     var rawD=rawC.getContext('2d').getImageData(0,0,1024,1024).data;
 
-    // Inpainted result (already on white from DALL-E)
+    // Inpainted result (on white from DALL-E)
     var rc=document.createElement('canvas');rc.width=rc.height=1024;
     rc.getContext('2d').drawImage(resImg,0,0,1024,1024);
     var rd=rc.getContext('2d').getImageData(0,0,1024,1024).data;
 
-    // Build dilated body silhouette using fast canvas offset technique
+    // Build dilated body silhouette — 80px to catch hands, puffy sleeves, boots
     var bodyC=document.createElement('canvas');bodyC.width=bodyC.height=1024;
     bodyC.getContext('2d').drawImage(bodyFull.img,0,0,1024,1024);
     var dilC=document.createElement('canvas');dilC.width=dilC.height=1024;var dilCtx=dilC.getContext('2d');
-    var dR=40;
+    var dR=80;
     for(var dy=-dR;dy<=dR;dy+=3) for(var dx=-dR;dx<=dR;dx+=3){
       if(dx*dx+dy*dy>dR*dR) continue;
       dilCtx.drawImage(bodyC,dx,dy);
@@ -897,39 +893,40 @@ function extractOutfitDiff(resultDataUrl){
       if(dilData[m*4+3]>20) dilated[m]=1;
     }
 
-    // Extract outfit
+    // Extract outfit — silhouette is the ONLY boundary (no cropAbove needed)
     var splitPx=Math.round(splitY*1024);
-    var cropAbove=splitPx-180;
     var out=new ImageData(1024,1024);var outd=out.data;
     var keptPx=0,diffPx=0,bgSkip=0;
 
     for(var y=0;y<1024;y++){
       for(var x=0;x<1024;x++){
-        if(y<cropAbove) continue;
         var i=(y*1024+x)*4;
 
-        // SILHOUETTE GATE: skip pixels outside dilated body area
+        // SILHOUETTE GATE: only process pixels inside dilated body area
         if(!dilated[y*1024+x]){bgSkip++;continue;}
 
-        // Both od[] and rd[] are now on white — compare RGB only
+        // Compare on white baseline
         var dr=Math.abs(rd[i]-od[i]),dg=Math.abs(rd[i+1]-od[i+1]),db=Math.abs(rd[i+2]-od[i+2]);
         var diff=dr+dg+db;
         var changed=(diff>25);
 
         if(changed){
-          // Pixel CHANGED from body-on-white → this is outfit
+          // Pixel CHANGED — this is outfit
           outd[i]=rd[i];outd[i+1]=rd[i+1];outd[i+2]=rd[i+2];outd[i+3]=255;
           diffPx++;
-        } else if(y>=splitPx && rawD[i+3]>20){
-          // Unchanged below split AND was part of original body (not background)
-          // Keep legs/feet — body_head covers upper body
-          outd[i]=rd[i];outd[i+1]=rd[i+1];outd[i+2]=rd[i+2];outd[i+3]=255;
-          keptPx++;
+        } else if(y>=splitPx){
+          // Unchanged below split — keep if part of body OR in dilated zone
+          // (shoes may extend past original body but still within dilated zone)
+          if(rawD[i+3]>20){
+            outd[i]=rd[i];outd[i+1]=rd[i+1];outd[i+2]=rd[i+2];outd[i+3]=255;
+            keptPx++;
+          }
         }
+        // Unchanged above split = head/neck skin — body_head layer covers this
       }
     }
 
-    console.log('🟢 extractOutfitDiff v9 done — diffPx='+diffPx+' keptPx='+keptPx+' bgSkipped='+bgSkip+' splitPx='+splitPx);
+    console.log('🟢 extractOutfitDiff v10 — diffPx='+diffPx+' keptPx='+keptPx+' bgSkipped='+bgSkip);
     var fc=document.createElement('canvas');fc.width=fc.height=1024;
     fc.getContext('2d').putImageData(out,0,0);
     return fc.toDataURL('image/png');
