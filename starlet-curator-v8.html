@@ -1358,14 +1358,28 @@ function deleteAllPending(){pending.forEach(function(item){if(item.status==='pen
 
 function showRawDalle(idx){
   var item=pending[idx];if(!item||!item.rawDalle)return;
-  // Show raw DALL-E output, extracted result, and body in a debug popup
-  var w=window.open('','_blank','width=1200,height=600');
-  w.document.write('<html><head><title>Debug: '+item.name+'</title><style>body{background:#1a1625;color:#fff;font-family:sans-serif;display:flex;gap:20px;padding:20px;flex-wrap:wrap;}div{text-align:center;}img{max-height:500px;border:2px solid #444;background:repeating-conic-gradient(#2d2640 0% 25%,#231e30 0% 50%) 50%/8px 8px;}h3{margin:8px 0;font-size:14px;}</style></head><body>');
-  w.document.write('<div><h3>1. Original Body (bodyFull)</h3><img src="'+bodyFull.dataUrl+'"></div>');
-  w.document.write('<div><h3>2. Raw DALL-E Result</h3><img src="'+item.rawDalle+'"></div>');
-  w.document.write('<div><h3>3. Extracted Outfit</h3><img src="'+item.dataUrl+'"></div>');
-  w.document.write('</body></html>');
-  w.document.close();
+  // Also do a canvas round-trip test
+  var testC=document.createElement('canvas');testC.width=testC.height=1024;
+  var testImg=new Image();
+  testImg.onload=function(){
+    testC.getContext('2d').drawImage(testImg,0,0,1024,1024);
+    var roundTrip=testC.toDataURL('image/png');
+    var w=window.open('','_blank','width=1600,height=800');
+    w.document.write('<html><head><title>Debug: '+item.name+'</title><style>body{background:#1a1625;color:#fff;font-family:sans-serif;padding:10px;}.row{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;}.row h3{font-size:11px;margin:4px 0;}img{height:250px;border:2px solid #444;}.check{background:repeating-conic-gradient(#2d2640 0% 25%,#231e30 0% 50%) 50%/8px 8px;}.pink{background:#FF69B4;}</style></head><body>');
+    w.document.write('<h2>On checkered (shows transparency)</h2><div class="row">');
+    w.document.write('<div><h3>1. Body</h3><img class="check" src="'+bodyFull.dataUrl+'"></div>');
+    w.document.write('<div><h3>2. Raw DALL-E</h3><img class="check" src="'+item.rawDalle+'"></div>');
+    w.document.write('<div><h3>3. Canvas round-trip (no processing)</h3><img class="check" src="'+roundTrip+'"></div>');
+    w.document.write('<div><h3>4. Extracted</h3><img class="check" src="'+item.dataUrl+'"></div>');
+    w.document.write('</div><h2>On hot pink (light fills visible)</h2><div class="row">');
+    w.document.write('<div><h3>1. Body</h3><img class="pink" src="'+bodyFull.dataUrl+'"></div>');
+    w.document.write('<div><h3>2. Raw DALL-E</h3><img class="pink" src="'+item.rawDalle+'"></div>');
+    w.document.write('<div><h3>3. Canvas round-trip</h3><img class="pink" src="'+roundTrip+'"></div>');
+    w.document.write('<div><h3>4. Extracted</h3><img class="pink" src="'+item.dataUrl+'"></div>');
+    w.document.write('</div></body></html>');
+    w.document.close();
+  };
+  testImg.src=item.rawDalle;
 }
 function editItem(cat,idx){var item=kept[cat][idx];if(!item.adj)item.adj={dx:0,dy:0,scale:1.0};editingItem={cat:cat,idx:idx};renderPreviewAdj(item);renderPanel();}
 function closeEdit(){editingItem=null;render();renderPanel();}
