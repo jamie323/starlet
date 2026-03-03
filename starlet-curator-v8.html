@@ -858,54 +858,23 @@ function createMaskBlob(maskType){
 // DIFF-BASED outfit extraction — compares inpainted result vs original body
 // Keeps pixels that CHANGED (= the outfit). Immune to white outfits.
 function extractOutfitDiff(resultDataUrl){
-  console.log('🟢 extractOutfitDiff v7.3 — PURE DIFF, zero flood fill');
+  console.log('🟢 extractOutfit v12 — HEAD CROP (no diff, DALL-E result is already clean)');
   return loadImg(resultDataUrl).then(function(resImg){
-    // Get original body pixels
-    var oc=document.createElement('canvas');oc.width=oc.height=1024;
-    oc.getContext('2d').drawImage(bodyFull.img,0,0,1024,1024);
-    var od=oc.getContext('2d').getImageData(0,0,1024,1024).data;
-
-    // Get inpainted result pixels
+    // DALL-E result is the dressed character on transparent background
+    // It's already perfect — just need to remove the head area (body_head covers that)
     var rc=document.createElement('canvas');rc.width=rc.height=1024;
-    rc.getContext('2d').drawImage(resImg,0,0,1024,1024);
-    var d=rc.getContext('2d').getImageData(0,0,1024,1024).data;
+    var rctx=rc.getContext('2d');
+    rctx.drawImage(resImg,0,0,1024,1024);
 
-    // Pure diff — no flood fill at all
+    // Erase above the split line (minus margin for collars/necklaces)
     var splitPx=Math.round(splitY*1024);
-    var cropAbove=splitPx-180;
-    var out=new ImageData(1024,1024);var outd=out.data;
-    var keptPx=0,diffPx=0;
+    var headCut=splitPx-Math.round(0.08*1024); // 8% above split for collar room
 
-    for(var y=0;y<1024;y++){
-      for(var x=0;x<1024;x++){
-        if(y<cropAbove)continue;
-        var i=(y*1024+x)*4;
-        if(d[i+3]<10)continue; // transparent — skip
+    // Clear everything above headCut
+    rctx.clearRect(0,0,1024,headCut);
 
-        // Check if pixel changed from original body
-        var dr=Math.abs(d[i]-od[i]),dg=Math.abs(d[i+1]-od[i+1]),db=Math.abs(d[i+2]-od[i+2]);
-        var diff=dr+dg+db;
-        var changed=(diff>30);
-
-        if(changed){
-          // Pixel CHANGED — this is outfit (works for any color including white)
-          outd[i]=d[i];outd[i+1]=d[i+1];outd[i+2]=d[i+2];outd[i+3]=d[i+3];
-          diffPx++;
-        } else if(y>=splitPx){
-          // Unchanged below split — keep UNLESS it's near-white background
-          var r=d[i],g=d[i+1],b=d[i+2];
-          if(r>248&&g>248&&b>248)continue; // pure white bg — skip
-          outd[i]=d[i];outd[i+1]=d[i+1];outd[i+2]=d[i+2];outd[i+3]=d[i+3];
-          keptPx++;
-        }
-        // Unchanged above split = bare skin/head — body_head covers this
-      }
-    }
-
-    console.log('🟢 extractOutfitDiff done — diffPx='+diffPx+' keptPx='+keptPx+' splitPx='+splitPx);
-    var fc=document.createElement('canvas');fc.width=fc.height=1024;
-    fc.getContext('2d').putImageData(out,0,0);
-    return fc.toDataURL('image/png');
+    console.log('🟢 extractOutfit v12 — headCut='+headCut+' splitPx='+splitPx);
+    return rc.toDataURL('image/png');
   });
 }
 
