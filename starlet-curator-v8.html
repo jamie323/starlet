@@ -858,56 +858,27 @@ function createMaskBlob(maskType){
 // DIFF-BASED outfit extraction — compares inpainted result vs original body
 // Keeps pixels that CHANGED (= the outfit). Immune to white outfits.
 function extractOutfitDiff(resultDataUrl){
-  console.log('🟢 extractOutfit v12 — HEAD CROP + WHITE BG REMOVAL');
+  console.log('🟢 extractOutfit v13 — MINIMAL: head crop only, ZERO processing');
   return loadImg(resultDataUrl).then(function(resImg){
     var rc=document.createElement('canvas');rc.width=rc.height=1024;
     var rctx=rc.getContext('2d');
     rctx.drawImage(resImg,0,0,1024,1024);
 
-    // Erase above the split line (minus margin for collars)
+    // Only thing we do: erase the head area
     var splitPx=Math.round(splitY*1024);
     var headCut=splitPx-Math.round(0.08*1024);
     rctx.clearRect(0,0,1024,headCut);
 
-    // Check if DALL-E returned white bg (check corners)
-    var imgData=rctx.getImageData(0,0,1024,1024);
-    var d=imgData.data;
-    var corner=function(x,y){var i=(y*1024+x)*4;return d[i]>245&&d[i+1]>245&&d[i+2]>245&&d[i+3]>245;};
-    var hasWhiteBg=corner(2,1020)||corner(1020,1020)||corner(2,headCut+5)||corner(1020,headCut+5);
-
-    if(hasWhiteBg){
-      console.log('🟢 White bg detected — flood-filling from corners');
-      // Flood fill from all 4 corners to remove white background
-      var visited=new Uint8Array(1024*1024);
-      var queue=[];
-      // Seed from edges
-      for(var ex=0;ex<1024;ex+=2){
-        if(d[((headCut)*1024+ex)*4+3]>200) queue.push(ex,headCut); // top edge after head cut
-        if(d[(1023*1024+ex)*4+3]>200) queue.push(ex,1023); // bottom edge
-      }
-      for(var ey=headCut;ey<1024;ey+=2){
-        if(d[(ey*1024)*4+3]>200) queue.push(0,ey); // left edge
-        if(d[(ey*1024+1023)*4+3]>200) queue.push(1023,ey); // right edge
-      }
-
-      while(queue.length>0){
-        var qy=queue.pop(),qx=queue.pop();
-        if(qx<0||qx>=1024||qy<headCut||qy>=1024) continue;
-        var key=qy*1024+qx;
-        if(visited[key]) continue;
-        visited[key]=1;
-        var qi=key*4;
-        // Is this pixel white-ish? (background)
-        if(d[qi]>240&&d[qi+1]>240&&d[qi+2]>240&&d[qi+3]>200){
-          d[qi+3]=0; // make transparent
-          // Spread to neighbors
-          queue.push(qx+1,qy, qx-1,qy, qx,qy+1, qx,qy-1);
-        }
-      }
-      rctx.putImageData(imgData,0,0);
+    // Log pixel stats for debugging
+    var imgData=rctx.getImageData(0,0,1024,1024).data;
+    var opaque=0,semi=0,trans=0;
+    for(var p=3;p<imgData.length;p+=4){
+      if(imgData[p]>200) opaque++;
+      else if(imgData[p]>10) semi++;
+      else trans++;
     }
+    console.log('🟢 v13 stats — opaque:'+opaque+' semi:'+semi+' transparent:'+trans+' headCut:'+headCut+' splitPx:'+splitPx);
 
-    console.log('🟢 extractOutfit v12 done — whiteBg='+hasWhiteBg);
     return rc.toDataURL('image/png');
   });
 }
@@ -1358,28 +1329,18 @@ function deleteAllPending(){pending.forEach(function(item){if(item.status==='pen
 
 function showRawDalle(idx){
   var item=pending[idx];if(!item||!item.rawDalle)return;
-  // Also do a canvas round-trip test
-  var testC=document.createElement('canvas');testC.width=testC.height=1024;
-  var testImg=new Image();
-  testImg.onload=function(){
-    testC.getContext('2d').drawImage(testImg,0,0,1024,1024);
-    var roundTrip=testC.toDataURL('image/png');
-    var w=window.open('','_blank','width=1600,height=800');
-    w.document.write('<html><head><title>Debug: '+item.name+'</title><style>body{background:#1a1625;color:#fff;font-family:sans-serif;padding:10px;}.row{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;}.row h3{font-size:11px;margin:4px 0;}img{height:250px;border:2px solid #444;}.check{background:repeating-conic-gradient(#2d2640 0% 25%,#231e30 0% 50%) 50%/8px 8px;}.pink{background:#FF69B4;}</style></head><body>');
-    w.document.write('<h2>On checkered (shows transparency)</h2><div class="row">');
-    w.document.write('<div><h3>1. Body</h3><img class="check" src="'+bodyFull.dataUrl+'"></div>');
-    w.document.write('<div><h3>2. Raw DALL-E</h3><img class="check" src="'+item.rawDalle+'"></div>');
-    w.document.write('<div><h3>3. Canvas round-trip (no processing)</h3><img class="check" src="'+roundTrip+'"></div>');
-    w.document.write('<div><h3>4. Extracted</h3><img class="check" src="'+item.dataUrl+'"></div>');
-    w.document.write('</div><h2>On hot pink (light fills visible)</h2><div class="row">');
-    w.document.write('<div><h3>1. Body</h3><img class="pink" src="'+bodyFull.dataUrl+'"></div>');
-    w.document.write('<div><h3>2. Raw DALL-E</h3><img class="pink" src="'+item.rawDalle+'"></div>');
-    w.document.write('<div><h3>3. Canvas round-trip</h3><img class="pink" src="'+roundTrip+'"></div>');
-    w.document.write('<div><h3>4. Extracted</h3><img class="pink" src="'+item.dataUrl+'"></div>');
-    w.document.write('</div></body></html>');
-    w.document.close();
-  };
-  testImg.src=item.rawDalle;
+  var w=window.open('','_blank','width=1400,height=700');
+  if(!w){alert('Popup blocked!');return;}
+  w.document.write('<html><head><title>Debug</title><style>body{background:#1a1625;color:#fff;font-family:sans-serif;padding:10px;margin:0;}.row{display:flex;gap:8px;margin-bottom:8px;}img{height:280px;border:2px solid #555;}.ck{background:repeating-conic-gradient(#444 0% 25%,#666 0% 50%) 50%/10px 10px;}.pk{background:#FF1493;}h3{font-size:11px;margin:2px 0;}</style></head><body>');
+  w.document.write('<b>Checkered (transparency visible)</b><div class="row">');
+  w.document.write('<div><h3>Body</h3><img class="ck" src="'+bodyFull.dataUrl+'"></div>');
+  w.document.write('<div><h3>Raw DALL-E</h3><img class="ck" src="'+item.rawDalle+'"></div>');
+  w.document.write('<div><h3>Extracted</h3><img class="ck" src="'+item.dataUrl+'"></div></div>');
+  w.document.write('<b>Hot pink (light colors visible)</b><div class="row">');
+  w.document.write('<div><h3>Body</h3><img class="pk" src="'+bodyFull.dataUrl+'"></div>');
+  w.document.write('<div><h3>Raw DALL-E</h3><img class="pk" src="'+item.rawDalle+'"></div>');
+  w.document.write('<div><h3>Extracted</h3><img class="pk" src="'+item.dataUrl+'"></div></div>');
+  w.document.write('</body></html>');w.document.close();
 }
 function editItem(cat,idx){var item=kept[cat][idx];if(!item.adj)item.adj={dx:0,dy:0,scale:1.0};editingItem={cat:cat,idx:idx};renderPreviewAdj(item);renderPanel();}
 function closeEdit(){editingItem=null;render();renderPanel();}
