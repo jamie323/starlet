@@ -858,67 +858,54 @@ function createMaskBlob(maskType){
 // DIFF-BASED outfit extraction — compares inpainted result vs original body
 // Keeps pixels that CHANGED (= the outfit). Immune to white outfits.
 function extractOutfitDiff(resultDataUrl){
-  console.log('🟢 extractOutfit v15 — COMPOSITE + SILHOUETTE MASK');
+  console.log('🟢 extractOutfit v15 — WHITE FILL + EDGE FLOOD');
   return loadImg(resultDataUrl).then(function(resImg){
-    // Step 1: Composite — body underneath, DALL-E on top
-    // Fills transparent holes in DALL-E result with body pixels
+    // Step 1: Draw onto WHITE — kills ALL transparency everywhere
     var rc=document.createElement('canvas');rc.width=rc.height=1024;
     var rctx=rc.getContext('2d');
-    rctx.drawImage(bodyFull.img,0,0,1024,1024);
+    rctx.fillStyle='#FFFFFF';
+    rctx.fillRect(0,0,1024,1024);
     rctx.drawImage(resImg,0,0,1024,1024);
 
-    // Step 2: Build dilated body silhouette from DALL-E result
-    // Use the DALL-E result (not original body) because outfit may extend beyond body
-    // First get non-white, non-transparent pixels from result
-    var resC=document.createElement('canvas');resC.width=resC.height=1024;
-    var resCtx=resC.getContext('2d');
-    resCtx.drawImage(resImg,0,0,1024,1024);
-    var resData=resCtx.getImageData(0,0,1024,1024);var rd=resData.data;
-    // Build a mask of "content" pixels (not white bg, not transparent)
-    var contentC=document.createElement('canvas');contentC.width=contentC.height=1024;
-    var contentCtx=contentC.getContext('2d');
-    var contentData=contentCtx.getImageData(0,0,1024,1024);var cd=contentData.data;
-    for(var i=0;i<rd.length;i+=4){
-      var isTransparent=(rd[i+3]<30);
-      var isWhite=(rd[i]>245&&rd[i+1]>245&&rd[i+2]>245&&rd[i+3]>200);
-      if(!isTransparent&&!isWhite){
-        cd[i]=0;cd[i+1]=0;cd[i+2]=0;cd[i+3]=255; // mark as content
-      }
-    }
-    contentCtx.putImageData(contentData,0,0);
+    // Now we have: solid character on white bg, zero transparency anywhere
+    // Brown outlines (#3D2B1F) form closed boundaries around character
 
-    // Also include original body in content mask
-    var bodyC2=document.createElement('canvas');bodyC2.width=bodyC2.height=1024;
-    bodyC2.getContext('2d').drawImage(bodyFull.img,0,0,1024,1024);
+    // Step 2: Flood-fill white from ALL edges inward
+    // Outlines block the fill from reaching inside the character
+    var imgData=rctx.getImageData(0,0,1024,1024);
+    var d=imgData.data;
+    var W=1024,H=1024;
+    var visited=new Uint8Array(W*H);
+    var stack=[];
 
-    // Dilate combined content mask (50px for hands, sleeves, boots)
-    var dilC=document.createElement('canvas');dilC.width=dilC.height=1024;
-    var dilCtx=dilC.getContext('2d');
-    var dR=50;
-    for(var dy=-dR;dy<=dR;dy+=3) for(var dx=-dR;dx<=dR;dx+=3){
-      if(dx*dx+dy*dy>dR*dR) continue;
-      dilCtx.drawImage(contentC,dx,dy);
-      dilCtx.drawImage(bodyC2,dx,dy);
-    }
-    var dilData=dilCtx.getImageData(0,0,1024,1024).data;
+    // Seed every edge pixel
+    for(var x=0;x<W;x++){stack.push(x,0);stack.push(x,H-1);}
+    for(var y=1;y<H-1;y++){stack.push(0,y);stack.push(W-1,y);}
 
-    // Step 3: Mask out background — anything outside dilated silhouette becomes transparent
-    var imgData=rctx.getImageData(0,0,1024,1024);var d=imgData.data;
-    var masked=0;
-    for(var j=0;j<d.length;j+=4){
-      if(dilData[j+3]<20){
-        d[j+3]=0; // outside silhouette → transparent
-        masked++;
+    while(stack.length>0){
+      var sy=stack.pop(),sx=stack.pop();
+      if(sx<0||sx>=W||sy<0||sy>=H) continue;
+      var sk=sy*W+sx;
+      if(visited[sk]) continue;
+      visited[sk]=1;
+      var si=sk*4;
+      // Is this pixel "white-ish"? (background)
+      // Use generous threshold — DALL-E bg is 255,255,255 or very close
+      // Character outlines are dark brown ~61,43,31 — huge gap
+      if(d[si]>235&&d[si+1]>235&&d[si+2]>235){
+        d[si+3]=0; // make transparent
+        // Spread to 4 neighbors
+        stack.push(sx+1,sy, sx-1,sy, sx,sy+1, sx,sy-1);
       }
     }
     rctx.putImageData(imgData,0,0);
 
-    // Step 4: Erase head area
+    // Step 3: Erase head area
     var splitPx=Math.round(splitY*1024);
     var headCut=splitPx-Math.round(0.08*1024);
     rctx.clearRect(0,0,1024,headCut);
 
-    console.log('🟢 extractOutfit v15 done — masked='+masked+' headCut='+headCut);
+    console.log('🟢 extractOutfit v15 done');
     return rc.toDataURL('image/png');
   });
 }
