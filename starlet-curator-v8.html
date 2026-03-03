@@ -1254,7 +1254,7 @@ function generateFromList(cat,promptList,onDone){
       var outfitPrompt=getCatInstruction(cat)+promptText+'. Flat colors, dark brown outlines. Cute children\'s game style.';
       genPromise=apiInpaint(bodyFull.dataUrl,maskType,outfitPrompt).then(function(resultUrl){
         return extractOutfitDiff(resultUrl).then(function(croppedUrl){
-          return loadImg(croppedUrl).then(function(img){return{img:img,dataUrl:croppedUrl};});
+          return loadImg(croppedUrl).then(function(img){return{img:img,dataUrl:croppedUrl,rawDalle:resultUrl};});
         });
       });
     }
@@ -1263,7 +1263,7 @@ function generateFromList(cat,promptList,onDone){
       return result;
     }).then(function(result){
       var defaultAdj=STANDALONE_CATS[cat]?autoFitItem(result.img,cat):null;
-      pending.push({name:promptText.substring(0,40),img:result.img,dataUrl:result.dataUrl,category:cat,status:'pending',adj:defaultAdj});
+      pending.push({name:promptText.substring(0,40),img:result.img,dataUrl:result.dataUrl,rawDalle:result.rawDalle||null,category:cat,status:'pending',adj:defaultAdj});
       done++;updateProgress(done,total,errors);renderPanel();renderPreview(pending[pending.length-1]);
     }).catch(function(e){
       log('Error: '+e.message);errors++;done++;updateProgress(done,total,errors);
@@ -1302,8 +1302,10 @@ function generateBatch(cat,count,onDone){
       var maskType=getMaskType(cat);
       var outfitPrompt=getCatInstruction(cat)+p.text+'. Flat colors, dark brown outlines. Cute children\'s game style.';
       genPromise=apiInpaint(bodyFull.dataUrl,maskType,outfitPrompt).then(function(resultUrl){
+        // DEBUG: save raw DALL-E result for comparison
+        log('🔍 DEBUG: Raw DALL-E result saved — click "Show Raw" on pending items');
         return extractOutfitDiff(resultUrl).then(function(croppedUrl){
-          return loadImg(croppedUrl).then(function(img){return{img:img,dataUrl:croppedUrl};});
+          return loadImg(croppedUrl).then(function(img){return{img:img,dataUrl:croppedUrl,rawDalle:resultUrl};});
         });
       });
     }
@@ -1313,7 +1315,7 @@ function generateBatch(cat,count,onDone){
       return result;
     }).then(function(result){
       var defaultAdj=STANDALONE_CATS[cat]?autoFitItem(result.img,cat):null;
-      pending.push({name:p.text.substring(0,40),img:result.img,dataUrl:result.dataUrl,category:cat,status:'pending',adj:defaultAdj});
+      pending.push({name:p.text.substring(0,40),img:result.img,dataUrl:result.dataUrl,rawDalle:result.rawDalle||null,category:cat,status:'pending',adj:defaultAdj});
       done++;updateProgress(done,total,errors);renderPanel();renderPreview(pending[pending.length-1]);
     }).catch(function(e){
       log('Error: '+e.message);errors++;done++;updateProgress(done,total,errors);
@@ -1350,6 +1352,18 @@ function deleteItem(idx){if(idx>=0&&idx<pending.length){pending[idx].status='del
 function removeKept(cat,idx){kept[cat].splice(idx,1);if(editingItem&&editingItem.cat===cat){if(editingItem.idx===idx)editingItem=null;else if(editingItem.idx>idx)editingItem.idx--;}updateCounts();renderPanel();saveAll();}
 function keepAll(){pending.forEach(function(item,i){if(item.status==='pending')keepItem(i);});}
 function deleteAllPending(){pending.forEach(function(item){if(item.status==='pending')item.status='deleted';});renderPanel();}
+
+function showRawDalle(idx){
+  var item=pending[idx];if(!item||!item.rawDalle)return;
+  // Show raw DALL-E output, extracted result, and body in a debug popup
+  var w=window.open('','_blank','width=1200,height=600');
+  w.document.write('<html><head><title>Debug: '+item.name+'</title><style>body{background:#1a1625;color:#fff;font-family:sans-serif;display:flex;gap:20px;padding:20px;flex-wrap:wrap;}div{text-align:center;}img{max-height:500px;border:2px solid #444;background:repeating-conic-gradient(#2d2640 0% 25%,#231e30 0% 50%) 50%/8px 8px;}h3{margin:8px 0;font-size:14px;}</style></head><body>');
+  w.document.write('<div><h3>1. Original Body (bodyFull)</h3><img src="'+bodyFull.dataUrl+'"></div>');
+  w.document.write('<div><h3>2. Raw DALL-E Result</h3><img src="'+item.rawDalle+'"></div>');
+  w.document.write('<div><h3>3. Extracted Outfit</h3><img src="'+item.dataUrl+'"></div>');
+  w.document.write('</body></html>');
+  w.document.close();
+}
 function editItem(cat,idx){var item=kept[cat][idx];if(!item.adj)item.adj={dx:0,dy:0,scale:1.0};editingItem={cat:cat,idx:idx};renderPreviewAdj(item);renderPanel();}
 function closeEdit(){editingItem=null;render();renderPanel();}
 function adjChange(prop,val){if(!editingItem)return;var item=kept[editingItem.cat][editingItem.idx];if(!item.adj)item.adj={dx:0,dy:0,scale:1.0};item.adj[prop]=prop==='scale'?parseFloat(val):parseInt(val);renderPreviewAdj(item);var el=document.getElementById('adj-val-'+prop);if(el)el.textContent=prop==='scale'?parseFloat(val).toFixed(2):val+'px';}
@@ -1469,7 +1483,9 @@ function renderPanel(){
     if(item.status==='kept'){html+='<div class="card kept"><img src="'+item.dataUrl+'"><div class="name">'+item.name+'</div></div>';return;}
     html+='<div class="card" onmouseenter="renderPreview(pending['+i+'])"><img src="'+item.dataUrl+'"><div class="name">'+item.name+'</div>';
     html+='<div class="actions"><button class="keep-btn" onclick="keepItem('+i+')">✓ Keep</button><button class="del-btn" onclick="deleteItem('+i+')">✕</button></div>';
-    html+='<div class="actions"><button style="flex:1;padding:5px;border:none;background:#a78bfa;color:#1a1625;font-family:inherit;font-weight:700;font-size:10px;cursor:pointer;" onclick="adjustPending('+i+')">🔧 Adjust</button></div>';
+    html+='<div class="actions"><button style="flex:1;padding:5px;border:none;background:#a78bfa;color:#1a1625;font-family:inherit;font-weight:700;font-size:10px;cursor:pointer;" onclick="adjustPending('+i+')">🔧 Adjust</button>';
+    if(item.rawDalle) html+='<button style="flex:1;padding:5px;border:none;background:#f59e0b;color:#1a1625;font-family:inherit;font-weight:700;font-size:10px;cursor:pointer;" onclick="showRawDalle('+i+')">🔍 Raw</button>';
+    html+='</div>';
     html+='</div>';
   });
   html+='</div>';
