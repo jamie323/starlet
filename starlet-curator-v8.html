@@ -858,25 +858,67 @@ function createMaskBlob(maskType){
 // DIFF-BASED outfit extraction — compares inpainted result vs original body
 // Keeps pixels that CHANGED (= the outfit). Immune to white outfits.
 function extractOutfitDiff(resultDataUrl){
-  console.log('🟢 extractOutfit v14 — COMPOSITE onto body + head crop');
+  console.log('🟢 extractOutfit v15 — COMPOSITE + SILHOUETTE MASK');
   return loadImg(resultDataUrl).then(function(resImg){
+    // Step 1: Composite — body underneath, DALL-E on top
+    // Fills transparent holes in DALL-E result with body pixels
     var rc=document.createElement('canvas');rc.width=rc.height=1024;
     var rctx=rc.getContext('2d');
-
-    // Step 1: Draw original body FIRST as a base layer
-    // This fills any transparent holes DALL-E left in the outfit
     rctx.drawImage(bodyFull.img,0,0,1024,1024);
-
-    // Step 2: Draw DALL-E result ON TOP — outfit pixels cover the body,
-    // transparent holes show body underneath
     rctx.drawImage(resImg,0,0,1024,1024);
 
-    // Step 3: Erase the head area (body_head covers this in-game)
+    // Step 2: Build dilated body silhouette from DALL-E result
+    // Use the DALL-E result (not original body) because outfit may extend beyond body
+    // First get non-white, non-transparent pixels from result
+    var resC=document.createElement('canvas');resC.width=resC.height=1024;
+    var resCtx=resC.getContext('2d');
+    resCtx.drawImage(resImg,0,0,1024,1024);
+    var resData=resCtx.getImageData(0,0,1024,1024);var rd=resData.data;
+    // Build a mask of "content" pixels (not white bg, not transparent)
+    var contentC=document.createElement('canvas');contentC.width=contentC.height=1024;
+    var contentCtx=contentC.getContext('2d');
+    var contentData=contentCtx.getImageData(0,0,1024,1024);var cd=contentData.data;
+    for(var i=0;i<rd.length;i+=4){
+      var isTransparent=(rd[i+3]<30);
+      var isWhite=(rd[i]>245&&rd[i+1]>245&&rd[i+2]>245&&rd[i+3]>200);
+      if(!isTransparent&&!isWhite){
+        cd[i]=0;cd[i+1]=0;cd[i+2]=0;cd[i+3]=255; // mark as content
+      }
+    }
+    contentCtx.putImageData(contentData,0,0);
+
+    // Also include original body in content mask
+    var bodyC2=document.createElement('canvas');bodyC2.width=bodyC2.height=1024;
+    bodyC2.getContext('2d').drawImage(bodyFull.img,0,0,1024,1024);
+
+    // Dilate combined content mask (50px for hands, sleeves, boots)
+    var dilC=document.createElement('canvas');dilC.width=dilC.height=1024;
+    var dilCtx=dilC.getContext('2d');
+    var dR=50;
+    for(var dy=-dR;dy<=dR;dy+=3) for(var dx=-dR;dx<=dR;dx+=3){
+      if(dx*dx+dy*dy>dR*dR) continue;
+      dilCtx.drawImage(contentC,dx,dy);
+      dilCtx.drawImage(bodyC2,dx,dy);
+    }
+    var dilData=dilCtx.getImageData(0,0,1024,1024).data;
+
+    // Step 3: Mask out background — anything outside dilated silhouette becomes transparent
+    var imgData=rctx.getImageData(0,0,1024,1024);var d=imgData.data;
+    var masked=0;
+    for(var j=0;j<d.length;j+=4){
+      if(dilData[j+3]<20){
+        d[j+3]=0; // outside silhouette → transparent
+        masked++;
+      }
+    }
+    rctx.putImageData(imgData,0,0);
+
+    // Step 4: Erase head area
     var splitPx=Math.round(splitY*1024);
     var headCut=splitPx-Math.round(0.08*1024);
     rctx.clearRect(0,0,1024,headCut);
 
-    console.log('🟢 extractOutfit v14 done — headCut='+headCut);
+    console.log('🟢 extractOutfit v15 done — masked='+masked+' headCut='+headCut);
     return rc.toDataURL('image/png');
   });
 }
