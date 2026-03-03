@@ -858,22 +858,56 @@ function createMaskBlob(maskType){
 // DIFF-BASED outfit extraction — compares inpainted result vs original body
 // Keeps pixels that CHANGED (= the outfit). Immune to white outfits.
 function extractOutfitDiff(resultDataUrl){
-  console.log('🟢 extractOutfit v12 — HEAD CROP (no diff, DALL-E result is already clean)');
+  console.log('🟢 extractOutfit v12 — HEAD CROP + WHITE BG REMOVAL');
   return loadImg(resultDataUrl).then(function(resImg){
-    // DALL-E result is the dressed character on transparent background
-    // It's already perfect — just need to remove the head area (body_head covers that)
     var rc=document.createElement('canvas');rc.width=rc.height=1024;
     var rctx=rc.getContext('2d');
     rctx.drawImage(resImg,0,0,1024,1024);
 
-    // Erase above the split line (minus margin for collars/necklaces)
+    // Erase above the split line (minus margin for collars)
     var splitPx=Math.round(splitY*1024);
-    var headCut=splitPx-Math.round(0.08*1024); // 8% above split for collar room
-
-    // Clear everything above headCut
+    var headCut=splitPx-Math.round(0.08*1024);
     rctx.clearRect(0,0,1024,headCut);
 
-    console.log('🟢 extractOutfit v12 — headCut='+headCut+' splitPx='+splitPx);
+    // Check if DALL-E returned white bg (check corners)
+    var imgData=rctx.getImageData(0,0,1024,1024);
+    var d=imgData.data;
+    var corner=function(x,y){var i=(y*1024+x)*4;return d[i]>245&&d[i+1]>245&&d[i+2]>245&&d[i+3]>245;};
+    var hasWhiteBg=corner(2,1020)||corner(1020,1020)||corner(2,headCut+5)||corner(1020,headCut+5);
+
+    if(hasWhiteBg){
+      console.log('🟢 White bg detected — flood-filling from corners');
+      // Flood fill from all 4 corners to remove white background
+      var visited=new Uint8Array(1024*1024);
+      var queue=[];
+      // Seed from edges
+      for(var ex=0;ex<1024;ex+=2){
+        if(d[((headCut)*1024+ex)*4+3]>200) queue.push(ex,headCut); // top edge after head cut
+        if(d[(1023*1024+ex)*4+3]>200) queue.push(ex,1023); // bottom edge
+      }
+      for(var ey=headCut;ey<1024;ey+=2){
+        if(d[(ey*1024)*4+3]>200) queue.push(0,ey); // left edge
+        if(d[(ey*1024+1023)*4+3]>200) queue.push(1023,ey); // right edge
+      }
+
+      while(queue.length>0){
+        var qy=queue.pop(),qx=queue.pop();
+        if(qx<0||qx>=1024||qy<headCut||qy>=1024) continue;
+        var key=qy*1024+qx;
+        if(visited[key]) continue;
+        visited[key]=1;
+        var qi=key*4;
+        // Is this pixel white-ish? (background)
+        if(d[qi]>240&&d[qi+1]>240&&d[qi+2]>240&&d[qi+3]>200){
+          d[qi+3]=0; // make transparent
+          // Spread to neighbors
+          queue.push(qx+1,qy, qx-1,qy, qx,qy+1, qx,qy-1);
+        }
+      }
+      rctx.putImageData(imgData,0,0);
+    }
+
+    console.log('🟢 extractOutfit v12 done — whiteBg='+hasWhiteBg);
     return rc.toDataURL('image/png');
   });
 }
