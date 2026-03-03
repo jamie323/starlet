@@ -858,27 +858,25 @@ function createMaskBlob(maskType){
 // DIFF-BASED outfit extraction — compares inpainted result vs original body
 // Keeps pixels that CHANGED (= the outfit). Immune to white outfits.
 function extractOutfitDiff(resultDataUrl){
-  console.log('🟢 extractOutfit v13 — MINIMAL: head crop only, ZERO processing');
+  console.log('🟢 extractOutfit v14 — COMPOSITE onto body + head crop');
   return loadImg(resultDataUrl).then(function(resImg){
     var rc=document.createElement('canvas');rc.width=rc.height=1024;
     var rctx=rc.getContext('2d');
+
+    // Step 1: Draw original body FIRST as a base layer
+    // This fills any transparent holes DALL-E left in the outfit
+    rctx.drawImage(bodyFull.img,0,0,1024,1024);
+
+    // Step 2: Draw DALL-E result ON TOP — outfit pixels cover the body,
+    // transparent holes show body underneath
     rctx.drawImage(resImg,0,0,1024,1024);
 
-    // Only thing we do: erase the head area
+    // Step 3: Erase the head area (body_head covers this in-game)
     var splitPx=Math.round(splitY*1024);
     var headCut=splitPx-Math.round(0.08*1024);
     rctx.clearRect(0,0,1024,headCut);
 
-    // Log pixel stats for debugging
-    var imgData=rctx.getImageData(0,0,1024,1024).data;
-    var opaque=0,semi=0,trans=0;
-    for(var p=3;p<imgData.length;p+=4){
-      if(imgData[p]>200) opaque++;
-      else if(imgData[p]>10) semi++;
-      else trans++;
-    }
-    console.log('🟢 v13 stats — opaque:'+opaque+' semi:'+semi+' transparent:'+trans+' headCut:'+headCut+' splitPx:'+splitPx);
-
+    console.log('🟢 extractOutfit v14 done — headCut='+headCut);
     return rc.toDataURL('image/png');
   });
 }
