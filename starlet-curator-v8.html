@@ -858,19 +858,18 @@ function createMaskBlob(maskType){
 // DIFF-BASED outfit extraction — compares inpainted result vs original body
 // Keeps pixels that CHANGED (= the outfit). Immune to white outfits.
 function extractOutfitDiff(resultDataUrl){
-  console.log('🟢 extractOutfit v16 — WHITE FLATTEN + BODY SILHOUETTE MASK');
+  console.log('🟢 extractOutfit v17 — BODY COMPOSITE + SILHOUETTE + WHITE CLEANUP');
   return loadImg(resultDataUrl).then(function(resImg){
-    // Step 1: Flatten onto white — kills ALL transparency
+    // Step 1: Flatten onto ORIGINAL BODY — fills transparent holes with skin, not white
     var rc=document.createElement('canvas');rc.width=rc.height=1024;
     var rctx=rc.getContext('2d');
-    rctx.fillStyle='#FFFFFF';
-    rctx.fillRect(0,0,1024,1024);
+    rctx.drawImage(bodyFull.img,0,0,1024,1024);
     rctx.drawImage(resImg,0,0,1024,1024);
 
     // Step 2: Build dilated silhouette from ORIGINAL BODY (80px)
-    // Body shape defines where character is — no dependency on outlines
     var bodyC=document.createElement('canvas');bodyC.width=bodyC.height=1024;
     bodyC.getContext('2d').drawImage(bodyFull.img,0,0,1024,1024);
+    var bodyAlpha=bodyC.getContext('2d').getImageData(0,0,1024,1024).data;
     var dilC=document.createElement('canvas');dilC.width=dilC.height=1024;
     var dilCtx=dilC.getContext('2d');
     var dR=80;
@@ -880,11 +879,17 @@ function extractOutfitDiff(resultDataUrl){
     }
     var dilData=dilCtx.getImageData(0,0,1024,1024).data;
 
-    // Step 3: Everything outside dilated body → transparent
+    // Step 3: Mask — outside dilation → transparent
+    // Also: white pixels in dilation zone but NOT on original body → transparent
+    // (catches white bg from DALL-E; preserves white clothing which IS on body)
     var imgData=rctx.getImageData(0,0,1024,1024);
     var d=imgData.data;
     for(var i=0;i<d.length;i+=4){
-      if(dilData[i+3]<20) d[i+3]=0;
+      if(dilData[i+3]<20){
+        d[i+3]=0; // outside silhouette
+      } else if(bodyAlpha[i+3]<30 && d[i]>240 && d[i+1]>240 && d[i+2]>240){
+        d[i+3]=0; // white pixel NOT on original body = background leak
+      }
     }
     rctx.putImageData(imgData,0,0);
 
