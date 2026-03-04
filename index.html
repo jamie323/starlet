@@ -159,6 +159,8 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .ui-loader-sub{font-size:13px;color:rgba(255,255,255,0.75);margin-top:6px;font-weight:600;}
 .ui-progress{width:100%;height:7px;background:rgba(255,255,255,0.15);border-radius:999px;overflow:hidden;margin:18px 0 6px;}
 .ui-progress-bar{height:100%;width:0;background:linear-gradient(90deg,#FF6B9D,#FF8C69);box-shadow:0 6px 16px rgba(255,107,157,0.4);transition:width 0.2s ease;}
+.ui-progress-bar.indeterminate{width:40%;transition:none;animation:uiProgressIndeterminate 1.1s ease-in-out infinite;transform-origin:left center;will-change:transform,opacity;}
+@keyframes uiProgressIndeterminate{0%{transform:translateX(-60%) scaleX(0.6);opacity:0.35;}50%{transform:translateX(5%) scaleX(1);opacity:1;}100%{transform:translateX(120%) scaleX(0.6);opacity:0.35;}}
 .ui-loader-percent{font-size:12px;font-weight:800;color:rgba(255,255,255,0.9);letter-spacing:0.8px;}
 .ui-loader-retry{margin-top:18px;background:rgba(255,255,255,0.12);border:1.5px solid rgba(255,255,255,0.35);border-radius:22px;padding:10px 22px;font-family:inherit;font-size:13px;font-weight:800;color:#fff;cursor:pointer;display:inline-flex;align-items:center;gap:6px;opacity:0;pointer-events:none;transition:all 0.2s;}
 .ui-loader-retry.show{opacity:1;pointer-events:auto;}
@@ -686,7 +688,8 @@ var uiLoaderSub=document.getElementById('uiLoaderSub');
 var uiLoaderBar=document.getElementById('uiLoaderBar');
 var uiLoaderPercent=document.getElementById('uiLoaderPercent');
 var uiLoaderRetry=document.getElementById('uiLoaderRetry');
-var cv=document.getElementById('cv'),cx=cv.getContext('2d'),db=null;
+var uiLoaderIsIndeterminate=false;
+var cv=document.getElementById('cv'),cx=cv.getContext('2d'),db=null,dbReadyPromise=null;
 var undoStack=[],stkHintShown=false;
 function pushUndo(){undoStack.push({eq:JSON.parse(JSON.stringify(eq)),si:si,bi:bi,poseIdx:poseIdx,st:JSON.parse(JSON.stringify(st)),clrVar:JSON.parse(JSON.stringify(clrVar))});if(undoStack.length>30)undoStack.shift();}
 function doUndo(){if(!undoStack.length)return;sfxTap();var s=undoStack.pop();eq=s.eq;si=s.si;bi=s.bi;poseIdx=s.poseIdx;st=s.st;clrVar=s.clrVar||{outfits:0,faces:0,hairhats:0};selStk=-1;hideStkTb();TN={};bui();}
@@ -1162,11 +1165,36 @@ function loadUIBgs(){
 
 function setUILoaderProgress(val){
   if(!uiLoaderBar||!uiLoaderPercent)return;
-  var pct=Math.max(0,Math.min(100,Math.round(val||0)));
+  if(val&&typeof val==='object'){
+    if(val.indeterminate){
+      uiLoaderIsIndeterminate=true;
+      uiLoaderBar.classList.add('indeterminate');
+      uiLoaderBar.style.width='40%';
+      uiLoaderPercent.textContent='…';
+      return;
+    }
+    if(typeof val.value==='number'){
+      val=val.value;
+    }else{
+      return;
+    }
+  }
+  if(typeof val!=='number'||isNaN(val))return;
+  var pct=Math.max(0,Math.min(100,Math.round(val)));
+  if(uiLoaderIsIndeterminate){
+    uiLoaderIsIndeterminate=false;
+    uiLoaderBar.classList.remove('indeterminate');
+  }
   uiLoaderBar.style.width=pct+'%';
   uiLoaderPercent.textContent=pct+'%';
 }
 function showUILoader(message,subText){
+  if(uiLoaderBar){
+    uiLoaderBar.classList.remove('indeterminate');
+    uiLoaderBar.style.width='0%';
+  }
+  if(uiLoaderPercent)uiLoaderPercent.textContent='0%';
+  uiLoaderIsIndeterminate=false;
   if(uiLoaderMessage&&message)uiLoaderMessage.textContent=message;
   if(uiLoaderSub&&subText)uiLoaderSub.textContent=subText;
   if(uiLoaderEl)uiLoaderEl.classList.add('show');
@@ -1185,43 +1213,60 @@ function showUILoaderError(message,subText){
 function fetchJSONWithProgress(url,onProgress){
   return fetch(url).then(function(response){
     if(!response.ok)throw new Error('HTTP '+response.status);
-    var total=parseInt(response.headers.get('Content-Length')||'0',10);
-    if(!response.body||typeof response.body.getReader!=='function'){
-      return response.json().then(function(data){
-        if(onProgress)onProgress(100);
+    var supportsStream=response.body&&typeof response.body.getReader==='function';
+    var fallbackResponse=supportsStream?response.clone():response;
+    var total=parseInt(response.headers.get('Content-Length')||'0',10)||0;
+    function emitIndeterminate(){
+      if(onProgress)onProgress({indeterminate:true});
+    }
+    function emitPercent(pct){
+      if(onProgress)onProgress({value:pct});
+    }
+    function finishWithJson(){
+      emitIndeterminate();
+      return fallbackResponse.json().then(function(data){
+        if(onProgress)onProgress({value:100,done:true});
         return data;
       });
+    }
+    if(!supportsStream){
+      return finishWithJson();
     }
     var reader=response.body.getReader();
     var received=0;
     var chunks=[];
+    if(!total){
+      emitIndeterminate();
+    }
     return new Promise(function(resolve,reject){
+      function finalizeFromChunks(){
+        var all=new Uint8Array(received);
+        var position=0;
+        chunks.forEach(function(chunk){all.set(chunk,position);position+=chunk.length;});
+        try{
+          var text=new TextDecoder().decode(all);
+          var data=JSON.parse(text);
+          if(onProgress)onProgress({value:100,done:true});
+          resolve(data);
+        }catch(e){reject(e);}
+      }
       function read(){
         reader.read().then(function(result){
           if(result.done){
-            var all=new Uint8Array(received);
-            var position=0;
-            chunks.forEach(function(chunk){all.set(chunk,position);position+=chunk.length;});
-            try{
-              var text=new TextDecoder().decode(all);
-              var data=JSON.parse(text);
-              if(onProgress)onProgress(100);
-              resolve(data);
-            }catch(e){reject(e);}
+            finalizeFromChunks();
             return;
           }
           chunks.push(result.value);
           received+=result.value.length;
-          if(onProgress){
-            if(total){
-              onProgress(Math.min(99,Math.round(received/total*100)));
-            }else{
-              var approx=Math.min(99,Math.round(received/65536));
-              onProgress(approx);
-            }
+          if(total){
+            var pct=Math.min(99,Math.round(received/total*100));
+            emitPercent(pct);
           }
           read();
-        }).catch(reject);
+        }).catch(function(err){
+          console.warn('Starlet: streaming failed, falling back to json()',err);
+          finishWithJson().then(resolve).catch(reject);
+        });
       }
       read();
     });
@@ -1244,36 +1289,93 @@ function handleUIAssetsLoaded(data,fromCache){
   }
   bCt();
   applyUIIcons();
-  if(!fromCache&&db)dbp('ui_assets',JSON.stringify(data));
+  if(!fromCache){
+    var cachePayload=null;
+    var persist=function(){
+      if(!db)return;
+      if(!cachePayload)cachePayload=JSON.stringify(data);
+      dbp('ui_assets',cachePayload);
+    };
+    if(db){
+      persist();
+    }else if(dbReadyPromise){
+      dbReadyPromise.then(function(){
+        persist();
+      }).catch(function(){});
+    }
+  }
   setUILoaderProgress(100);
   setTimeout(hideUILoader,250);
+}
+
+function waitForDbReady(){
+  if(db)return Promise.resolve();
+  if(dbReadyPromise)return dbReadyPromise.catch(function(){});
+  return Promise.resolve();
+}
+function readCachedUIAssets(){
+  if(!db)return Promise.resolve(null);
+  return dbg('ui_assets').then(function(s){
+    if(!s)return null;
+    if(typeof s==='string'){
+      try{return JSON.parse(s);}catch(e){console.warn('Starlet: Cached UI assets parse failed',e);return null;}
+    }
+    return s;
+  });
 }
 function lazyLoadUIAssets(force){
   if(UI_ASSETS&&!force)return Promise.resolve(UI_ASSETS);
   if(uiAssetsPromise&&!force)return uiAssetsPromise;
   if(force)uiAssetsPromise=null;
-  showUILoader('Loading Starlet art pack…','Illustrated backgrounds & icons are downloading.');
-  setUILoaderProgress(5);
-  var cacheBust='?t='+Date.now();
-  var load=fetchJSONWithProgress('starlet-ui.json'+cacheBust,function(pct){
-    setUILoaderProgress(Math.max(5,pct));
-  }).then(function(data){
-    handleUIAssetsLoaded(data,false);
-    return data;
-  }).catch(function(err){
-    if(!db)return Promise.reject(err);
-    return dbg('ui_assets').then(function(s){
-      if(s){
-        try{
-          var cached=JSON.parse(s);
+  function applyUILoaderProgress(update){
+    if(update&&typeof update==='object'){
+      if(update.indeterminate){
+        setUILoaderProgress(update);
+        return;
+      }
+      if(typeof update.value==='number'){
+        setUILoaderProgress(Math.max(5,update.value));
+        return;
+      }
+      return;
+    }
+    if(typeof update==='number'){
+      setUILoaderProgress(Math.max(5,update));
+    }
+  }
+  function tryCacheFallback(err){
+    return waitForDbReady().then(function(){
+      if(!db)throw err;
+      return readCachedUIAssets().then(function(cached){
+        if(cached){
           handleUIAssetsLoaded(cached,true);
           return cached;
-        }catch(e){}
-      }
-      return Promise.reject(err);
+        }
+        throw err;
+      });
+    });
+  }
+  var cacheCheck=force?Promise.resolve(null):waitForDbReady().then(function(){
+    if(!db)return null;
+    return readCachedUIAssets();
+  });
+  var loadPromise=cacheCheck.then(function(cached){
+    if(cached){
+      return cached;
+    }
+    showUILoader('Loading Starlet art pack…','Illustrated backgrounds & icons are downloading.');
+    setUILoaderProgress(5);
+    var cacheBust='?t='+Date.now();
+    return fetchJSONWithProgress('starlet-ui.json'+cacheBust,function(update){
+      applyUILoaderProgress(update);
+    }).then(function(data){
+      handleUIAssetsLoaded(data,false);
+      return data;
+    }).catch(function(err){
+      return tryCacheFallback(err);
     });
   });
-  var inflight=load.then(function(res){
+  var inflight=loadPromise.then(function(res){
     uiAssetsPromise=Promise.resolve(res);
     return res;
   }).catch(function(err){
@@ -2430,7 +2532,8 @@ function autoFetch(){
   // UI assets are lazy-loaded after first paint (see lazyLoadUIAssets)
 }
 
-dbo().then(function(){
+dbReadyPromise=dbo();
+dbReadyPromise.then(function(){
   // Load saved characters
   return dbg('chars').then(function(s){
     if(s){try{chars=JSON.parse(s);}catch(e){chars=[];}}
