@@ -860,11 +860,30 @@ function createMaskBlob(maskType){
 function extractOutfitDiff(resultDataUrl){
   console.log('🟢 extractOutfit v17 — BODY COMPOSITE + SILHOUETTE + WHITE CLEANUP');
   return loadImg(resultDataUrl).then(function(resImg){
-    // Step 1: Flatten onto ORIGINAL BODY — fills transparent holes with skin, not white
+    // Step 1: Pre-process DALL-E result — if it has white bg, strip it first
+    // Check corners for white bg
+    var preC=document.createElement('canvas');preC.width=preC.height=1024;
+    var preCtx=preC.getContext('2d');
+    preCtx.drawImage(resImg,0,0,1024,1024);
+    var preData=preCtx.getImageData(0,0,1024,1024);
+    var pd=preData.data;
+    var c0=(1023*1024+2)*4,c1=(1023*1024+1021)*4,c2=(5*1024+2)*4,c3=(5*1024+1021)*4;
+    var hasWhiteBg=(pd[c0]>240&&pd[c0+1]>240&&pd[c0+2]>240)||(pd[c1]>240&&pd[c1+1]>240&&pd[c1+2]>240);
+    if(hasWhiteBg){
+      console.log('🟢 White bg detected — stripping before composite');
+      for(var i=0;i<pd.length;i+=4){
+        if(pd[i]>240&&pd[i+1]>240&&pd[i+2]>240&&pd[i+3]>200){
+          pd[i+3]=0; // make white pixels transparent
+        }
+      }
+      preCtx.putImageData(preData,0,0);
+    }
+
+    // Step 2: Composite — body first, cleaned DALL-E on top
     var rc=document.createElement('canvas');rc.width=rc.height=1024;
     var rctx=rc.getContext('2d');
     rctx.drawImage(bodyFull.img,0,0,1024,1024);
-    rctx.drawImage(resImg,0,0,1024,1024);
+    rctx.drawImage(preC,0,0,1024,1024);
 
     // Step 2: Build dilated silhouette from ORIGINAL BODY (80px)
     var bodyC=document.createElement('canvas');bodyC.width=bodyC.height=1024;
@@ -895,7 +914,7 @@ function extractOutfitDiff(resultDataUrl){
 
     // Step 4: Head crop
     var splitPx=Math.round(splitY*1024);
-    var headCut=splitPx-Math.round(0.03*1024); // 3% above split — just enough for collar
+    var headCut=splitPx-180; // matches original v7.3 cropAbove that worked for 24 outfits
     rctx.clearRect(0,0,1024,headCut);
 
     console.log('🟢 v16 done — headCut='+headCut);
