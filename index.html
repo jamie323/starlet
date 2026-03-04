@@ -149,6 +149,21 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .cft{position:absolute;z-index:50;pointer-events:none;animation:cf 1.5s ease-out forwards;}
 @keyframes cf{0%{opacity:1;transform:translateY(0) rotate(0);}100%{opacity:0;transform:translateY(200px) rotate(720deg) scale(0.3);}}
 
+/* LAZY UI LOADER */
+.ui-loader{position:fixed;inset:0;background:rgba(10,4,18,0.75);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;z-index:400;opacity:0;pointer-events:none;transition:opacity 0.3s ease;}
+.ui-loader.show{opacity:1;pointer-events:auto;}
+.ui-loader-card{background:rgba(20,8,30,0.92);border-radius:28px;padding:26px 32px;width:min(360px,92vw);text-align:center;color:#fff;box-shadow:0 20px 60px rgba(0,0,0,0.45),0 0 0 1px rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.05);}
+.ui-spinner{width:60px;height:60px;border-radius:50%;border:4px solid rgba(255,255,255,0.15);border-top-color:#FF6B9D;margin:0 auto 16px;animation:uiSpin 1s linear infinite;}
+@keyframes uiSpin{to{transform:rotate(360deg);}}
+.ui-loader-message{font-size:18px;font-weight:900;letter-spacing:0.4px;}
+.ui-loader-sub{font-size:13px;color:rgba(255,255,255,0.75);margin-top:6px;font-weight:600;}
+.ui-progress{width:100%;height:7px;background:rgba(255,255,255,0.15);border-radius:999px;overflow:hidden;margin:18px 0 6px;}
+.ui-progress-bar{height:100%;width:0;background:linear-gradient(90deg,#FF6B9D,#FF8C69);box-shadow:0 6px 16px rgba(255,107,157,0.4);transition:width 0.2s ease;}
+.ui-loader-percent{font-size:12px;font-weight:800;color:rgba(255,255,255,0.9);letter-spacing:0.8px;}
+.ui-loader-retry{margin-top:18px;background:rgba(255,255,255,0.12);border:1.5px solid rgba(255,255,255,0.35);border-radius:22px;padding:10px 22px;font-family:inherit;font-size:13px;font-weight:800;color:#fff;cursor:pointer;display:inline-flex;align-items:center;gap:6px;opacity:0;pointer-events:none;transition:all 0.2s;}
+.ui-loader-retry.show{opacity:1;pointer-events:auto;}
+.ui-loader-retry:active{transform:scale(0.94);}
+
 /* MODALS */
 .mb{position:absolute;inset:0;background:rgba(180,120,200,0.5);z-index:90;display:none;align-items:center;justify-content:center;backdrop-filter:blur(8px);}
 .mb.show{display:flex;}
@@ -623,6 +638,18 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
       <span class="bnav-ico" data-ic="wardrobe">👜</span><span class="bnav-lbl">Looks</span>
     </button>
   </nav>
+  <div class="ui-loader" id="uiLoader" aria-live="polite">
+    <div class="ui-loader-card">
+      <div class="ui-spinner"></div>
+      <div class="ui-loader-message" id="uiLoaderMessage">Loading Starlet art pack…</div>
+      <div class="ui-loader-sub" id="uiLoaderSub">Illustrated backgrounds & icons are downloading.</div>
+      <div class="ui-progress">
+        <div class="ui-progress-bar" id="uiLoaderBar"></div>
+      </div>
+      <div class="ui-loader-percent" id="uiLoaderPercent">0%</div>
+      <button class="ui-loader-retry" id="uiLoaderRetry">🔄 Tap to retry</button>
+    </div>
+  </div>
 </div>
 <script>
 // Init AudioContext on very first user touch/click anywhere
@@ -652,6 +679,13 @@ var sndEnabled=true,musEnabled=true,musInterval=null;
 var POSES=[{name:'Neutral',ox:0,oy:0,rot:0,sx:1,sy:1},{name:'Sassy',ox:15,oy:0,rot:-3,sx:1,sy:1},{name:'Excited',ox:0,oy:-10,rot:0,sx:1.04,sy:1.04},{name:'Shy',ox:-10,oy:8,rot:2,sx:0.97,sy:0.97},{name:'Dance',ox:20,oy:-5,rot:-5,sx:1,sy:1},{name:'Curtsy',ox:0,oy:12,rot:0,sx:1.02,sy:0.96}];
 var bgCanvases=[];
 var UI_ASSETS=null; // loaded from starlet-ui.json
+var uiAssetsPromise=null,uiLazyScheduled=false;
+var uiLoaderEl=document.getElementById('uiLoader');
+var uiLoaderMessage=document.getElementById('uiLoaderMessage');
+var uiLoaderSub=document.getElementById('uiLoaderSub');
+var uiLoaderBar=document.getElementById('uiLoaderBar');
+var uiLoaderPercent=document.getElementById('uiLoaderPercent');
+var uiLoaderRetry=document.getElementById('uiLoaderRetry');
 var cv=document.getElementById('cv'),cx=cv.getContext('2d'),db=null;
 var undoStack=[],stkHintShown=false;
 function pushUndo(){undoStack.push({eq:JSON.parse(JSON.stringify(eq)),si:si,bi:bi,poseIdx:poseIdx,st:JSON.parse(JSON.stringify(st)),clrVar:JSON.parse(JSON.stringify(clrVar))});if(undoStack.length>30)undoStack.shift();}
@@ -1124,6 +1158,151 @@ function loadUIBgs(){
     };
     img.src=UI_ASSETS.backgrounds[idx];
   });
+}
+
+function setUILoaderProgress(val){
+  if(!uiLoaderBar||!uiLoaderPercent)return;
+  var pct=Math.max(0,Math.min(100,Math.round(val||0)));
+  uiLoaderBar.style.width=pct+'%';
+  uiLoaderPercent.textContent=pct+'%';
+}
+function showUILoader(message,subText){
+  if(uiLoaderMessage&&message)uiLoaderMessage.textContent=message;
+  if(uiLoaderSub&&subText)uiLoaderSub.textContent=subText;
+  if(uiLoaderEl)uiLoaderEl.classList.add('show');
+  if(uiLoaderRetry)uiLoaderRetry.classList.remove('show');
+}
+function hideUILoader(){
+  if(uiLoaderEl)uiLoaderEl.classList.remove('show');
+  if(uiLoaderRetry)uiLoaderRetry.classList.remove('show');
+}
+function showUILoaderError(message,subText){
+  if(uiLoaderMessage)uiLoaderMessage.textContent=message||'We hit a hiccup downloading art.';
+  if(uiLoaderSub)uiLoaderSub.textContent=subText||'Tap to retry and we'll try again.';
+  if(uiLoaderEl)uiLoaderEl.classList.add('show');
+  if(uiLoaderRetry)uiLoaderRetry.classList.add('show');
+}
+function fetchJSONWithProgress(url,onProgress){
+  return fetch(url).then(function(response){
+    if(!response.ok)throw new Error('HTTP '+response.status);
+    var total=parseInt(response.headers.get('Content-Length')||'0',10);
+    if(!response.body||typeof response.body.getReader!=='function'){
+      return response.json().then(function(data){
+        if(onProgress)onProgress(100);
+        return data;
+      });
+    }
+    var reader=response.body.getReader();
+    var received=0;
+    var chunks=[];
+    return new Promise(function(resolve,reject){
+      function read(){
+        reader.read().then(function(result){
+          if(result.done){
+            var all=new Uint8Array(received);
+            var position=0;
+            chunks.forEach(function(chunk){all.set(chunk,position);position+=chunk.length;});
+            try{
+              var text=new TextDecoder().decode(all);
+              var data=JSON.parse(text);
+              if(onProgress)onProgress(100);
+              resolve(data);
+            }catch(e){reject(e);}
+            return;
+          }
+          chunks.push(result.value);
+          received+=result.value.length;
+          if(onProgress){
+            if(total){
+              onProgress(Math.min(99,Math.round(received/total*100)));
+            }else{
+              var approx=Math.min(99,Math.round(received/65536));
+              onProgress(approx);
+            }
+          }
+          read();
+        }).catch(reject);
+      }
+      read();
+    });
+  });
+}
+function handleUIAssetsLoaded(data,fromCache){
+  if(!data)return;
+  UI_ASSETS=data;
+  console.log('Starlet: '+(fromCache?'Loaded UI assets from IndexedDB cache':'Lazy-loaded UI assets bundle'));
+  if(data.backgrounds&&data.backgrounds['2']){
+    var lsBg=document.getElementById('lsBg');
+    if(lsBg)lsBg.style.backgroundImage='url('+data.backgrounds['2']+')';
+  }
+  loadUIBgs();
+  if(data.ui&&data.ui.logo){
+    var hLogo=document.getElementById('hLogo');
+    if(hLogo)hLogo.innerHTML='<img src="'+data.ui.logo+'">';
+    var sl=document.getElementById('splashLogo');
+    if(sl)sl.innerHTML='<img src="'+data.ui.logo+'" style="height:140px;object-fit:contain;">';
+  }
+  bCt();
+  applyUIIcons();
+  if(!fromCache&&db)dbp('ui_assets',JSON.stringify(data));
+  setUILoaderProgress(100);
+  setTimeout(hideUILoader,250);
+}
+function lazyLoadUIAssets(force){
+  if(UI_ASSETS&&!force)return Promise.resolve(UI_ASSETS);
+  if(uiAssetsPromise&&!force)return uiAssetsPromise;
+  if(force)uiAssetsPromise=null;
+  showUILoader('Loading Starlet art pack…','Illustrated backgrounds & icons are downloading.');
+  setUILoaderProgress(5);
+  var cacheBust='?t='+Date.now();
+  var load=fetchJSONWithProgress('starlet-ui.json'+cacheBust,function(pct){
+    setUILoaderProgress(Math.max(5,pct));
+  }).then(function(data){
+    handleUIAssetsLoaded(data,false);
+    return data;
+  }).catch(function(err){
+    if(!db)return Promise.reject(err);
+    return dbg('ui_assets').then(function(s){
+      if(s){
+        try{
+          var cached=JSON.parse(s);
+          handleUIAssetsLoaded(cached,true);
+          return cached;
+        }catch(e){}
+      }
+      return Promise.reject(err);
+    });
+  });
+  var inflight=load.then(function(res){
+    uiAssetsPromise=Promise.resolve(res);
+    return res;
+  }).catch(function(err){
+    showUILoaderError('Connection hiccup. Tap to retry.','Safari sometimes pauses big downloads — tap again to continue.');
+    uiAssetsPromise=null;
+    throw err;
+  });
+  uiAssetsPromise=inflight;
+  return inflight;
+}
+function scheduleLazyUILoad(){
+  if(uiLazyScheduled)return;
+  uiLazyScheduled=true;
+  var trigger=function(){lazyLoadUIAssets().catch(function(){});};
+  var start=function(){
+    if(window.requestIdleCallback){
+      requestIdleCallback(function(){trigger();},{timeout:2000});
+    }else{
+      requestAnimationFrame(function(){setTimeout(trigger,120);});
+    }
+  };
+  if(document.readyState==='complete'||document.readyState==='interactive'){
+    setTimeout(start,0);
+  }else{
+    document.addEventListener('DOMContentLoaded',start,{once:true});
+  }
+}
+if(uiLoaderRetry){
+  uiLoaderRetry.addEventListener('click',function(){lazyLoadUIAssets(true).catch(function(){});});
 }
 
 // DEFAULT BODY
@@ -2248,50 +2427,7 @@ function autoFetch(){
     // Try IndexedDB
     dbg('sounds').then(function(s){if(s){try{AUDIO_BUNDLE=JSON.parse(s);activateRealAudio();}catch(e){}}});
   });
-  // Try UI assets (illustrated backgrounds, icons, logo)
-  fetch('starlet-ui.json'+cb).then(function(r){
-    if(!r.ok)throw new Error('No UI assets');
-    return r.json();
-  }).then(function(d){
-    UI_ASSETS=d;
-    console.log('Starlet: Loaded UI assets (illustrated BGs, icons, logo)');
-    // Set splash screen background
-    if(d.backgrounds&&d.backgrounds['2']){
-      var lsBg=document.getElementById('lsBg');
-      if(lsBg)lsBg.style.backgroundImage='url('+d.backgrounds['2']+')';
-    }
-    // Replace procedural backgrounds with illustrated ones
-    loadUIBgs();
-    // Update logo
-    if(d.ui&&d.ui.logo){
-      var hLogo=document.getElementById('hLogo');
-      if(hLogo)hLogo.innerHTML='<img src="'+d.ui.logo+'">';
-      var sl=document.getElementById('splashLogo');
-      if(sl)sl.innerHTML='<img src="'+d.ui.logo+'" style="height:140px;object-fit:contain;">';
-    }
-    // Rebuild tabs with icons
-    bCt();
-    applyUIIcons();
-    // Cache in IDB
-    if(db)dbp('ui_assets',JSON.stringify(d));
-  }).catch(function(){
-    // Try IndexedDB fallback
-    dbg('ui_assets').then(function(s){
-      if(s){try{
-        UI_ASSETS=JSON.parse(s);
-        console.log('Starlet: Loaded UI assets from IndexedDB cache');
-        loadUIBgs();
-        if(UI_ASSETS.ui&&UI_ASSETS.ui.logo){
-          var hLogo=document.getElementById('hLogo');
-          if(hLogo)hLogo.innerHTML='<img src="'+UI_ASSETS.ui.logo+'">';
-          var sl=document.getElementById('splashLogo');
-          if(sl)sl.innerHTML='<img src="'+UI_ASSETS.ui.logo+'" style="height:140px;object-fit:contain;">';
-        }
-        bCt();
-        applyUIIcons();
-      }catch(e){}}
-    });
-  });
+  // UI assets are lazy-loaded after first paint (see lazyLoadUIAssets)
 }
 
 dbo().then(function(){
@@ -2305,6 +2441,7 @@ dbo().then(function(){
   });
 }).catch(function(){document.getElementById('ls').classList.remove('hid')});
 window.addEventListener('resize',function(){if(selStk>=0)updateStkTb()});
+scheduleLazyUILoad();
 requestAnimationFrame(animLoop);
 </script>
 </body>
