@@ -1395,11 +1395,31 @@ function ren(){
   if(oi>=0&&IM['outfits_'+oi]){var styled=getStyled('outfits_'+oi,clrVar.outfits,sk);if(styled)cx.drawImage(styled,0,0,1024,ASSET_H);else cx.drawImage(IM['outfits_'+oi],0,0,1024,ASSET_H);}
   else if(IM['bl']){var im=tint('bl',sk);if(im)cx.drawImage(im,0,0,1024,ASSET_H);else if(IM['bl'])cx.drawImage(IM['bl'],0,0,1024,ASSET_H);}
   else{var defImg=tintDefault(sk);if(defImg)cx.drawImage(defImg,0,0,1024,ASSET_H);else if(defaultBodyImg)cx.drawImage(defaultBodyImg,0,0,1024,ASSET_H);}
+  // Layer order: hair_back → body_head → face → hair_front(clipped)
+  // Hair drawn twice: full image behind head, then clipped front layer for bangs/crown
+  var hi=eq.hairhats;
+  var hairImg=hi>=0?(clrVar.hairhats>0?getStyled('hairhats_'+hi,clrVar.hairhats,sk):null)||IM['hairhats_'+hi]:null;
+  // Hair BACK — full image behind head
+  if(hairImg) cx.drawImage(hairImg,0,0,1024,ASSET_H);
+  // Body head on top of hair sides
   var bh=tint('bh',sk);if(bh)cx.drawImage(bh,0,0,1024,ASSET_H);else if(IM['bh'])cx.drawImage(IM['bh'],0,0,1024,ASSET_H);
+  // Face in front of head
   var fi=eq.faces;
   if(fi>=0&&IM['faces_'+fi]){if(clrVar.faces>0){var fc=getStyled('faces_'+fi,clrVar.faces,sk);if(fc)cx.drawImage(fc,0,0,1024,ASSET_H);else cx.drawImage(IM['faces_'+fi],0,0,1024,ASSET_H);}else cx.drawImage(IM['faces_'+fi],0,0,1024,ASSET_H);if(isBlinking){cx.fillStyle=sk.h;cx.globalAlpha=0.85;cx.fillRect(430,260+PAD_TOP,70,22);cx.fillRect(530,260+PAD_TOP,70,22);cx.globalAlpha=1;}}
-  var hi=eq.hairhats;
-  if(hi>=0&&IM['hairhats_'+hi]){if(clrVar.hairhats>0){var hc=getStyled('hairhats_'+hi,clrVar.hairhats,sk);if(hc)cx.drawImage(hc,0,0,1024,ASSET_H);else cx.drawImage(IM['hairhats_'+hi],0,0,1024,ASSET_H);}else cx.drawImage(IM['hairhats_'+hi],0,0,1024,ASSET_H);}
+  // Hair FRONT — same image, clipped to top-of-head zone only (bangs/crown)
+  if(hairImg){
+    // splitY is stored in M.splitY (fraction of ASSET_H). headTop = PAD_TOP area.
+    var splitPxAsset=M.splitY?Math.round(M.splitY*ASSET_H):Math.round(0.33*ASSET_H+PAD_TOP);
+    var headTopAsset=PAD_TOP; // hair top starts at pad top
+    // Clip bottom = 50% from headTop to splitY = eye line
+    var clipBotAsset=headTopAsset+(splitPxAsset-headTopAsset)*0.50;
+    // Convert to screen coords (the cx transform is active: translate+scale)
+    // Easier: clip in asset space before drawing, then restore
+    cx.save();
+    cx.beginPath();cx.rect(0,0,1024,clipBotAsset);cx.clip();
+    cx.drawImage(hairImg,0,0,1024,ASSET_H);
+    cx.restore();
+  }
   cx.restore();
   st.forEach(function(s){var im=IM['stickers_'+s.idx];if(!im)return;var sz=s.scale||160;cx.save();cx.translate(s.x,s.y);if(s.rotation)cx.rotate(s.rotation*Math.PI/180);if(s.flipped)cx.scale(-1,1);cx.drawImage(im,-sz/2,-sz/2,sz,sz);cx.restore();});
 }
@@ -2198,37 +2218,71 @@ function autoFetch(){
   var cb='?t='+Date.now(); // cache-buster
   console.log('Starlet: Starting auto-fetch...');
   // Try v7 single file first, then v7 multi-part, then v6 fallback
-  fetch('starlet-v7.json'+cb).then(function(r){
-    if(!r.ok)throw new Error('No v7 single file');
+  // Try v8 multi-body format first (pushed by Curator v8+)
+  // v8 format: starlet-v8-meta.json + starlet-v8-{bodytype}.json + starlet-v8-shared.json
+  fetch('starlet-v8-meta.json'+cb).then(function(r){
+    if(!r.ok) throw new Error('no v8');
     return r.json();
-  }).then(function(d){
-    console.log('Starlet: Loaded v7 single assets file');
-    proc(d);
-  }).catch(function(){
-    console.log('Starlet: v7 single file failed, trying v7 multi-part...');
-    var parts=['starlet-v7-part1.json','starlet-v7-part2.json','starlet-v7-part3.json','starlet-v7-part4.json'];
-    Promise.all(parts.map(function(p){return fetch(p+cb).then(function(r){if(!r.ok)throw new Error(p);return r.json();})}))
-    .then(function(results){
-      // Merge: part1 has body/meta, parts 2-4 have assets
-      var merged=results[0];
-      if(!merged.assets)merged.assets={};
-      for(var i=1;i<results.length;i++){
-        if(results[i].assets){
-          Object.keys(results[i].assets).forEach(function(k){
-            var nk = k==='hair'?'hairhats':k; // normalize 'hair' → 'hairhats'
-            if(!merged.assets[nk])merged.assets[nk]=[];
-            merged.assets[nk]=merged.assets[nk].concat(results[i].assets[k]);
-          });
+  }).then(function(meta){
+    console.log('Starlet: Found v8 meta, bodyTypes='+meta.bodyTypes);
+    // Use first available body type (single-body games just use petite)
+    var bt = meta.bodyTypes && meta.bodyTypes[0] || 'petite';
+    var bodyFile = 'starlet-v8-'+bt+'.json';
+    var sharedFile = 'starlet-v8-shared.json';
+    return Promise.all([
+      fetch(bodyFile+cb).then(function(r){if(!r.ok)throw new Error(bodyFile);return r.json();}),
+      fetch(sharedFile+cb).then(function(r){if(!r.ok)throw new Error(sharedFile);return r.json();})
+    ]).then(function(parts){
+      var bodyData = parts[0]; // {body, splitY, anchors, slotBoxes, outfits:[]}
+      var sharedData = parts[1]; // {shared:{faces,hairhats,stickers}}
+      // Assemble into proc()-compatible format
+      var d = {
+        body: bodyData.body,
+        splitY: bodyData.splitY,
+        anchors: bodyData.anchors,
+        slotBoxes: bodyData.slotBoxes,
+        assets: {
+          outfits: bodyData.outfits || [],
+          faces: (sharedData.shared && sharedData.shared.faces) || [],
+          hairhats: (sharedData.shared && sharedData.shared.hairhats) || [],
+          stickers: (sharedData.shared && sharedData.shared.stickers) || []
         }
-      }
-      console.log('Starlet: Merged '+parts.length+' parts, assets:', Object.keys(merged.assets));
-      proc(merged);
-    }).catch(function(e){
-      console.log('Starlet: Multi-part failed:', e.message, '- trying IndexedDB');
-      dbg('m').then(function(s){
-        if(s){try{proc(JSON.parse(s));console.log('Starlet: Loaded from IndexedDB');}catch(e2){showSplashLoad();}}
-        else{console.log('Starlet: No IDB data, showing splash');showSplashLoad();}
-      }).catch(function(){showSplashLoad();});
+      };
+      console.log('Starlet: v8 loaded — outfits:'+d.assets.outfits.length+' faces:'+d.assets.faces.length+' hair:'+d.assets.hairhats.length);
+      proc(d);
+    });
+  }).catch(function(v8err){
+    console.log('Starlet: v8 failed ('+v8err.message+'), trying v7...');
+    fetch('starlet-v7.json'+cb).then(function(r){
+      if(!r.ok)throw new Error('No v7 single file');
+      return r.json();
+    }).then(function(d){
+      console.log('Starlet: Loaded v7 single assets file');
+      proc(d);
+    }).catch(function(){
+      console.log('Starlet: v7 single file failed, trying v7 multi-part...');
+      var parts=['starlet-v7-part1.json','starlet-v7-part2.json','starlet-v7-part3.json','starlet-v7-part4.json'];
+      Promise.all(parts.map(function(p){return fetch(p+cb).then(function(r){if(!r.ok)throw new Error(p);return r.json();})}))
+      .then(function(results){
+        var merged=results[0];
+        if(!merged.assets)merged.assets={};
+        for(var i=1;i<results.length;i++){
+          if(results[i].assets){
+            Object.keys(results[i].assets).forEach(function(k){
+              var nk=k==='hair'?'hairhats':k;
+              if(!merged.assets[nk])merged.assets[nk]=[];
+              merged.assets[nk]=merged.assets[nk].concat(results[i].assets[k]);
+            });
+          }
+        }
+        proc(merged);
+      }).catch(function(e){
+        console.log('Starlet: All fetches failed - trying IndexedDB');
+        dbg('m').then(function(s){
+          if(s){try{proc(JSON.parse(s));}catch(e2){showSplashLoad();}}
+          else{showSplashLoad();}
+        }).catch(function(){showSplashLoad();});
+      });
     });
   });
   // Try sounds
