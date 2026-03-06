@@ -2080,7 +2080,7 @@ function pbInitBgs(){
   var el=document.getElementById('pbBgs');if(!el)return;
   var h='';
   PB_BG_COLORS.forEach(function(b){
-    h+='<div class="pb-bg-swatch'+(pbBgColor===b.color?' on':'')+'" style="background:'+b.color+'" onclick="pbSetBg(''+b.color+'')" title="'+b.label+'"></div>';
+    h+='<div class="pb-bg-swatch'+(pbBgColor===b.color?' on':'')+'" style="background:'+b.color+'" onclick="pbSetBg(\'' +b.color+ '\')" title="'+b.label+'"></div>';
   });
   el.innerHTML=h;
 }
