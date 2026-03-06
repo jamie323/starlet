@@ -413,8 +413,8 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .rw-actions{display:flex;gap:10px;z-index:5;margin-top:auto;padding-bottom:8px;flex-shrink:0;}
 .rw-btn{background:linear-gradient(135deg,#4CAF50,#2E7D32);border:2px solid rgba(255,255,255,.3);color:#fff;font-family:inherit;font-size:26px;font-weight:700;padding:0;width:64px;height:64px;border-radius:20px;cursor:pointer;backdrop-filter:blur(6px);transition:.2s;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.3),inset 0 2px 0 rgba(255,255,255,.2);}
 .rw-btn:active{transform:scale(.88);}
-.rw-btn .rw-bico{width:24px;height:24px;font-size:20px;display:inline-flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;}
-.rw-btn .rw-bico img{width:24px;height:24px;max-width:24px;max-height:24px;object-fit:contain;display:block;}
+.rw-btn .rw-bico{width:44px;height:44px;font-size:36px;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.rw-btn .rw-bico img{width:40px;height:40px;max-width:40px;max-height:40px;object-fit:contain;display:block;}
 .rw-pose{background:linear-gradient(135deg,rgba(255,107,157,.3),rgba(200,80,192,.3));border-color:rgba(255,255,255,.35);}
 
 /* Runway pose animations */
@@ -476,11 +476,11 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
     <canvas id="cv" width="1024" height="1024"></canvas>
     <button class="stage-gear" onclick="showSet()" data-ic="settings">⚙️</button>
     <div class="fab-row">
-      <button class="fab" onclick="doUndo()" title="Undo"><span data-ic="back">↩</span></button>
+      <button class="fab" onclick="doUndo()" title="Undo" style="background:rgba(220,50,50,.85);border-color:rgba(255,150,150,.4);"><span data-ic="back">↩</span></button>
       <button class="fab" onclick="doClear()" title="Clear All">🧹</button>
-      <button class="fab" onclick="doSaveToWardrobe()" title="Save Look">💾</button>
+      <button class="fab" onclick="doSaveToWardrobe()" title="Save Look" style="background:rgba(50,180,80,.85);border-color:rgba(150,255,150,.4);">💾</button>
     </div>
-    <button class="magic-wand" onclick="doRandom()" title="Surprise Me!" data-ic="magic_wand">🪄</button>
+    <button class="magic-wand" onclick="doRandom()" title="Surprise Me!">🪄</button>
     <div class="stk-toolbar" id="stkTb"><button class="stk-tb" onclick="stkScale(1.15)">＋</button><button class="stk-tb" onclick="stkScale(0.87)">－</button><button class="stk-tb" onclick="stkRotate(15)">↻</button><button class="stk-tb" onclick="stkFlip()">⇄</button><button class="stk-tb del" onclick="stkDelete()">✕</button></div>
     <div class="pose-label" id="poseLbl"></div><div class="toast" id="toast"></div>
   </div>
@@ -582,10 +582,10 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
     </div>
     <div class="rw-name" id="rwName"></div>
     <div class="rw-actions">
-      <button class="rw-btn rw-pose" onclick="rwPose('spin')" title="Spin">🌀</button>
-      <button class="rw-btn rw-pose" onclick="rwPose('bounce')" title="Jump">⬆️</button>
-      <button class="rw-btn rw-pose" onclick="rwPose('wiggle')" title="Dance">💃</button>
-      <button class="rw-btn" onclick="rwSavePhoto()" title="Save Photo">📸</button>
+      <button class="rw-btn rw-pose" onclick="rwPose('spin')" title="Spin"><span data-ic="rw_spin">🌀</span></button>
+      <button class="rw-btn rw-pose" onclick="rwPose('bounce')" title="Jump"><span data-ic="rw_jump">⬆️</span></button>
+      <button class="rw-btn rw-pose" onclick="rwPose('wiggle')" title="Dance"><span data-ic="rw_dance">💃</span></button>
+      <button class="rw-btn" onclick="rwSavePhoto()" title="Save Photo"><span data-ic="rw_save">📸</span></button>
     </div>
   </div>
 
@@ -2104,7 +2104,7 @@ function pbAddStamp(i){sfxTap();pbStamps.push({e:PB_STAMP_E[i],x:100+Math.random
 function pbRender(){
   var cv=document.getElementById('pbCv');if(!cv)return;
   var ctx=cv.getContext('2d');ctx.clearRect(0,0,600,750);
-  ctx.fillStyle='#FFF0F5';ctx.fillRect(0,0,600,750);
+  ctx.fillStyle=pbBgColor||'#FFFFFF';ctx.fillRect(0,0,600,750);
   // Draw character centered
   var ch=chars[ci];if(!ch)return;
   var tmpEq=ch.eq||{};var s=ch.skinIdx||0;
@@ -2121,40 +2121,49 @@ function pbRender(){
   // Frame — use AI frame if available, else colored borders
   // All frames rendered directly on canvas — no asset dependency
   if(pbFrame!=='none'){
-    var fw=600,fh=750,fb=22;
+    var fw=600,fh=750,fb=46; // thick border
     ctx.save();
+    // Helper: fill border bands with solid color, then tile emoji along all 4 edges
+    function drawBand(bg,emoji){
+      ctx.fillStyle=bg;
+      ctx.fillRect(0,0,fw,fb);ctx.fillRect(0,fh-fb,fw,fb);
+      ctx.fillRect(0,fb,fb,fh-fb*2);ctx.fillRect(fw-fb,fb,fb,fh-fb*2);
+      if(!emoji)return;
+      ctx.font=(fb*0.8)+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+      var step=fb*1.2;
+      // top & bottom
+      for(var x=fb/2;x<fw-fb/2;x+=step){
+        ctx.fillText(emoji,x,fb/2);
+        ctx.fillText(emoji,x,fh-fb/2);
+      }
+      // left & right
+      for(var y=fb*1.5;y<fh-fb;y+=step){
+        ctx.fillText(emoji,fb/2,y);
+        ctx.fillText(emoji,fw-fb/2,y);
+      }
+    }
     if(pbFrame==='hearts'){
-      ctx.strokeStyle='#FF6B9D';ctx.lineWidth=fb;ctx.strokeRect(fb/2,fb/2,fw-fb,fh-fb);
-      ctx.fillStyle='#FF6B9D';
-      var hps=[[30,30],[570,30],[30,720],[570,720],[300,18],[18,375],[582,375]];
-      hps.forEach(function(p){ctx.font='20px serif';ctx.fillText('❤',p[0]-10,p[1]+10);});
+      drawBand('#FF6B9D','💕');
     } else if(pbFrame==='sparkle'){
-      ctx.strokeStyle='#9C27B0';ctx.lineWidth=fb;ctx.strokeRect(fb/2,fb/2,fw-fb,fh-fb);
-      ctx.fillStyle='rgba(156,39,176,0.15)';ctx.fillRect(0,0,fw,fb);ctx.fillRect(0,fh-fb,fw,fb);ctx.fillRect(0,0,fb,fh);ctx.fillRect(fw-fb,0,fb,fh);
-      ctx.font='18px serif';var sps=[[20,20],[560,20],[20,730],[560,730],[300,16],[16,375],[584,375],[155,16],[445,16]];
-      sps.forEach(function(p){ctx.fillText('✨',p[0]-9,p[1]+9);});
+      drawBand('#9C27B0','✨');
     } else if(pbFrame==='rainbow'){
+      // gradient band
       var rg=ctx.createLinearGradient(0,0,fw,fh);
-      rg.addColorStop(0,'#FF6B9D');rg.addColorStop(.25,'#FFD700');rg.addColorStop(.5,'#4CAF50');rg.addColorStop(.75,'#2196F3');rg.addColorStop(1,'#9C27B0');
-      ctx.strokeStyle=rg;ctx.lineWidth=fb;ctx.strokeRect(fb/2,fb/2,fw-fb,fh-fb);
+      rg.addColorStop(0,'#FF6B9D');rg.addColorStop(.2,'#FFD700');rg.addColorStop(.4,'#4CAF50');rg.addColorStop(.6,'#2196F3');rg.addColorStop(.8,'#9C27B0');rg.addColorStop(1,'#FF6B9D');
+      ctx.fillStyle=rg;
+      ctx.fillRect(0,0,fw,fb);ctx.fillRect(0,fh-fb,fw,fb);
+      ctx.fillRect(0,fb,fb,fh-fb*2);ctx.fillRect(fw-fb,fb,fb,fh-fb*2);
+      ctx.font=(fb*0.8)+'px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+      var step=fb*1.2;
+      for(var x=fb/2;x<fw-fb/2;x+=step){ctx.fillText('🌈',x,fb/2);ctx.fillText('🌈',x,fh-fb/2);}
+      for(var y=fb*1.5;y<fh-fb;y+=step){ctx.fillText('🌈',fb/2,y);ctx.fillText('🌈',fw-fb/2,y);}
     } else if(pbFrame==='stars'){
-      ctx.strokeStyle='#FFD700';ctx.lineWidth=fb;ctx.strokeRect(fb/2,fb/2,fw-fb,fh-fb);
-      ctx.fillStyle='rgba(255,215,0,0.12)';ctx.fillRect(0,0,fw,fb);ctx.fillRect(0,fh-fb,fw,fb);ctx.fillRect(0,0,fb,fh);ctx.fillRect(fw-fb,0,fb,fh);
-      ctx.font='16px serif';var stps=[[22,22],[548,22],[22,728],[548,728],[180,14],[300,14],[420,14],[14,250],[14,500],[586,250],[586,500]];
-      stps.forEach(function(p){ctx.fillText('⭐',p[0]-8,p[1]+8);});
+      drawBand('#FFD700','⭐');
     } else if(pbFrame==='lavender'){
-      ctx.strokeStyle='#CE93D8';ctx.lineWidth=fb;ctx.strokeRect(fb/2,fb/2,fw-fb,fh-fb);
-      ctx.fillStyle='rgba(206,147,216,0.18)';ctx.fillRect(0,0,fw,fb);ctx.fillRect(0,fh-fb,fw,fb);ctx.fillRect(0,0,fb,fh);ctx.fillRect(fw-fb,0,fb,fh);
-    } else {
-      // fallback pink
-      ctx.strokeStyle='#FF6B9D';ctx.lineWidth=fb;ctx.strokeRect(fb/2,fb/2,fw-fb,fh-fb);
+      drawBand('#CE93D8','💜');
     }
     ctx.restore();
   }
-  else if(pbFrame==='gold'){ctx.strokeStyle='#FFD700';ctx.lineWidth=18;ctx.strokeRect(9,9,582,732);}
-  else if(pbFrame==='rainbow'){ctx.lineWidth=18;var rg=ctx.createLinearGradient(0,0,600,750);rg.addColorStop(0,'#FF6B9D');rg.addColorStop(.2,'#FFD700');rg.addColorStop(.4,'#6ee7b7');rg.addColorStop(.6,'#87CEEB');rg.addColorStop(.8,'#C8A8E9');rg.addColorStop(1,'#FF6B9D');ctx.strokeStyle=rg;ctx.strokeRect(9,9,582,732);}
-  else if(pbFrame==='stars'){ctx.strokeStyle='#FFD700';ctx.lineWidth=10;ctx.setLineDash([14,8]);ctx.strokeRect(10,10,580,730);ctx.setLineDash([]);}
-  else if(pbFrame==='lav'){ctx.strokeStyle='#C8A8E9';ctx.lineWidth=18;ctx.strokeRect(9,9,582,732);}
   ctx.fillStyle='rgba(61,32,64,0.3)';ctx.font='11px Nunito';ctx.textAlign='right';ctx.fillText('✨ Made with Starlet',585,740);
 }
 function pbSnap(){sfxCamera();pbRender();setTimeout(function(){var cv=document.getElementById('pbCv');var a=document.createElement('a');a.download='starlet-photo-'+Date.now()+'.png';a.href=cv.toDataURL();a.click();sfxSave();showToast('📸 Photo saved!');},100);}
