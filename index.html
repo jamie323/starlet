@@ -28,13 +28,13 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .stage canvas.bounce{transform:scale(1.03);}
 
 /* FLOATING ACTION BUTTONS — prominent pill bar on canvas */
-.fab-row{position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:5;display:flex;gap:8px;background:rgba(90,50,120,.6);backdrop-filter:blur(10px);padding:6px 14px;border-radius:22px;box-shadow:0 4px 16px rgba(60,20,80,.25);border:1px solid rgba(200,160,240,.2);}
-.fab{width:44px;height:44px;border-radius:50%;border:none;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:0.15s;background:rgba(255,255,255,.2);color:#fff;}
+.fab-row{position:absolute;top:12px;left:12px;transform:none;z-index:5;display:flex;flex-direction:column;gap:10px;background:rgba(50,20,80,.85);backdrop-filter:blur(12px);padding:10px 8px;border-radius:20px;box-shadow:0 4px 20px rgba(0,0,0,.4),0 0 0 1.5px rgba(200,160,255,.25);border:1.5px solid rgba(200,160,255,.3);}
+.fab{width:52px;height:52px;border-radius:14px;background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.3);color:#fff;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;box-shadow:0 2px 8px rgba(0,0,0,.3);}
 .fab:active{transform:scale(.85);background:rgba(255,255,255,.35);}
 .fab img{width:26px;height:26px;object-fit:contain;}
-.magic-wand{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);z-index:5;width:56px;height:56px;border-radius:50%;border:2.5px solid rgba(255,215,0,.5);font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#FFF5E0,#FFE8CC);box-shadow:0 4px 16px rgba(0,0,0,.25),0 0 0 4px rgba(60,30,80,.3),inset 0 2px 0 rgba(255,255,255,.7);transition:all .2s cubic-bezier(.34,1.56,.64,1);animation:wandPulse 2s ease-in-out infinite;}
-.magic-wand:active{transform:translateX(-50%) scale(.85);}
-.magic-wand img{width:32px;height:32px;object-fit:contain;}
+.magic-wand{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);z-index:5;width:72px;height:72px;border-radius:50%;border:3px solid rgba(255,215,0,.7);font-size:32px;cursor:pointer;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#FFD700,#FF8C00);box-shadow:0 4px 20px rgba(255,165,0,.5),0 0 0 4px rgba(60,30,80,.4),inset 0 2px 0 rgba(255,255,255,.5);transition:all .2s cubic-bezier(.34,1.56,.64,1);animation:wandPulse 2s ease-in-out infinite;}
+.magic-wand:active{transform:translateX(-50%) scale(.88);}
+.magic-wand img{width:40px;height:40px;object-fit:contain;}
 @keyframes wandPulse{0%,100%{box-shadow:0 4px 20px rgba(255,180,0,.25);}50%{box-shadow:0 4px 30px rgba(255,180,0,.45),0 0 20px rgba(255,215,0,.2);}}
 .fab:active{transform:scale(0.88);background:#FF6B9D;color:#fff;}
 
@@ -304,7 +304,7 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 @keyframes scrOut{to{opacity:0;transform:translateY(-20px);}}
 
 /* HOME SCREEN */
-.home-scr{background:#FFF0F5;align-items:center;justify-content:center;gap:20px;padding:30px;position:relative;}
+.home-scr{background:#FFD6E7;background-size:cover;background-position:center;align-items:center;justify-content:center;gap:20px;padding:30px;position:relative;}
 .home-scr::before{content:'';position:absolute;inset:0;
   background:
     radial-gradient(circle at 15% 20%,rgba(255,150,180,.25) 0%,transparent 35%),
@@ -389,6 +389,9 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .pb-fr.on{border-color:#FF6B9D;background:rgba(255,107,157,.2);}
 .pb-fr:active{transform:scale(.9);}
 .pb-stamps{display:flex;gap:5px;flex-wrap:wrap;}
+.pb-bgs{display:flex;gap:5px;flex-wrap:wrap;}
+.pb-bg-swatch{width:32px;height:32px;border-radius:8px;border:2.5px solid transparent;cursor:pointer;transition:.15s;box-shadow:0 1px 4px rgba(0,0,0,.2);}
+.pb-bg-swatch.on{border-color:#FF6B9D;transform:scale(1.15);}
 .pb-stamp{width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;border-radius:8px;background:rgba(255,255,255,.06);transition:.15s;}
 .pb-stamp:active{transform:scale(.85);background:rgba(255,255,255,.15);}
 
@@ -396,8 +399,8 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .rw-scr{background:linear-gradient(180deg,#1a0a30,#2a1040,#1a0a30);align-items:center;justify-content:center;position:relative;overflow:hidden;gap:8px;padding-bottom:100px;}
 .rw-spot{position:absolute;width:500px;height:100%;background:radial-gradient(ellipse at 50% 30%,rgba(255,215,0,.12),transparent 60%);top:0;left:50%;transform:translateX(-50%);pointer-events:none;}
 .rw-strip{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:200px;height:100%;background:linear-gradient(180deg,transparent 0%,rgba(255,107,157,.04) 30%,rgba(255,107,157,.08) 100%);pointer-events:none;}
-.rw-canvas-wrap{position:relative;z-index:2;transform:translateY(120%);animation:rwWalkIn 1.8s .3s cubic-bezier(.16,1,.3,1) forwards;margin-top:auto;}
-@keyframes rwWalkIn{0%{transform:translateY(120%) scale(.8);}60%{transform:translateY(-5%) scale(1.02);}100%{transform:translateY(0) scale(1);}}
+.rw-canvas-wrap{position:relative;z-index:2;transform:translateY(120%);animation:rwWalkIn 1.8s .3s cubic-bezier(.16,1,.3,1) forwards;margin-top:auto;margin-bottom:-40px;}
+@keyframes rwWalkIn{0%{transform:translateY(120%) scale(.8);}60%{transform:translateY(5%) scale(1.02);}100%{transform:translateY(8%) scale(1);}}
 .rw-name{color:#FFD700;font-size:28px;font-weight:900;text-shadow:0 0 30px rgba(255,215,0,.5);z-index:3;opacity:0;animation:rwNameIn 0.8s 1.6s forwards;margin-top:12px;}
 @keyframes rwNameIn{to{opacity:1;}}
 .rw-flash{position:absolute;inset:0;background:#fff;pointer-events:none;z-index:10;opacity:0;}
@@ -408,8 +411,8 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .rw-hint{position:absolute;bottom:20px;color:rgba(255,255,255,.4);font-size:12px;font-weight:600;opacity:0;animation:rwHint .5s 3.5s forwards;z-index:5;}
 @keyframes rwHint{to{opacity:1;}}
 .rw-actions{display:flex;gap:10px;z-index:5;margin-top:auto;padding-bottom:8px;flex-shrink:0;}
-.rw-btn{background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.25);color:#fff;font-family:inherit;font-size:14px;font-weight:700;padding:10px 18px;border-radius:18px;cursor:pointer;backdrop-filter:blur(6px);transition:.2s;display:flex;align-items:center;gap:6px;}
-.rw-btn:active{transform:scale(.93);background:rgba(255,255,255,.3);}
+.rw-btn{background:linear-gradient(135deg,#4CAF50,#2E7D32);border:2px solid rgba(255,255,255,.3);color:#fff;font-family:inherit;font-size:26px;font-weight:700;padding:0;width:64px;height:64px;border-radius:20px;cursor:pointer;backdrop-filter:blur(6px);transition:.2s;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.3),inset 0 2px 0 rgba(255,255,255,.2);}
+.rw-btn:active{transform:scale(.88);}
 .rw-btn .rw-bico{width:24px;height:24px;font-size:20px;display:inline-flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;}
 .rw-btn .rw-bico img{width:24px;height:24px;max-width:24px;max-height:24px;object-fit:contain;display:block;}
 .rw-pose{background:linear-gradient(135deg,rgba(255,107,157,.3),rgba(200,80,192,.3));border-color:rgba(255,255,255,.35);}
@@ -553,11 +556,13 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
   <div class="scr pb-scr" id="pbScr">
     <div class="pb-top">
       <span class="pb-title">📸 Photo Booth</span>
-      <button class="pb-save" onclick="pbSavePhoto()">💾 Save</button>
+
     </div>
     <div class="pb-main">
       <div class="pb-canvas-wrap"><canvas id="pbCv" width="600" height="750"></canvas></div>
       <div class="pb-tools">
+        <div class="pb-tool-label">Background</div>
+        <div class="pb-bgs" id="pbBgs"></div>
         <div class="pb-tool-label">Frames</div>
         <div class="pb-frames" id="pbFrames"></div>
         <div class="pb-tool-label">Stickers</div>
@@ -577,10 +582,10 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
     </div>
     <div class="rw-name" id="rwName"></div>
     <div class="rw-actions">
-      <button class="rw-btn rw-pose" onclick="rwPose('spin')"><span class="rw-bico" data-ic="rw_spin">🌀</span>Spin!</button>
-      <button class="rw-btn rw-pose" onclick="rwPose('bounce')"><span class="rw-bico" data-ic="rw_jump">⬆️</span>Jump!</button>
-      <button class="rw-btn rw-pose" onclick="rwPose('wiggle')"><span class="rw-bico" data-ic="rw_dance">💃</span>Dance!</button>
-      <button class="rw-btn" onclick="rwSavePhoto()"><span class="rw-bico" data-ic="rw_save">📸</span>Save</button>
+      <button class="rw-btn rw-pose" onclick="rwPose('spin')" title="Spin">🌀</button>
+      <button class="rw-btn rw-pose" onclick="rwPose('bounce')" title="Jump">⬆️</button>
+      <button class="rw-btn rw-pose" onclick="rwPose('wiggle')" title="Dance">💃</button>
+      <button class="rw-btn" onclick="rwSavePhoto()" title="Save Photo">📸</button>
     </div>
   </div>
 
@@ -1467,6 +1472,7 @@ function applyUIIcons(){
   // Home background
   if(UI_ASSETS.ui&&UI_ASSETS.ui.home_bg){
     var hs=document.getElementById('homeScr');
+    hs.style.backgroundSize='cover';hs.style.backgroundPosition='center';
     if(hs){
       hs.style.backgroundImage='url('+UI_ASSETS.ui.home_bg+')';
       hs.style.backgroundSize='cover';
@@ -2057,13 +2063,36 @@ function rwPose(type){
 }
 
 // PHOTO BOOTH
-var pbFrame='pink',pbStamps=[];
-var PB_FRAMES=[{id:'none',e:'✕'},{id:'pink',e:'💕'},{id:'gold',e:'✨'},{id:'rainbow',e:'🌈'},{id:'stars',e:'⭐'},{id:'lav',e:'💜'}];
+var pbFrame='hearts',pbStamps=[];
+
+var PB_BG_COLORS=[
+  {id:'white',  color:'#FFFFFF', label:'⬜'},
+  {id:'pink',   color:'#FFD6E7', label:'🩷'},
+  {id:'yellow', color:'#FFF9C4', label:'💛'},
+  {id:'mint',   color:'#C8F7C5', label:'💚'},
+  {id:'sky',    color:'#BBDEFB', label:'💙'},
+  {id:'lilac',  color:'#E1BEE7', label:'💜'},
+  {id:'peach',  color:'#FFE0B2', label:'🍑'},
+  {id:'dark',   color:'#1a1028', label:'⬛'},
+];
+var pbBgColor='#FFFFFF';
+function pbInitBgs(){
+  var el=document.getElementById('pbBgs');if(!el)return;
+  var h='';
+  PB_BG_COLORS.forEach(function(b){
+    h+='<div class="pb-bg-swatch'+(pbBgColor===b.color?' on':'')+'" style="background:'+b.color+'" onclick="pbSetBg(''+b.color+'')" title="'+b.label+'"></div>';
+  });
+  el.innerHTML=h;
+}
+function pbSetBg(color){pbBgColor=color;sfxTap();pbInitBgs();pbRender();}
+
+var PB_FRAMES=[{id:'none',e:'✕'},{id:'hearts',e:'💕'},{id:'sparkle',e:'✨'},{id:'rainbow',e:'🌈'},{id:'stars',e:'⭐'},{id:'lavender',e:'💜'}];
 var PB_STAMP_E=['⭐','💖','✨','🦋','🌈','👑','🌸','🎀','💫','🔥','😍','🎉'];
 function initPhotoBooth(){
-  pbStamps=[];pbFrame='pink';
+  pbBgColor='#FFFFFF';pbStamps=[];pbFrame='pink';
   var fh='';PB_FRAMES.forEach(function(f){fh+='<div class="pb-fr'+(f.id===pbFrame?' on':'')+'" onclick="pbSetFrame(\''+f.id+'\')">'+f.e+'</div>';});
   document.getElementById('pbFrames').innerHTML=fh;
+  pbInitBgs();
   var sh='';PB_STAMP_E.forEach(function(e,i){sh+='<div class="pb-stamp" onclick="pbAddStamp('+i+')">'+e+'</div>';});
   document.getElementById('pbStamps').innerHTML=sh;
   pbRender();
@@ -2090,16 +2119,45 @@ function pbRender(){
   ctx.font='40px serif';ctx.textAlign='center';
   pbStamps.forEach(function(s){ctx.fillText(s.e,s.x,s.y);});
   // Frame — use AI frame if available, else colored borders
-  if(pbFrame!=='none'&&UI_ASSETS&&UI_ASSETS.photobooth&&UI_ASSETS.photobooth['frame_'+pbFrame]){
-    var fi=new Image();fi.onload=function(){ctx.drawImage(fi,0,0,600,750);};fi.src=UI_ASSETS.photobooth['frame_'+pbFrame];
-  } else if(pbFrame==='pink'){ctx.strokeStyle='#FF6B9D';ctx.lineWidth=18;ctx.strokeRect(9,9,582,732);}
+  // All frames rendered directly on canvas — no asset dependency
+  if(pbFrame!=='none'){
+    var fw=600,fh=750,fb=22;
+    ctx.save();
+    if(pbFrame==='hearts'){
+      ctx.strokeStyle='#FF6B9D';ctx.lineWidth=fb;ctx.strokeRect(fb/2,fb/2,fw-fb,fh-fb);
+      ctx.fillStyle='#FF6B9D';
+      var hps=[[30,30],[570,30],[30,720],[570,720],[300,18],[18,375],[582,375]];
+      hps.forEach(function(p){ctx.font='20px serif';ctx.fillText('❤',p[0]-10,p[1]+10);});
+    } else if(pbFrame==='sparkle'){
+      ctx.strokeStyle='#9C27B0';ctx.lineWidth=fb;ctx.strokeRect(fb/2,fb/2,fw-fb,fh-fb);
+      ctx.fillStyle='rgba(156,39,176,0.15)';ctx.fillRect(0,0,fw,fb);ctx.fillRect(0,fh-fb,fw,fb);ctx.fillRect(0,0,fb,fh);ctx.fillRect(fw-fb,0,fb,fh);
+      ctx.font='18px serif';var sps=[[20,20],[560,20],[20,730],[560,730],[300,16],[16,375],[584,375],[155,16],[445,16]];
+      sps.forEach(function(p){ctx.fillText('✨',p[0]-9,p[1]+9);});
+    } else if(pbFrame==='rainbow'){
+      var rg=ctx.createLinearGradient(0,0,fw,fh);
+      rg.addColorStop(0,'#FF6B9D');rg.addColorStop(.25,'#FFD700');rg.addColorStop(.5,'#4CAF50');rg.addColorStop(.75,'#2196F3');rg.addColorStop(1,'#9C27B0');
+      ctx.strokeStyle=rg;ctx.lineWidth=fb;ctx.strokeRect(fb/2,fb/2,fw-fb,fh-fb);
+    } else if(pbFrame==='stars'){
+      ctx.strokeStyle='#FFD700';ctx.lineWidth=fb;ctx.strokeRect(fb/2,fb/2,fw-fb,fh-fb);
+      ctx.fillStyle='rgba(255,215,0,0.12)';ctx.fillRect(0,0,fw,fb);ctx.fillRect(0,fh-fb,fw,fb);ctx.fillRect(0,0,fb,fh);ctx.fillRect(fw-fb,0,fb,fh);
+      ctx.font='16px serif';var stps=[[22,22],[548,22],[22,728],[548,728],[180,14],[300,14],[420,14],[14,250],[14,500],[586,250],[586,500]];
+      stps.forEach(function(p){ctx.fillText('⭐',p[0]-8,p[1]+8);});
+    } else if(pbFrame==='lavender'){
+      ctx.strokeStyle='#CE93D8';ctx.lineWidth=fb;ctx.strokeRect(fb/2,fb/2,fw-fb,fh-fb);
+      ctx.fillStyle='rgba(206,147,216,0.18)';ctx.fillRect(0,0,fw,fb);ctx.fillRect(0,fh-fb,fw,fb);ctx.fillRect(0,0,fb,fh);ctx.fillRect(fw-fb,0,fb,fh);
+    } else {
+      // fallback pink
+      ctx.strokeStyle='#FF6B9D';ctx.lineWidth=fb;ctx.strokeRect(fb/2,fb/2,fw-fb,fh-fb);
+    }
+    ctx.restore();
+  }
   else if(pbFrame==='gold'){ctx.strokeStyle='#FFD700';ctx.lineWidth=18;ctx.strokeRect(9,9,582,732);}
   else if(pbFrame==='rainbow'){ctx.lineWidth=18;var rg=ctx.createLinearGradient(0,0,600,750);rg.addColorStop(0,'#FF6B9D');rg.addColorStop(.2,'#FFD700');rg.addColorStop(.4,'#6ee7b7');rg.addColorStop(.6,'#87CEEB');rg.addColorStop(.8,'#C8A8E9');rg.addColorStop(1,'#FF6B9D');ctx.strokeStyle=rg;ctx.strokeRect(9,9,582,732);}
   else if(pbFrame==='stars'){ctx.strokeStyle='#FFD700';ctx.lineWidth=10;ctx.setLineDash([14,8]);ctx.strokeRect(10,10,580,730);ctx.setLineDash([]);}
   else if(pbFrame==='lav'){ctx.strokeStyle='#C8A8E9';ctx.lineWidth=18;ctx.strokeRect(9,9,582,732);}
   ctx.fillStyle='rgba(61,32,64,0.3)';ctx.font='11px Nunito';ctx.textAlign='right';ctx.fillText('✨ Made with Starlet',585,740);
 }
-function pbSnap(){sfxCamera();pbRender();showToast('📸 Snap!');}
+function pbSnap(){sfxCamera();pbRender();setTimeout(function(){var cv=document.getElementById('pbCv');var a=document.createElement('a');a.download='starlet-photo-'+Date.now()+'.png';a.href=cv.toDataURL();a.click();sfxSave();showToast('📸 Photo saved!');},100);}
 function pbSavePhoto(){var cv=document.getElementById('pbCv');var a=document.createElement('a');a.download='starlet-photo.png';a.href=cv.toDataURL();a.click();sfxSave();showToast('💾 Photo saved!');}
 
 // FULL WARDROBE SCREEN
