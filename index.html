@@ -475,7 +475,7 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
       <button class="fab" onclick="doClear()" title="Clear All" style="background:rgba(220,50,50,.85);border-color:rgba(255,150,150,.4);">🧹</button>
       <button class="fab" onclick="doSaveToWardrobe()" title="Save Look" style="background:rgba(50,180,80,.85);border-color:rgba(150,255,150,.4);">💾</button>
     </div>
-    <button class="magic-wand" onclick="doRandom()" title="Surprise Me!">✨</button>
+    <button class="magic-wand" id="wandBtn" title="Surprise Me!">✨</button>
     <div class="stk-toolbar" id="stkTb"><button class="stk-tb" onclick="stkScale(1.15)">＋</button><button class="stk-tb" onclick="stkScale(0.87)">－</button><button class="stk-tb" onclick="stkRotate(15)">↻</button><button class="stk-tb" onclick="stkFlip()">⇄</button><button class="stk-tb del" onclick="stkDelete()">✕</button></div>
     <div class="pose-label" id="poseLbl"></div><div class="toast" id="toast"></div>
   </div>
@@ -1578,6 +1578,13 @@ function cancelPlace(){stkMode=null;stkGhostIdx=-1;stkDragIdx=-1;document.getEle
 document.addEventListener('mousemove',onMv);document.addEventListener('touchmove',onMv,{passive:false});
 function onMv(e){var t=e.touches?e.touches[0]:e;if(stkMode==='placing'){e.preventDefault();var gh=document.getElementById('gh');gh.style.left=(t.clientX-45)+'px';gh.style.top=(t.clientY-45)+'px';}if(stkMode==='moving'&&stkDragIdx>=0){e.preventDefault();var pos=cP(t.clientX,t.clientY);if(pos){st[stkDragIdx].x=pos.x;st[stkDragIdx].y=pos.y;updateStkTb();}}}
 var stg=document.getElementById('stg');stg.addEventListener('click',onStageClick);
+// Wand: own touch handler so stage touchstart (non-passive) never interferes
+var wandBtn=document.getElementById('wandBtn');
+if(wandBtn){
+  wandBtn.addEventListener('touchstart',function(e){e.stopPropagation();},{passive:true});
+  wandBtn.addEventListener('touchend',function(e){e.stopPropagation();e.preventDefault();doRandom();},{passive:false});
+  wandBtn.addEventListener('click',function(e){e.stopPropagation();doRandom();});
+}
 function onStageClick(e){if(e.target.closest('.stk-toolbar'))return;if(e.target.closest('.fab-row'))return;if(e.target.closest('.magic-wand'))return;var pos=cP(e.clientX,e.clientY);if(!pos)return;if(stkMode==='placing'){pushUndo();sfxPl();bounce();st.push({idx:stkGhostIdx,x:pos.x,y:pos.y,scale:160,rotation:0,flipped:false});selStk=st.length-1;cancelPlace();showStkTb();return;}for(var i=st.length-1;i>=0;i--){var s=st[i];var sz=(s.scale||160)/2;if(Math.abs(pos.x-s.x)<sz&&Math.abs(pos.y-s.y)<sz){if(selStk===i){selStk=-1;hideStkTb();}else{selStk=i;showStkTb();}sfxTap();return;}}if(selStk>=0){selStk=-1;hideStkTb();sfxTap();}}
 stg.addEventListener('mousedown',onStageDn);stg.addEventListener('touchstart',onStageDn,{passive:false});
 function onStageDn(e){if(stkMode==='placing')return;if(e.target.closest('.stk-toolbar'))return;if(e.target.closest('.fab-row'))return;if(e.target.closest('.magic-wand'))return;var t=e.touches?e.touches[0]:e;var pos=cP(t.clientX,t.clientY);if(!pos)return;if(selStk>=0){var s=st[selStk];var sz=(s.scale||160)/2;if(Math.abs(pos.x-s.x)<sz&&Math.abs(pos.y-s.y)<sz){e.preventDefault();pushUndo();stkMode='moving';stkDragIdx=selStk;}}}
@@ -2375,6 +2382,14 @@ function autoFetch(){
     if(d.backgrounds&&d.backgrounds['2']){
       var lsBg=document.getElementById('lsBg');
       if(lsBg)lsBg.style.backgroundImage='url('+d.backgrounds['2']+')';
+      // Also set homeScr to the same kawaii background
+      var hsBg=document.getElementById('homeScr');
+      if(hsBg){
+        hsBg.style.backgroundImage='url('+d.backgrounds['2']+')';
+        hsBg.style.backgroundSize='cover';
+        hsBg.style.backgroundPosition='center center';
+        hsBg.style.backgroundRepeat='no-repeat';
+      }
     }
     // Replace procedural backgrounds with illustrated ones
     loadUIBgs();
@@ -2397,6 +2412,10 @@ function autoFetch(){
         UI_ASSETS=JSON.parse(s);
         console.log('Starlet: Loaded UI assets from IndexedDB cache');
         loadUIBgs();
+        if(UI_ASSETS.backgrounds&&UI_ASSETS.backgrounds['2']){
+          var hsBg2=document.getElementById('homeScr');
+          if(hsBg2){hsBg2.style.backgroundImage='url('+UI_ASSETS.backgrounds['2']+')';hsBg2.style.backgroundSize='cover';hsBg2.style.backgroundPosition='center center';}
+        }
         if(UI_ASSETS.ui&&UI_ASSETS.ui.logo){
           var hLogo=document.getElementById('hLogo');
           if(hLogo)hLogo.innerHTML='<img src="'+UI_ASSETS.ui.logo+'">';
