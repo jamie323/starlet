@@ -7,8 +7,8 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;}
-html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background:#2a2035;display:flex;align-items:center;justify-content:center;}
-.app{display:flex;flex-direction:column;width:1194px;height:834px;max-width:100vw;max-height:100vh;position:relative;overflow:hidden;background:#FFF0F5;border-radius:0;box-shadow:0 0 60px rgba(0,0,0,0.3);}
+html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background:#FFAEC9;display:flex;align-items:center;justify-content:center;}
+.app{display:flex;flex-direction:column;width:1194px;height:834px;max-width:100vw;max-height:100vh;position:relative;overflow:hidden;background:#FFAEC9;border-radius:0;box-shadow:0 0 60px rgba(0,0,0,0.3);}
 
 /* TOPBAR — minimal: logo + menu button only */
 /* Gear buttons — floating settings access */
@@ -32,7 +32,7 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .fab{width:52px;height:52px;border-radius:14px;background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.3);color:#fff;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;box-shadow:0 2px 8px rgba(0,0,0,.3);}
 .fab:active{transform:scale(.85);background:rgba(255,255,255,.35);}
 .fab img{width:26px;height:26px;object-fit:contain;}
-.magic-wand{position:absolute;bottom:calc(40% + 12px);left:50%;transform:translateX(-50%);z-index:20;width:86px;height:86px;border-radius:50%;border:3px solid rgba(255,215,0,.7);font-size:38px;cursor:pointer;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#FFD700,#FF8C00);box-shadow:0 4px 20px rgba(255,165,0,.5),0 0 0 4px rgba(60,30,80,.4),inset 0 2px 0 rgba(255,255,255,.5);transition:all .2s cubic-bezier(.34,1.56,.64,1);animation:wandPulse 2s ease-in-out infinite;}
+.magic-wand{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);z-index:30;width:86px;height:86px;border-radius:50%;border:3px solid rgba(255,215,0,.7);font-size:34px;letter-spacing:0;cursor:pointer;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#FFD700,#FF8C00);box-shadow:0 4px 20px rgba(255,165,0,.5),0 0 0 4px rgba(60,30,80,.4),inset 0 2px 0 rgba(255,255,255,.5);transition:all .2s cubic-bezier(.34,1.56,.64,1);animation:wandPulse 2s ease-in-out infinite;}
 .magic-wand:active{transform:translateX(-50%) scale(.88);}
 .magic-wand img{width:40px;height:40px;object-fit:contain;}
 @keyframes wandPulse{0%,100%{box-shadow:0 4px 20px rgba(255,180,0,.25);}50%{box-shadow:0 4px 30px rgba(255,180,0,.45),0 0 20px rgba(255,215,0,.2);}}
@@ -475,6 +475,7 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
       <button class="fab" onclick="doClear()" title="Clear All" style="background:rgba(220,50,50,.85);border-color:rgba(255,150,150,.4);">🧹</button>
       <button class="fab" onclick="doSaveToWardrobe()" title="Save Look" style="background:rgba(50,180,80,.85);border-color:rgba(150,255,150,.4);">💾</button>
     </div>
+    <button class="magic-wand" onclick="doRandom()" title="Surprise Me!">✨</button>
     <div class="stk-toolbar" id="stkTb"><button class="stk-tb" onclick="stkScale(1.15)">＋</button><button class="stk-tb" onclick="stkScale(0.87)">－</button><button class="stk-tb" onclick="stkRotate(15)">↻</button><button class="stk-tb" onclick="stkFlip()">⇄</button><button class="stk-tb del" onclick="stkDelete()">✕</button></div>
     <div class="pose-label" id="poseLbl"></div><div class="toast" id="toast"></div>
   </div>
@@ -483,7 +484,6 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
     <div class="isc" id="isc"></div>
   </div>
   </div><!-- /app-body -->
-  <button class="magic-wand" onclick="doRandom()" title="Surprise Me!">🪄</button>
   <div class="gh" id="gh"><img id="gi"></div>
   <!-- ONBOARDING -->
   <div class="onboard" id="onboard" onclick="dismissOnboard()">
