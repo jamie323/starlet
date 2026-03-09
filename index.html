@@ -32,7 +32,7 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .fab{width:52px;height:52px;border-radius:14px;background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.3);color:#fff;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;box-shadow:0 2px 8px rgba(0,0,0,.3);}
 .fab:active{transform:scale(.85);background:rgba(255,255,255,.35);}
 .fab img{width:26px;height:26px;object-fit:contain;}
-.magic-wand{position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:20;width:58px;height:58px;border-radius:50%;border:3px solid rgba(255,215,0,.8);font-size:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#FFD700,#FF8C00);box-shadow:0 4px 18px rgba(255,165,0,.6),0 0 0 3px rgba(60,30,80,.35),inset 0 2px 0 rgba(255,255,255,.5);transition:transform .15s cubic-bezier(.34,1.56,.64,1),box-shadow .15s;animation:wandPulse 2s ease-in-out infinite;pointer-events:auto;}
+.magic-wand{position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:120;width:58px;height:58px;border-radius:50%;border:3px solid rgba(255,215,0,.8);font-size:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#FFD700,#FF8C00);box-shadow:0 4px 18px rgba(255,165,0,.6),0 0 0 3px rgba(60,30,80,.35),inset 0 2px 0 rgba(255,255,255,.5);transition:transform .15s cubic-bezier(.34,1.56,.64,1),box-shadow .15s;animation:wandPulse 2s ease-in-out infinite;pointer-events:auto;touch-action:manipulation;}
 .magic-wand:active{transform:translateX(-50%) scale(.86);box-shadow:0 2px 8px rgba(255,165,0,.4),inset 0 2px 0 rgba(255,255,255,.3);}
 .magic-wand img{width:32px;height:32px;object-fit:contain;}
 @keyframes wandPulse{0%,100%{box-shadow:0 4px 20px rgba(255,180,0,.25);}50%{box-shadow:0 4px 30px rgba(255,180,0,.45),0 0 20px rgba(255,215,0,.2);}}
@@ -1504,17 +1504,7 @@ function applyUIIcons(){
       hLogo.innerHTML='<img src="'+UI_ASSETS.ui.logo+'">';
     }
   }
-  // Home background
-  if(UI_ASSETS.ui&&UI_ASSETS.ui.home_bg){
-    var hs=document.getElementById('homeScr');
-    hs.style.backgroundSize='cover';hs.style.backgroundPosition='center';
-    if(hs){
-      hs.style.backgroundImage='url('+UI_ASSETS.ui.home_bg+')';
-      hs.style.backgroundSize='cover';
-      hs.style.backgroundPosition='center center';
-      hs.style.backgroundRepeat='no-repeat';
-    }
-  }
+  applyHomeScreenBackground();
   // Settings background
   if(UI_ASSETS.ui&&UI_ASSETS.ui.settings_bg){
     var md=document.querySelector('.md');
@@ -1541,6 +1531,18 @@ function applyDollhouseAssets(){
       var rug=dhRoom.querySelector('.dh-rug');if(rug)rug.style.display='none';
     }
   }
+}
+
+function applyHomeScreenBackground(){
+  if(!UI_ASSETS)return;
+  var hs=document.getElementById('homeScr');
+  if(!hs)return;
+  var bgSrc=(UI_ASSETS.backgrounds&&UI_ASSETS.backgrounds['2'])||(UI_ASSETS.ui&&UI_ASSETS.ui.home_bg);
+  if(!bgSrc)return;
+  hs.style.backgroundImage='url('+bgSrc+')';
+  hs.style.backgroundSize='cover';
+  hs.style.backgroundPosition='center center';
+  hs.style.backgroundRepeat='no-repeat';
 }
 
 // THUMBNAIL — handled in proc() via canvas crop → THUMBS object
@@ -1620,10 +1622,21 @@ function onMv(e){var t=e.touches?e.touches[0]:e;if(stkMode==='placing'){e.preven
 var stg=document.getElementById('stg');stg.addEventListener('click',onStageClick);
 // Wand: own touch handler so stage touchstart (non-passive) never interferes
 var wandBtn=document.getElementById('wandBtn');
+var lastWandTapAt=0;
+function triggerWand(e){
+  if(e){
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  var now=Date.now();
+  if(now-lastWandTapAt<250)return;
+  lastWandTapAt=now;
+  dismissOnboard();
+  doRandom();
+}
 if(wandBtn){
-  wandBtn.addEventListener('touchstart',function(e){e.stopPropagation();},{passive:true});
-  wandBtn.addEventListener('touchend',function(e){e.stopPropagation();e.preventDefault();doRandom();},{passive:false});
-  wandBtn.addEventListener('click',function(e){e.stopPropagation();doRandom();});
+  wandBtn.addEventListener('pointerup',triggerWand);
+  wandBtn.addEventListener('click',triggerWand);
 }
 function onStageClick(e){if(e.target.closest('.stk-toolbar'))return;if(e.target.closest('.fab-row'))return;if(e.target.closest('.magic-wand'))return;var pos=cP(e.clientX,e.clientY);if(!pos)return;if(stkMode==='placing'){pushUndo();sfxPl();bounce();st.push({idx:stkGhostIdx,x:pos.x,y:pos.y,scale:160,rotation:0,flipped:false});selStk=st.length-1;cancelPlace();showStkTb();return;}for(var i=st.length-1;i>=0;i--){var s=st[i];var sz=(s.scale||160)/2;if(Math.abs(pos.x-s.x)<sz&&Math.abs(pos.y-s.y)<sz){if(selStk===i){selStk=-1;hideStkTb();}else{selStk=i;showStkTb();}sfxTap();return;}}if(selStk>=0){selStk=-1;hideStkTb();sfxTap();}}
 stg.addEventListener('mousedown',onStageDn);stg.addEventListener('touchstart',onStageDn,{passive:false});
@@ -2467,14 +2480,7 @@ function autoFetch(){
     if(d.backgrounds&&d.backgrounds['2']){
       var lsBg=document.getElementById('lsBg');
       if(lsBg)lsBg.style.backgroundImage='url('+d.backgrounds['2']+')';
-      // Also set homeScr to the same kawaii background
-      var hsBg=document.getElementById('homeScr');
-      if(hsBg){
-        hsBg.style.backgroundImage='url('+d.backgrounds['2']+')';
-        hsBg.style.backgroundSize='cover';
-        hsBg.style.backgroundPosition='center center';
-        hsBg.style.backgroundRepeat='no-repeat';
-      }
+      applyHomeScreenBackground();
     }
     // Replace procedural backgrounds with illustrated ones
     loadUIBgs();
@@ -2497,10 +2503,7 @@ function autoFetch(){
         UI_ASSETS=JSON.parse(s);
         console.log('Starlet: Loaded UI assets from IndexedDB cache');
         loadUIBgs();
-        if(UI_ASSETS.backgrounds&&UI_ASSETS.backgrounds['2']){
-          var hsBg2=document.getElementById('homeScr');
-          if(hsBg2){hsBg2.style.backgroundImage='url('+UI_ASSETS.backgrounds['2']+')';hsBg2.style.backgroundSize='cover';hsBg2.style.backgroundPosition='center center';}
-        }
+        applyHomeScreenBackground();
         if(UI_ASSETS.ui&&UI_ASSETS.ui.logo){
           var hLogo=document.getElementById('hLogo');
           if(hLogo)hLogo.innerHTML='<img src="'+UI_ASSETS.ui.logo+'">';
