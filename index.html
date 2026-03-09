@@ -32,9 +32,9 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .fab{width:52px;height:52px;border-radius:14px;background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.3);color:#fff;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;box-shadow:0 2px 8px rgba(0,0,0,.3);}
 .fab:active{transform:scale(.85);background:rgba(255,255,255,.35);}
 .fab img{width:26px;height:26px;object-fit:contain;}
-.magic-wand{position:absolute;bottom:calc(40% + 10px);left:calc(50% - 200px);transform:none;z-index:100;width:90px;height:90px;border-radius:50%;border:3px solid rgba(255,215,0,.8);font-size:40px;cursor:pointer;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#FFD700,#FF8C00);box-shadow:0 4px 24px rgba(255,165,0,.6),0 0 0 4px rgba(60,30,80,.4),inset 0 2px 0 rgba(255,255,255,.5);transition:all .2s cubic-bezier(.34,1.56,.64,1);animation:wandPulse 2s ease-in-out infinite;}
-.magic-wand:active{transform:translateX(-50%) scale(.88);}
-.magic-wand img{width:40px;height:40px;object-fit:contain;}
+.magic-wand{position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:20;width:58px;height:58px;border-radius:50%;border:3px solid rgba(255,215,0,.8);font-size:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#FFD700,#FF8C00);box-shadow:0 4px 18px rgba(255,165,0,.6),0 0 0 3px rgba(60,30,80,.35),inset 0 2px 0 rgba(255,255,255,.5);transition:transform .15s cubic-bezier(.34,1.56,.64,1),box-shadow .15s;animation:wandPulse 2s ease-in-out infinite;pointer-events:auto;}
+.magic-wand:active{transform:translateX(-50%) scale(.86);box-shadow:0 2px 8px rgba(255,165,0,.4),inset 0 2px 0 rgba(255,255,255,.3);}
+.magic-wand img{width:32px;height:32px;object-fit:contain;}
 @keyframes wandPulse{0%,100%{box-shadow:0 4px 20px rgba(255,180,0,.25);}50%{box-shadow:0 4px 30px rgba(255,180,0,.45),0 0 20px rgba(255,215,0,.2);}}
 .fab:active{transform:scale(0.88);background:#FF6B9D;color:#fff;}
 
@@ -431,6 +431,11 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .fw-item:hover .fw-del{display:flex;}
 .fw-empty{grid-column:1/-1;text-align:center;padding:60px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;}
 @media(max-width:699px){.fw-grid{grid-template-columns:repeat(3,1fr);}}
+
+/* DEBUG OVERLAY */
+#dbgToggle{position:fixed;bottom:110px;right:8px;z-index:9999;width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,.6);color:#0f0;font-size:14px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:monospace;}
+#dbgPanel{position:fixed;bottom:155px;right:8px;z-index:9998;width:340px;max-height:320px;background:rgba(0,0,0,.88);color:#0f0;font-size:10px;font-family:monospace;border-radius:8px;overflow-y:auto;padding:8px;display:none;line-height:1.4;}
+#dbgPanel .dw{color:#ff0;}#dbgPanel .de{color:#f44;}
 </style>
 </head>
 <body>
@@ -470,6 +475,7 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
   <div class="app-body">
   <div class="stage" id="stg">
     <canvas id="cv" width="1024" height="1024"></canvas>
+    <button id="wandBtn" class="magic-wand" title="Surprise Me!">🪄</button>
     <button class="stage-gear" onclick="showSet()" data-ic="settings">⚙️</button>
     <div class="fab-row">
       <button class="fab" onclick="doUndo()" title="Undo" style="background:rgba(120,50,200,.9);border-color:rgba(200,150,255,.5);"><span data-ic="back">↩</span></button>
@@ -595,7 +601,6 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
   </div>
 
   <div class="toast" id="gToast"></div>
-  <button id="wandBtn" class="magic-wand" style="display:none" title="Surprise Me!">✨</button>
 
   <!-- BOTTOM NAV — floating toy shelf -->
   <nav class="bnav hid" id="bnav">
@@ -1425,6 +1430,40 @@ function ren(){
   st.forEach(function(s){var im=IM['stickers_'+s.idx];if(!im)return;var sz=s.scale||160;cx.save();cx.translate(s.x,s.y);if(s.rotation)cx.rotate(s.rotation*Math.PI/180);if(s.flipped)cx.scale(-1,1);cx.drawImage(im,-sz/2,-sz/2,sz,sz);cx.restore();});
 }
 
+
+// Shared character layer renderer — correct dual-hair layer order
+// ctx must already have the right transform applied; draws 1024xASSET_H space
+function drawCharLayers(ctx, ch){
+  var tmpEq=ch.eq||{outfits:-1,faces:-1,hairhats:-1};
+  var s=ch.skinIdx||0;
+  var sk=SK[s]||SK[0];
+  // Outfit / default body
+  if(tmpEq.outfits>=0&&IM['outfits_'+tmpEq.outfits]){
+    var styled=getStyled('outfits_'+tmpEq.outfits,ch.clrVar&&ch.clrVar.outfits||0,sk);
+    ctx.drawImage(styled||IM['outfits_'+tmpEq.outfits],0,0,1024,ASSET_H);
+  } else if(IM['bl']){
+    var im=s>0?tint('bl',sk):IM['bl'];if(im)ctx.drawImage(im,0,0,1024,ASSET_H);
+    else if(IM['bl'])ctx.drawImage(IM['bl'],0,0,1024,ASSET_H);
+  }
+  // Hair BACK — full image behind head
+  var hi=tmpEq.hairhats;
+  var hairImg=hi>=0?IM['hairhats_'+hi]:null;
+  if(hairImg)ctx.drawImage(hairImg,0,0,1024,ASSET_H);
+  // Body head on top of hair sides
+  var bh=s>0?tint('bh',sk):IM['bh'];
+  if(bh)ctx.drawImage(bh,0,0,1024,ASSET_H);
+  else if(IM['bh'])ctx.drawImage(IM['bh'],0,0,1024,ASSET_H);
+  // Face
+  var fi=tmpEq.faces;
+  if(fi>=0&&IM['faces_'+fi])ctx.drawImage(IM['faces_'+fi],0,0,1024,ASSET_H);
+  // Hair FRONT — clipped to top-of-head zone (bangs/crown)
+  if(hairImg){
+    var splitPxAsset=M.splitY?Math.round(M.splitY*ASSET_H):Math.round(0.33*ASSET_H+PAD_TOP);
+    var clipBotAsset=PAD_TOP+(splitPxAsset-PAD_TOP)*0.50;
+    ctx.save();ctx.beginPath();ctx.rect(0,0,1024,clipBotAsset);ctx.clip();
+    ctx.drawImage(hairImg,0,0,1024,ASSET_H);ctx.restore();
+  }
+}
 // ================================================================
 // UI — REDESIGNED
 // ================================================================
@@ -1687,12 +1726,10 @@ function showScr(id){
   if(el){el.classList.add('on','scr-enter');setTimeout(function(){el.classList.remove('scr-enter')},400);}
   curScr=id;
   updateBnav(id);
-  // Show wand only on dress up screen
-  var wb=document.getElementById('wandBtn');
-  if(wb)wb.style.display=(id==='dressScr')?'flex':'none';
+  // Wand is inside dressScr now — no manual show/hide needed
   // Screen-specific setup
   if(id==='homeScr')renderHome();
-  if(id==='dressScr'){loadCharIntoGlobals();bui();checkOnboard();}
+  if(id==='dressScr'){loadCharIntoGlobals();bui();checkOnboard();if(chars[ci]&&chars[ci].name)speakName(chars[ci].name);}
   if(id==='dhScr'){applyDollhouseAssets();renderDollhouse();}
   if(id==='fwScr')renderFullWardrobe();
   if(id==='createScr')renderCreateStep();
@@ -1899,11 +1936,7 @@ function renderDollhouse(){
     var ctx=cv.getContext('2d');ctx.clearRect(0,0,DW,DH);
     var tmpEq=ch.eq||{outfits:-1,faces:-1,hairhats:-1};
     var s=ch.skinIdx||0;
-    if(IM['bl']){var im=s>0?tint('bl',SK[s]):IM['bl'];if(im)ctx.drawImage(im,0,-50,DW,DW*ASSET_H/1024);}
-    if(IM['bh']){var im=s>0?tint('bh',SK[s]):IM['bh'];if(im)ctx.drawImage(im,0,-50,DW,DW*ASSET_H/1024);}
-    if(tmpEq.outfits>=0&&IM['outfits_'+tmpEq.outfits])ctx.drawImage(IM['outfits_'+tmpEq.outfits],0,-50,DW,DW*ASSET_H/1024);
-    if(tmpEq.faces>=0&&IM['faces_'+tmpEq.faces])ctx.drawImage(IM['faces_'+tmpEq.faces],0,-50,DW,DW*ASSET_H/1024);
-    if(tmpEq.hairhats>=0&&IM['hairhats_'+tmpEq.hairhats])ctx.drawImage(IM['hairhats_'+tmpEq.hairhats],0,-50,DW,DW*ASSET_H/1024);
+    var dhScale=DW/1024;ctx.save();ctx.translate(0,-50*dhScale);ctx.scale(dhScale,dhScale);drawCharLayers(ctx,ch);ctx.restore();
   });
   document.querySelectorAll('.dh-doll').forEach(function(d){
     var startX,startY,origL,origT;
@@ -1969,18 +2002,20 @@ function dhGroupPhoto(){
   sfxCamera();
   var c=document.createElement('canvas');c.width=1200;c.height=800;
   var ctx=c.getContext('2d');
-  var g=ctx.createLinearGradient(0,0,0,800);g.addColorStop(0,'#FFF0F5');g.addColorStop(1,'#FFE0EE');ctx.fillStyle=g;ctx.fillRect(0,0,1200,800);
+  // Use dollhouse room BG from UI_ASSETS if available, otherwise gradient
+  if(UI_ASSETS&&UI_ASSETS.dollhouse&&UI_ASSETS.dollhouse.room){
+    var bgI=new Image();bgI.src=UI_ASSETS.dollhouse.room;
+    if(bgI.complete)ctx.drawImage(bgI,0,0,1200,800);
+    else{var g=ctx.createLinearGradient(0,0,0,800);g.addColorStop(0,'#FFF0F5');g.addColorStop(1,'#FFE0EE');ctx.fillStyle=g;ctx.fillRect(0,0,1200,800);}
+  } else {
+    var g=ctx.createLinearGradient(0,0,0,800);g.addColorStop(0,'#FFF0F5');g.addColorStop(1,'#FFE0EE');ctx.fillStyle=g;ctx.fillRect(0,0,1200,800);
+  }
   var n=chars.length;if(!n)return;
   var w=Math.min(350,1100/n);
   chars.forEach(function(ch,i){
     var x=(1200-n*w)/2+i*w+w/2;
-    var tmpEq=ch.eq||{};var s=ch.skinIdx||0;
     ctx.save();ctx.translate(x,380);ctx.scale(w/1024,w/1024*ASSET_H/800);ctx.translate(-512,-ASSET_H/2);
-    if(IM['bl'])ctx.drawImage(s>0?tint('bl',SK[s]):IM['bl'],0,0,1024,ASSET_H);
-    if(IM['bh'])ctx.drawImage(s>0?tint('bh',SK[s]):IM['bh'],0,0,1024,ASSET_H);
-    if(tmpEq.outfits>=0&&IM['outfits_'+tmpEq.outfits])ctx.drawImage(IM['outfits_'+tmpEq.outfits],0,0,1024,ASSET_H);
-    if(tmpEq.faces>=0&&IM['faces_'+tmpEq.faces])ctx.drawImage(IM['faces_'+tmpEq.faces],0,0,1024,ASSET_H);
-    if(tmpEq.hairhats>=0&&IM['hairhats_'+tmpEq.hairhats])ctx.drawImage(IM['hairhats_'+tmpEq.hairhats],0,0,1024,ASSET_H);
+    drawCharLayers(ctx,ch);
     ctx.restore();
     ctx.fillStyle='rgba(61,32,64,0.5)';ctx.font='16px Nunito';ctx.textAlign='center';
     ctx.fillText(ch.name,x,750);
@@ -1991,21 +2026,32 @@ function dhGroupPhoto(){
 }
 
 // RUNWAY
+
+function speakName(name){
+  if(!name||!window.speechSynthesis)return;
+  try{
+    window.speechSynthesis.cancel();
+    var u=new SpeechSynthesisUtterance(name+'!');
+    u.rate=0.9;u.pitch=1.3;u.volume=0.8;
+    // Pick a soft female voice if available
+    var voices=window.speechSynthesis.getVoices();
+    var pick=voices.find(function(v){return /female|girl|samantha|karen|victoria|zira/i.test(v.name);})||voices[0];
+    if(pick)u.voice=pick;
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
 function startRunway(){
   var ch=chars[ci];if(!ch)return;
   var cv=document.getElementById('rwCv');if(!cv)return;
   var wrap=document.getElementById('rwWrap');
   // Reset animation by removing and re-adding class
-  if(wrap){wrap.style.animation='none';wrap.offsetHeight;wrap.style.animation='';}
+  if(wrap){wrap.style.animation='none';wrap.offsetHeight;wrap.style.animation='rwWalkIn 1.8s .3s cubic-bezier(.16,1,.3,1) forwards';}
   document.getElementById('rwName').textContent='✨ '+ch.name+' ✨';
+  speakName(ch.name);
   var ctx=cv.getContext('2d');ctx.clearRect(0,0,512,700);
   var tmpEq=ch.eq||{};var s=ch.skinIdx||0;
   ctx.save();ctx.translate(256,380);ctx.scale(0.46,0.46);ctx.translate(-512,-ASSET_H/2);
-  if(IM['bl'])ctx.drawImage(s>0?tint('bl',SK[s]):IM['bl'],0,0,1024,ASSET_H);
-  if(IM['bh'])ctx.drawImage(s>0?tint('bh',SK[s]):IM['bh'],0,0,1024,ASSET_H);
-  if(tmpEq.outfits>=0&&IM['outfits_'+tmpEq.outfits])ctx.drawImage(IM['outfits_'+tmpEq.outfits],0,0,1024,ASSET_H);
-  if(tmpEq.faces>=0&&IM['faces_'+tmpEq.faces])ctx.drawImage(IM['faces_'+tmpEq.faces],0,0,1024,ASSET_H);
-  if(tmpEq.hairhats>=0&&IM['hairhats_'+tmpEq.hairhats])ctx.drawImage(IM['hairhats_'+tmpEq.hairhats],0,0,1024,ASSET_H);
+  drawCharLayers(ctx,ch);
   ctx.restore();
   sfxEquip();
   // Sparkles burst
@@ -2040,6 +2086,7 @@ function rwSavePhoto(){
   showToast('📸 Runway photo saved!');
 }
 
+var _rwPoseTimer=null;
 function rwPose(type){
   sfxTap();
   var rw=document.getElementById('rwScr');if(!rw)return;
@@ -2064,8 +2111,9 @@ function rwPose(type){
     sp.style.animationDelay=(Math.random()*.5)+'s';
     rw.appendChild(sp);setTimeout(function(s){s.remove()}.bind(null,sp),2000);
   }
-  // Remove animation class after it completes
-  setTimeout(function(){rw.classList.remove('rw-spin','rw-bounce','rw-wiggle');},1500);
+  // Remove animation class after it completes (cancel previous timer first)
+  if(_rwPoseTimer)clearTimeout(_rwPoseTimer);
+  _rwPoseTimer=setTimeout(function(){rw.classList.remove('rw-spin','rw-bounce','rw-wiggle');_rwPoseTimer=null;},1500);
 }
 
 // PHOTO BOOTH
@@ -2148,11 +2196,7 @@ function pbRender(){
   var ch=chars[ci];if(!ch)return;
   var tmpEq=ch.eq||{};var s=ch.skinIdx||0;
   ctx.save();ctx.translate(300,360);ctx.scale(0.5,0.5);ctx.translate(-512,-ASSET_H/2);
-  if(IM['bl'])ctx.drawImage(s>0?tint('bl',SK[s]):IM['bl'],0,0,1024,ASSET_H);
-  if(IM['bh'])ctx.drawImage(s>0?tint('bh',SK[s]):IM['bh'],0,0,1024,ASSET_H);
-  if(tmpEq.outfits>=0&&IM['outfits_'+tmpEq.outfits])ctx.drawImage(IM['outfits_'+tmpEq.outfits],0,0,1024,ASSET_H);
-  if(tmpEq.faces>=0&&IM['faces_'+tmpEq.faces])ctx.drawImage(IM['faces_'+tmpEq.faces],0,0,1024,ASSET_H);
-  if(tmpEq.hairhats>=0&&IM['hairhats_'+tmpEq.hairhats])ctx.drawImage(IM['hairhats_'+tmpEq.hairhats],0,0,1024,ASSET_H);
+  drawCharLayers(ctx,ch);
   ctx.restore();
   // Stamps
   ctx.font='40px serif';ctx.textAlign='center';
@@ -2203,10 +2247,14 @@ function pbRender(){
     }
     ctx.restore();
   }
+  // UI_ASSETS frame overlay
+  if(UI_ASSETS&&UI_ASSETS.photobooth&&UI_ASSETS.photobooth.frame&&pbFrame!=='none'){
+    var fImg=new Image();fImg.onload=function(){ctx.drawImage(fImg,0,0,600,750);};fImg.src=UI_ASSETS.photobooth.frame;
+  }
   ctx.fillStyle='rgba(61,32,64,0.3)';ctx.font='11px Nunito';ctx.textAlign='right';ctx.fillText('✨ Made with Starlet',585,740);
 }
 function pbSnap(){sfxCamera();pbRender();setTimeout(function(){var cv=document.getElementById('pbCv');var a=document.createElement('a');a.download='starlet-photo-'+Date.now()+'.png';a.href=cv.toDataURL();a.click();sfxSave();showToast('📸 Photo saved!');},100);}
-function pbSavePhoto(){var cv=document.getElementById('pbCv');var a=document.createElement('a');a.download='starlet-photo.png';a.href=cv.toDataURL();a.click();sfxSave();showToast('💾 Photo saved!');}
+function pbSavePhoto(){pbRender();setTimeout(function(){var cv=document.getElementById('pbCv');var a=document.createElement('a');a.download='starlet-photo.png';a.href=cv.toDataURL();a.click();sfxSave();showToast('💾 Photo saved!');},60);}
 
 // FULL WARDROBE SCREEN
 function renderFullWardrobe(){
@@ -2478,6 +2526,28 @@ dbo().then(function(){
 }).catch(function(){document.getElementById('ls').classList.remove('hid')});
 window.addEventListener('resize',function(){if(selStk>=0)updateStkTb()});
 requestAnimationFrame(animLoop);
+</script>
+
+<button id="dbgToggle" onclick="dbgToggle()">🐛</button>
+<div id="dbgPanel" id="dbgPanel"></div>
+<script>
+(function(){
+  var panel=document.getElementById('dbgPanel');
+  var logs=[];
+  function addLog(cls,args){
+    var txt=Array.from(args).map(function(a){try{return typeof a==='object'?JSON.stringify(a).slice(0,120):String(a);}catch(e){return String(a);}}).join(' ');
+    logs.push('<div class="'+cls+'">'+txt.replace(/</g,'&lt;').slice(0,200)+'</div>');
+    if(logs.length>80)logs.shift();
+    if(panel)panel.innerHTML=logs.join('');
+    if(panel&&panel.style.display!=='none')panel.scrollTop=panel.scrollHeight;
+  }
+  var _log=console.log,_warn=console.warn,_err=console.error;
+  console.log=function(){_log.apply(console,arguments);addLog('',arguments);};
+  console.warn=function(){_warn.apply(console,arguments);addLog('dw',arguments);};
+  console.error=function(){_err.apply(console,arguments);addLog('de',arguments);};
+  window.onerror=function(m,s,l){addLog('de',['ERROR: '+m+' (line '+l+')']);return false;};
+})();
+function dbgToggle(){var p=document.getElementById('dbgPanel');if(p)p.style.display=p.style.display==='none'?'block':'none';}
 </script>
 </body>
 </html>
