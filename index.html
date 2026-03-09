@@ -2156,7 +2156,7 @@ function pbSetBg(color){pbBgColor=color;sfxTap();pbInitBgs();pbRender();}
 var PB_FRAMES=[{id:'none',e:'✕'},{id:'hearts',e:'💕'},{id:'sparkle',e:'✨'},{id:'rainbow',e:'🌈'},{id:'stars',e:'⭐'},{id:'lavender',e:'💜'}];
 var PB_STAMP_E=['⭐','💖','✨','🦋','🌈','👑','🌸','🎀','💫','🔥','😍','🎉'];
 function initPhotoBooth(){
-  pbSelStamp=-1;pbBgColor='#FFFFFF';pbStamps=[];pbFrame='pink';
+  pbSelStamp=-1;pbBgColor='#FFFFFF';pbStamps=[];pbFrame='hearts';
   // Set up canvas tap-to-place
   var pbCv=document.getElementById('pbCv');
   if(pbCv&&!pbCv._pbListened){
