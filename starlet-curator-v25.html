@@ -716,10 +716,11 @@ function splitBody(){
 function computeAnchors(){
   if(!bodyFull) return;
   var b=scanBounds(bodyFull.img);var headH=splitY-b.top;var fullW=b.right-b.left;var midX=b.cx;var bodySpan=b.bot-splitY;
+  var outfitLift=Math.min(0.09,Math.max(0.055,headH*0.16));
   anchors={bounds:b};
   slotBoxes={
-    // OUTFIT: starts 15% above split for collar/shoulder coverage
-    outfit:{x:Math.max(0,midX-fullW*1.0),y:splitY-0.15,w:Math.min(1.0,fullW*2.0),h:Math.min(1.0-splitY+0.15, bodySpan+0.25)},
+    // OUTFIT: keep enough room for collars/hoods, but don't let edits crawl into the face zone
+    outfit:{x:Math.max(0,midX-fullW*1.0),y:Math.max(0,splitY-outfitLift),w:Math.min(1.0,fullW*2.0),h:Math.min(1.0-splitY+outfitLift, bodySpan+0.18)},
     // HAIRHAT: covers full head area — hair sits on top, hat+hair combos need full zone
     hairhat:{x:Math.max(0,midX-fullW*0.85),y:Math.max(0,b.top-0.18),w:Math.min(1.0,fullW*1.7),h:Math.min(1.0-Math.max(0,b.top-0.18),headH*1.05+0.10)}
   };
@@ -727,6 +728,14 @@ function computeAnchors(){
 }
 
 function scanBounds(img){var c=document.createElement('canvas');c.width=c.height=1024;c.getContext('2d').drawImage(img,0,0,1024,1024);var d=c.getContext('2d').getImageData(0,0,1024,1024).data;var tY=1024,bY=0,lX=1024,rX=0;for(var y=0;y<1024;y++) for(var x=0;x<1024;x++){if(d[(y*1024+x)*4+3]<50) continue;if(y<tY)tY=y;if(y>bY)bY=y;if(x<lX)lX=x;if(x>rX)rX=x;}return{top:tY/1024,bot:bY/1024,left:lX/1024,right:rX/1024,cx:(lX+rX)/2/1024,cy:(tY+bY)/2/1024};}
+function getOutfitHeadCutPx(W){
+  var splitPx=Math.round(splitY*W);
+  var hb=bodyHead?scanBounds(bodyHead.img):null;
+  var headTopPx=hb?Math.round(hb.top*W):Math.round(Math.max(0,splitY-0.26)*W);
+  var headSpan=Math.max(80,splitPx-headTopPx);
+  var collarLift=Math.round(Math.max(72,Math.min(112,headSpan*0.20)));
+  return Math.max(0,splitPx-collarLift);
+}
 
 // Post-process hair: clear face area to remove AI-generated face outlines
 function cleanHairFace(result){
@@ -1038,7 +1047,7 @@ function extractOutfitDiff(resultDataUrl){
     var refData=refCtx.getImageData(0,0,W,W).data;
 
     var splitPx=Math.round(splitY*W);
-    var headCut=splitPx-180;
+    var headCut=getOutfitHeadCutPx(W);
     var outC=document.createElement('canvas');outC.width=outC.height=W;
     var outCtx=outC.getContext('2d');
     var outImg=outCtx.getImageData(0,0,W,W);
