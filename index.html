@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>✨ Starlet v4.1 ✨</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap');
@@ -292,9 +292,9 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 /* Screens that show bottom nav need padding */
 .home-scr,.fw-scr{padding-bottom:90px;}
 /* Full-bleed screens still need nav space */
-.rw-scr{padding-bottom:100px;}
+.rw-scr{padding-bottom:120px;}
 .dh-scr{padding-bottom:0;}
-.pb-scr{padding-bottom:90px;}
+.pb-scr{padding-bottom:100px;}
 /* MULTI-SCREEN NAVIGATION */
 .scr{position:absolute;inset:0;display:none;flex-direction:column;overflow:hidden;}
 .scr.on{display:flex;}
@@ -392,7 +392,7 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 .pb-stamp:active{transform:scale(.85);background:rgba(255,255,255,.15);}
 
 /* RUNWAY */
-.rw-scr{background:linear-gradient(180deg,#1a0a30,#2a1040,#1a0a30);align-items:center;justify-content:center;position:relative;overflow:hidden;gap:4px;padding-bottom:85px;}
+.rw-scr{background:linear-gradient(180deg,#1a0a30,#2a1040,#1a0a30);align-items:center;justify-content:center;position:relative;overflow:hidden;gap:4px;padding-bottom:120px;}
 .rw-spot{position:absolute;width:500px;height:100%;background:radial-gradient(ellipse at 50% 30%,rgba(255,215,0,.12),transparent 60%);top:0;left:50%;transform:translateX(-50%);pointer-events:none;}
 .rw-strip{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:200px;height:100%;background:linear-gradient(180deg,transparent 0%,rgba(255,107,157,.04) 30%,rgba(255,107,157,.08) 100%);pointer-events:none;}
 .rw-canvas-wrap{position:relative;z-index:2;transform:translateY(120%);animation:rwWalkIn 1.8s .3s cubic-bezier(.16,1,.3,1) forwards;margin-top:auto;margin-bottom:-40px;}
@@ -406,7 +406,7 @@ html,body{height:100%;overflow:hidden;font-family:'Nunito',sans-serif;background
 @keyframes rwSp{0%{opacity:0;transform:scale(0);}30%{opacity:1;transform:scale(1);}100%{opacity:0;transform:translateY(-50px) scale(.3);}}
 .rw-hint{position:absolute;bottom:20px;color:rgba(255,255,255,.4);font-size:12px;font-weight:600;opacity:0;animation:rwHint .5s 3.5s forwards;z-index:5;}
 @keyframes rwHint{to{opacity:1;}}
-.rw-actions{display:flex;gap:10px;z-index:5;margin-top:auto;padding-bottom:8px;flex-shrink:0;}
+.rw-actions{display:flex;gap:10px;z-index:110;margin-top:auto;padding-bottom:8px;margin-bottom:28px;flex-shrink:0;}
 .rw-btn{background:linear-gradient(135deg,#4CAF50,#2E7D32);border:2px solid rgba(255,255,255,.3);color:#fff;font-family:inherit;font-size:26px;font-weight:700;padding:0;width:64px;height:64px;border-radius:20px;cursor:pointer;backdrop-filter:blur(6px);transition:.2s;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.3),inset 0 2px 0 rgba(255,255,255,.2);}
 .rw-btn:active{transform:scale(.88);}
 .rw-btn .rw-bico{width:44px;height:44px;font-size:36px;display:flex;align-items:center;justify-content:center;overflow:hidden;}
@@ -1645,7 +1645,7 @@ document.addEventListener('mouseup',onUp);document.addEventListener('touchend',o
 function onUp(){if(stkMode==='moving'){stkMode=null;stkDragIdx=-1;updateStkTb();}}
 function showStkTb(){updateStkTb();document.getElementById('stkTb').classList.add('show');}
 function hideStkTb(){document.getElementById('stkTb').classList.remove('show');}
-function updateStkTb(){if(selStk<0||selStk>=st.length){hideStkTb();return;}var s=st[selStk];var r=cv.getBoundingClientRect();var sx=r.left+(s.x/1024)*r.width;var sy=r.top+(s.y/1024)*r.height;var tb=document.getElementById('stkTb');var sz=(s.scale||160)/1024*r.width;tb.style.left=Math.max(4,Math.min(r.width-170,sx-85))+'px';tb.style.top=Math.max(4,sy-sz/2-40)+'px';}
+function updateStkTb(){if(selStk<0||selStk>=st.length){hideStkTb();return;}var s=st[selStk];var r=cv.getBoundingClientRect();var sx=(s.x/1024)*r.width;var sy=(s.y/1024)*r.height;var tb=document.getElementById('stkTb');var sz=(s.scale||160)/1024*r.width;tb.style.left=Math.max(4,Math.min(r.width-170,sx-85))+'px';tb.style.top=Math.max(4,sy-sz/2-40)+'px';}
 function stkScale(f){if(selStk<0)return;pushUndo();sfxTap();st[selStk].scale=Math.max(60,Math.min(400,(st[selStk].scale||160)*f));}
 function stkRotate(d){if(selStk<0)return;pushUndo();sfxTap();st[selStk].rotation=((st[selStk].rotation||0)+d)%360;}
 function stkFlip(){if(selStk<0)return;pushUndo();sfxTap();st[selStk].flipped=!st[selStk].flipped;}
@@ -1776,19 +1776,17 @@ function saveChars(){if(db)dbp('chars',JSON.stringify(chars));if(db)dbp('ci',ci)
 // HOME SCREEN
 function renderHome(){
   var el=document.getElementById('hCards');if(!el)return;
-  var maxC=paid?3:1;
+  var slotCount=paid?3:Math.max(chars.length,1);
   var html='';
-  for(var i=0;i<3;i++){
+  for(var i=0;i<slotCount;i++){
     if(i<chars.length){
       var ch=chars[i];
       html+='<div class="h-card" onclick="selectChar('+i+')">';
       html+='<div class="h-preview"><canvas id="hPv'+i+'" width="256" height="256"></canvas></div>';
       var btLabel=(ch.bodyType||'petite').charAt(0).toUpperCase()+(ch.bodyType||'petite').slice(1);
       html+='<div class="h-info"><div class="h-name">'+esc(ch.name)+'</div><div class="h-body">'+btLabel+'</div></div></div>';
-    }else if(i<maxC){
-      html+='<div class="h-card empty" onclick="startCreate('+i+')"><div class="h-add-icon">+</div><div class="h-add-lbl">Create a doll!</div></div>';
     }else{
-      html+='<div class="h-card empty" style="opacity:.4;cursor:default;"><div class="h-add-icon">🔒</div><div class="h-add-lbl">Unlock ✨</div></div>';
+      html+='<div class="h-card empty" onclick="startCreate('+i+')"><div class="h-add-icon">+</div><div class="h-add-lbl">Create a doll!</div></div>';
     }
   }
   el.innerHTML=html;
@@ -2165,8 +2163,10 @@ function initPhotoBooth(){
       if(pbSelStamp===-1)return;
       e.preventDefault();
       var rect=pbCv.getBoundingClientRect();
-      var clientX=e.touches?e.touches[0].clientX:e.clientX;
-      var clientY=e.touches?e.touches[0].clientY:e.clientY;
+      var touch=e.changedTouches&&e.changedTouches[0]||e.touches&&e.touches[0]||null;
+      var clientX=touch?touch.clientX:e.clientX;
+      var clientY=touch?touch.clientY:e.clientY;
+      if(clientX===undefined||clientY===undefined)return;
       // Map screen coords to canvas coords (600x750)
       var scaleX=600/rect.width;
       var scaleY=750/rect.height;
