@@ -573,6 +573,15 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',sans-serif
         <button class="md-btn md-btn-ghost" onclick="clrDB()">🗑️ Clear All Data</button>
       </div>
       <div class="md-section">
+        <div class="md-section-title">👤 Current Doll</div>
+        <div id="charEditWrap">
+          <div style="font-size:12px;color:rgba(90,48,96,.75);font-weight:700;line-height:1.45;margin-bottom:10px;">Change the current doll's name or skin tone after creation.</div>
+          <input class="cr-input" id="setCharName" placeholder="Doll name" maxlength="20" style="margin:0 0 10px;">
+          <div id="setSkinRow" class="skin-row" style="justify-content:flex-start;margin:0 0 10px;"></div>
+          <button class="md-btn md-btn-pink" onclick="saveCurrentCharMeta()">Save Doll Changes</button>
+        </div>
+      </div>
+      <div class="md-section">
         <div class="md-section-title">🧍 Body Tune</div>
         <div style="font-size:12px;color:rgba(90,48,96,.75);font-weight:700;line-height:1.45;margin-bottom:10px;">Tune the currently selected body live, then I’ll bake the final values and remove this.</div>
         <div id="bodyTuneLbl" style="font-size:12px;font-weight:800;color:#5a3060;margin-bottom:8px;">Current body: Petite</div>
@@ -724,7 +733,7 @@ var CS=['outfits','faces','hairhats','stickers'];
 var ASSET_H=1400,PAD_TOP=200; // updated from v8 meta when available
 var BODY_CANVAS=1024;
 var BODY_TUNE_VERSION=2;
-var SHARED_TUNE_VERSION=1;
+var SHARED_TUNE_VERSION=3;
 var TABS=[
   {id:'outfits',emoji:'👗',label:'Outfits'},
   {id:'faces',emoji:'😊',label:'Faces'},
@@ -1273,10 +1282,10 @@ function getAvailableBodyTypes(){
 }
 function getBodyDisplay(bt){
   var base=bt==='petite'
-    ? {sx:0.76, sy:0.86, y:70, homeY:18, homeSx:0.76, homeSy:0.86, runwayY:42, runwaySx:0.76, runwaySy:0.86, houseY:30, houseSx:0.76, houseSy:0.86}
+    ? {sx:0.76, sy:0.86, y:70, homeY:34, homeSx:0.66, homeSy:0.72, runwayY:42, runwaySx:0.76, runwaySy:0.86, houseY:30, houseSx:0.76, houseSy:0.86}
     : bt==='tall'
-      ? {sx:0.86, sy:1.34, y:-4, homeY:-6, homeSx:0.86, homeSy:1.26, runwayY:-8, runwaySx:0.86, runwaySy:1.26, houseY:-4, houseSx:0.86, houseSy:1.26}
-      : {sx:0.93, sy:1.06, y:18, homeY:8, homeSx:0.93, homeSy:1.05, runwayY:10, runwaySx:0.93, runwaySy:1.05, houseY:8, houseSx:0.93, houseSy:1.05};
+      ? {sx:0.86, sy:1.34, y:-4, homeY:-14, homeSx:0.90, homeSy:1.38, runwayY:14, runwaySx:0.86, runwaySy:1.26, houseY:-4, houseSx:0.86, houseSy:1.26}
+      : {sx:0.93, sy:1.06, y:18, homeY:10, homeSx:0.80, homeSy:0.98, runwayY:10, runwaySx:0.93, runwaySy:1.05, houseY:8, houseSx:0.93, houseSy:1.05};
   var tune=(window.bodyDisplayTune&&window.bodyDisplayTune[bt])||{};
   var sx=(base.sx||1)+(tune.sx||0);
   var sy=(base.sy||1)+(tune.sy||0);
@@ -1295,21 +1304,29 @@ function getBodyDisplay(bt){
   };
 }
 function getSharedLayerDisplay(bt,kind){
-  var base;
-  if(bt==='tall'){
-    base=kind==='hair'
-      ? {y:0,sx:0,sy:0}
-      : {y:18,sx:0,sy:0};
-  }else if(bt==='medium'){
-    base=kind==='hair'
-      ? {y:0,sx:0,sy:0}
-      : {y:6,sx:0,sy:0};
-  }else{
-    base={y:0,sx:0,sy:0};
-  }
   var tune=getSharedTuneFor(bt,kind);
+  var faceTune=kind==='hair' ? getSharedTuneFor(bt,'face') : {y:0,sx:0,sy:0};
+  var base={y:0,sx:0,sy:0};
+  if(bt!=='petite'){
+    var pb=getHeadBoundsAsset('petite');
+    var bb=getHeadBoundsAsset(bt);
+    if(pb&&bb){
+      var pW=Math.max(1,pb.right-pb.left), pH=Math.max(1,pb.bot-pb.top);
+      var bW=Math.max(1,bb.right-bb.left), bH=Math.max(1,bb.bot-bb.top);
+      var pTargetY=(kind==='hair')?(pb.top+pH*0.30):(pb.top+pH*0.44);
+      var bTargetY=(kind==='hair')?(bb.top+bH*0.30):(bb.top+bH*0.44);
+      var ratio=kind==='hair'
+        ? Math.max(0.70,Math.min(1.02,bW/pW))
+        : Math.max(0.74,Math.min(1.02,((bW/pW)*0.55)+((bH/pH)*0.45)));
+      base.y=(bTargetY-pTargetY)-32-(kind==='hair'?6:0);
+      base.sx=ratio-1;
+      base.sy=ratio-1;
+    }else if(bt==='medium'){
+      base.y=kind==='hair' ? -24 : -18;
+    }
+  }
   return {
-    y:(base.y||0)+(tune.y||0),
+    y:(base.y||0)+(tune.y||0)+(kind==='hair'?(faceTune.y||0):0),
     sx:(base.sx||0)+(tune.sx||0),
     sy:(base.sy||0)+(tune.sy||0)
   };
@@ -1334,8 +1351,37 @@ function getBodyBoundsAsset(bt){
     bot:b.bot!==undefined&&b.bot!==null?assetYFromBase(b.bot):getBodyBottomAsset(bt)
   };
 }
+var IMG_BOUNDS_CACHE={};
+function scanImageBounds(im){
+  if(!im)return null;
+  var key=im.src||('im_'+Math.random());
+  if(IMG_BOUNDS_CACHE[key])return IMG_BOUNDS_CACHE[key];
+  var c=document.createElement('canvas');
+  c.width=im.naturalWidth||im.width||1024;
+  c.height=im.naturalHeight||im.height||ASSET_H;
+  var ctx=c.getContext('2d');
+  ctx.drawImage(im,0,0,c.width,c.height);
+  var data=ctx.getImageData(0,0,c.width,c.height).data;
+  var top=c.height,bot=0,left=c.width,right=0;
+  for(var y=0;y<c.height;y+=2){
+    for(var x=0;x<c.width;x+=2){
+      if(data[(y*c.width+x)*4+3]>20){
+        if(y<top)top=y;
+        if(y>bot)bot=y;
+        if(x<left)left=x;
+        if(x>right)right=x;
+      }
+    }
+  }
+  var out=(bot>top&&right>left)?{left:left,right:right,top:top,bot:bot}:null;
+  IMG_BOUNDS_CACHE[key]=out;
+  return out;
+}
+function getHeadBoundsAsset(bt){
+  return scanImageBounds(IM[getBodyImgKey('bh',bt)])||getBodyBoundsAsset(bt);
+}
 function addHairFrontClipPath(ctx,bt){
-  var hb=getBodyBoundsAsset(bt);
+  var hb=getHeadBoundsAsset(bt);
   var headLeft=hb.left,headRight=hb.right,headTop=hb.top,headBot=hb.bot;
   var headW=headRight-headLeft,headH=headBot-headTop;
   var cx=headLeft+headW*0.5;
@@ -1499,7 +1545,7 @@ function bnavGo(action){
     case 'dress':if(chars.length)showScr('dressScr');else showToast('Create a doll first!');break;
     case 'runway':if(chars.length){saveCharToArray();showScr('rwScr');}else showToast('Create a doll first!');break;
     case 'photo':if(chars.length){saveCharToArray();showScr('pbScr');}else showToast('Create a doll first!');break;
-    case 'dollhouse':showScr('dhScr');break;
+    case 'dollhouse':if(chars.length)saveCharToArray();showScr('dhScr');break;
     case 'wardrobe':if(chars.length){saveCharToArray();fwFrom='dressScr';showScr('fwScr');}else showToast('Create a doll first!');break;
   }
 }
@@ -1883,15 +1929,15 @@ if(wandBtn){
   wandBtn.addEventListener('pointerup',triggerWand);
   wandBtn.addEventListener('click',triggerWand);
 }
-function onStageClick(e){if(e.target.closest('.stk-toolbar'))return;if(e.target.closest('.fab-row'))return;if(e.target.closest('.magic-wand'))return;var pos=cP(e.clientX,e.clientY);if(!pos)return;if(stkMode==='placing'){pushUndo();sfxPl();bounce();st.push({idx:stkGhostIdx,x:pos.x,y:pos.y,scale:160,rotation:0,flipped:false});selStk=st.length-1;cancelPlace();showStkTb();return;}for(var i=st.length-1;i>=0;i--){var s=st[i];var sz=(s.scale||160)/2;if(Math.abs(pos.x-s.x)<sz&&Math.abs(pos.y-s.y)<sz){if(selStk===i){selStk=-1;hideStkTb();}else{selStk=i;showStkTb();}sfxTap();return;}}if(selStk>=0){selStk=-1;hideStkTb();sfxTap();}}
+function onStageClick(e){if(e.target.closest('.stk-toolbar'))return;if(e.target.closest('.fab-row'))return;if(e.target.closest('.magic-wand'))return;var pos=cP(e.clientX,e.clientY);if(!pos)return;if(stkMode==='placing'){pushUndo();sfxPl();bounce();st.push({idx:stkGhostIdx,x:pos.x,y:pos.y,scale:640,rotation:0,flipped:false});selStk=st.length-1;cancelPlace();showStkTb();return;}for(var i=st.length-1;i>=0;i--){var s=st[i];var sz=(s.scale||640)/2;if(Math.abs(pos.x-s.x)<sz&&Math.abs(pos.y-s.y)<sz){if(selStk===i){selStk=-1;hideStkTb();}else{selStk=i;showStkTb();}sfxTap();return;}}if(selStk>=0){selStk=-1;hideStkTb();sfxTap();}}
 stg.addEventListener('mousedown',onStageDn);stg.addEventListener('touchstart',onStageDn,{passive:false});
-function onStageDn(e){if(stkMode==='placing')return;if(e.target.closest('.stk-toolbar'))return;if(e.target.closest('.fab-row'))return;if(e.target.closest('.magic-wand'))return;var t=e.touches?e.touches[0]:e;var pos=cP(t.clientX,t.clientY);if(!pos)return;if(selStk>=0){var s=st[selStk];var sz=(s.scale||160)/2;if(Math.abs(pos.x-s.x)<sz&&Math.abs(pos.y-s.y)<sz){e.preventDefault();pushUndo();stkMode='moving';stkDragIdx=selStk;}}}
+function onStageDn(e){if(stkMode==='placing')return;if(e.target.closest('.stk-toolbar'))return;if(e.target.closest('.fab-row'))return;if(e.target.closest('.magic-wand'))return;var t=e.touches?e.touches[0]:e;var pos=cP(t.clientX,t.clientY);if(!pos)return;if(selStk>=0){var s=st[selStk];var sz=(s.scale||640)/2;if(Math.abs(pos.x-s.x)<sz&&Math.abs(pos.y-s.y)<sz){e.preventDefault();pushUndo();stkMode='moving';stkDragIdx=selStk;}}}
 document.addEventListener('mouseup',onUp);document.addEventListener('touchend',onUp);
 function onUp(){if(stkMode==='moving'){stkMode=null;stkDragIdx=-1;updateStkTb();}}
 function showStkTb(){updateStkTb();document.getElementById('stkTb').classList.add('show');}
 function hideStkTb(){document.getElementById('stkTb').classList.remove('show');}
-function updateStkTb(){if(selStk<0||selStk>=st.length){hideStkTb();return;}var s=st[selStk];var r=cv.getBoundingClientRect();var sx=(s.x/1024)*r.width;var sy=(s.y/1024)*r.height;var tb=document.getElementById('stkTb');var sz=(s.scale||160)/1024*r.width;tb.style.left=Math.max(4,Math.min(r.width-170,sx-85))+'px';tb.style.top=Math.max(4,sy-sz/2-40)+'px';}
-function stkScale(f){if(selStk<0)return;pushUndo();sfxTap();st[selStk].scale=Math.max(60,Math.min(400,(st[selStk].scale||160)*f));}
+function updateStkTb(){if(selStk<0||selStk>=st.length){hideStkTb();return;}var s=st[selStk];var r=cv.getBoundingClientRect();var sx=(s.x/1024)*r.width;var sy=(s.y/1024)*r.height;var tb=document.getElementById('stkTb');var sz=(s.scale||640)/1024*r.width;tb.style.left=Math.max(4,Math.min(r.width-170,sx-85))+'px';tb.style.top=Math.max(4,sy-sz/2-40)+'px';}
+function stkScale(f){if(selStk<0)return;pushUndo();sfxTap();st[selStk].scale=Math.max(180,Math.min(900,(st[selStk].scale||640)*f));}
 function stkRotate(d){if(selStk<0)return;pushUndo();sfxTap();st[selStk].rotation=((st[selStk].rotation||0)+d)%360;}
 function stkFlip(){if(selStk<0)return;pushUndo();sfxTap();st[selStk].flipped=!st[selStk].flipped;}
 function stkDelete(){if(selStk<0)return;pushUndo();sfxTap();st.splice(selStk,1);selStk=-1;hideStkTb();}
@@ -1961,6 +2007,48 @@ function refreshSharedTuneUI(){
   if(lbl)lbl.textContent='Current body: '+bt.charAt(0).toUpperCase()+bt.slice(1);
   if(faceVals)faceVals.textContent='face y '+face.y+' | sx '+face.sx.toFixed(2)+' | sy '+face.sy.toFixed(2);
 }
+function refreshCharEditUI(){
+  var wrap=document.getElementById('charEditWrap');
+  if(!wrap)return;
+  var hasChar=!!(chars.length&&chars[ci]);
+  wrap.style.opacity=hasChar?'1':'0.6';
+  wrap.style.pointerEvents=hasChar?'auto':'none';
+  var nameInp=document.getElementById('setCharName');
+  if(nameInp)nameInp.value=hasChar?(chars[ci].name||''):'';
+  var row=document.getElementById('setSkinRow');
+  if(row){
+    var activeSkin=hasChar?((chars[ci].skinIdx!==undefined)?chars[ci].skinIdx:si):0;
+    var h='';
+    SK.forEach(function(s,i){
+      h+='<div class="sd'+(activeSkin===i?' on':'')+'" style="background:'+s.h+'" onclick="pickCurrentCharSkin('+i+')"></div>';
+    });
+    row.innerHTML=h;
+  }
+}
+function pickCurrentCharSkin(i){
+  if(!(chars.length&&chars[ci]))return;
+  chars[ci].skinIdx=i;
+  if(curScr==='dressScr'){si=i;TN={};tintedDefaults={};bui();}
+  saveChars();
+  refreshCharEditUI();
+}
+function saveCurrentCharMeta(){
+  if(!(chars.length&&chars[ci]))return;
+  var ch=chars[ci];
+  var inp=document.getElementById('setCharName');
+  if(inp)ch.name=(inp.value||'').trim()||'Doll';
+  if(curScr==='dressScr'){
+    si=ch.skinIdx||0;
+    saveCharToArray();
+    bui();
+  }else{
+    saveChars();
+    if(curScr==='homeScr')renderHome();
+    else if(curScr==='rwScr')startRunway();
+    else if(curScr==='dhScr')renderDollhouse();
+  }
+  showToast('✨ Doll updated!');
+}
 function bodyTuneStep(key,delta){
   var bt=getActiveBodyType();
   if(!bodyDisplayTune[bt])bodyDisplayTune[bt]={sx:0,sy:0,y:0};
@@ -2007,7 +2095,7 @@ function resetSharedTune(){
   else if(curScr==='rwScr')startRunway();
   else if(curScr==='dhScr')renderDollhouse();
 }
-function showSet(){document.getElementById('setM').classList.add('show');initVoiceSettings();refreshBodyTuneUI();refreshSharedTuneUI();}
+function showSet(){document.getElementById('setM').classList.add('show');initVoiceSettings();refreshBodyTuneUI();refreshSharedTuneUI();refreshCharEditUI();}
 function hideSet(){document.getElementById('setM').classList.remove('show');}
 function clrDB(){if(!confirm('Clear all saved data?'))return;if(db){var t=db.transaction('d','readwrite');t.objectStore('d').clear();t.oncomplete=function(){location.reload()}};}
 
@@ -2229,11 +2317,11 @@ function renderHome(){
     var bounds=getBodyBoundsAsset(bt);
     var srcW=Math.max(1,bounds.right-bounds.left);
     var srcH=Math.max(1,bounds.bot-bounds.top);
-    var availW=136;
-    var availH=162;
-    var scale=Math.min(availW/(srcW*bd.homeSx),availH/(srcH*bd.homeSy));
+    var targetBodyH=bt==='petite'?112:(bt==='tall'?142:126);
+    var maxBodyW=bt==='petite'?108:(bt==='tall'?122:114);
+    var scale=Math.min(targetBodyH/(srcH*bd.homeSy),maxBodyW/(srcW*bd.homeSx));
     var targetCx=128;
-    var targetBot=214+bd.homeY;
+    var targetBot=(bt==='petite'?192:(bt==='tall'?206:198))+bd.homeY;
     ctx.save();
     ctx.translate(targetCx,targetBot);
     ctx.scale(scale*bd.homeSx,scale*bd.homeSy);
@@ -2365,6 +2453,7 @@ function crFinish(){
 // DOLLHOUSE
 function renderDollhouse(){
   var el=document.getElementById('dhDolls');if(!el)return;
+  if(chars.length&&chars[ci])saveCharToArray();
   if(!chars.length){
     el.innerHTML='<div class="dh-empty"><div><div style="font-size:48px;margin-bottom:8px;">🏠</div><div style="font-size:18px;font-weight:800;color:#3d2040;margin-bottom:4px;">Your dollhouse is empty!</div><div style="font-size:13px;color:rgba(100,70,130,.5);">Go home and create a doll first 🎀</div><br><button class="h-btn h-btn-p" onclick="goHome()" style="font-size:14px;">← Go Home</button></div></div>';
     return;
@@ -2493,12 +2582,15 @@ function renderRunwayCharacter(ch,type,p){
   var cv=document.getElementById('rwCv');if(!cv||!ch)return;
   var ctx=cv.getContext('2d');ctx.clearRect(0,0,512,700);
   var pose=getRunwayPose(type,p);
-  var adj=getBodyDisplay(getCharBodyType(ch));
+  var bt=getCharBodyType(ch);
+  var adj=getBodyDisplay(bt);
+  var bounds=getBodyBoundsAsset(bt);
+  var scale=bt==='petite'?0.36:(bt==='tall'?0.44:0.40);
   ctx.save();
-  ctx.translate(256+(pose.x||0),380+(pose.y||0)+adj.runwayYOffset);
+  ctx.translate(256+(pose.x||0),620+(pose.y||0)+(adj.runwayY||0));
   if(pose.rot)ctx.rotate((pose.rot||0)*Math.PI/180);
-  ctx.scale(0.46*adj.runwaySx*(pose.sx||1),0.46*adj.runwaySy*(pose.sy||1));
-  ctx.translate(-512,-ASSET_H/2);
+  ctx.scale(scale*adj.runwaySx*(pose.sx||1),scale*adj.runwaySy*(pose.sy||1));
+  ctx.translate(-((bounds.left+bounds.right)/2),-bounds.bot);
   drawCharLayers(ctx,ch);
   ctx.restore();
 }
