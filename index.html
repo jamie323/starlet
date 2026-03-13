@@ -203,7 +203,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',sans-serif
 .wd-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:8px 0;max-height:50vh;overflow-y:auto;}
 .wd-item{position:relative;border-radius:12px;overflow:hidden;border:2px solid rgba(255,107,157,0.15);cursor:pointer;background:#fff;}
 .wd-item:active{transform:scale(0.95);}
-.wd-item img{width:100%;aspect-ratio:1;object-fit:cover;display:block;}
+.wd-item img{width:100%;aspect-ratio:1;object-fit:contain;display:block;background:linear-gradient(180deg,#FFF8F5,#FFEFEA);}
 .wd-item .wd-del{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:rgba(255,107,157,0.9);color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;}
 .wd-empty{color:rgba(140,100,160,0.6);font-size:12px;padding:30px 0;}
 .toast{position:absolute;top:50px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#FF6B9D,#C850C0);color:#fff;padding:8px 20px;border-radius:20px;font-weight:800;font-size:12px;z-index:80;opacity:0;transition:opacity 0.3s;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,0.3);}
@@ -485,7 +485,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',sans-serif
 .fw-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;overflow-y:auto;flex:1;padding:4px;}
 .fw-item{position:relative;border-radius:16px;overflow:hidden;border:2px solid rgba(255,107,157,.15);cursor:pointer;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.04);transition:.2s;}
 .fw-item:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.08);}
-.fw-item img{width:100%;aspect-ratio:1;object-fit:cover;display:block;}
+.fw-item img{width:100%;aspect-ratio:1;object-fit:contain;display:block;background:linear-gradient(180deg,#FFF8F5,#FFEFEA);}
 .fw-item .fw-del{position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;background:rgba(255,107,157,.9);color:#fff;font-size:11px;display:none;align-items:center;justify-content:center;cursor:pointer;border:none;}
 .fw-item:hover .fw-del{display:flex;}
 .fw-empty{grid-column:1/-1;text-align:center;padding:60px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;}

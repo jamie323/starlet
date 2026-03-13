@@ -98,6 +98,7 @@
   <button class="btn btn-blue" onclick="exportAll()">Export</button>
   <button class="btn btn-dark" onclick="document.getElementById('importFile').click()">Import</button>
   <button class="btn btn-dark" onclick="copyOutfitsFromBody()">Copy Outfit Set</button>
+  <button class="btn btn-dark" onclick="refitCurrentBodyOutfits()">Refit Current Outfits</button>
   <button class="btn btn-dark" onclick="normalizeSharedFaces(true)">Normalize Faces</button>
   <button class="btn btn-dark" onclick="normalizeSharedHairHats(true)">Normalize Hair/Hats</button>
   <input type="file" id="importFile" accept=".json" style="display:none" onchange="importAll(this)">
@@ -861,28 +862,34 @@ function scanBounds(img,alphaMin){
 }
 function buildHeadEraseMask(W){
   if(!bodyHead) return null;
-  var hc=document.createElement('canvas');hc.width=hc.height=W;
-  var hctx=hc.getContext('2d');
-  hctx.drawImage(bodyHead.img,0,0,W,W);
-  var hdat=hctx.getImageData(0,0,W,W).data;
   var mask=new Uint8Array(W*W);
   var splitPx=Math.round(splitY*W);
-  // Build a conservative head-only erase mask from SOLID head pixels only.
-  // Do not include the faded neck zone at the bottom of bodyHead, or it deletes
-  // valid neckline/shoulder fabric from the outfit.
+  var hb=scanBounds(bodyHead.img,170);
+  var topPx=Math.round(hb.top*W);
+  var rawBotPx=Math.round(hb.bot*W);
+  // bodyHead still contains shoulders/upper torso above the split, so using its
+  // raw alpha as the erase mask deletes valid sleeves and bodices. Restrict the
+  // erase zone to a head-only oval that stops well above the shoulder line.
+  var botPx=Math.min(splitPx-20, Math.max(topPx+90, Math.round(topPx + (rawBotPx-topPx)*0.72)));
+  var cx=Math.round(hb.cx*W);
+  var headW=Math.max(90,Math.round((hb.right-hb.left)*W));
+  var headH=Math.max(90,botPx-topPx);
+  var cy=Math.round(topPx + headH*0.48);
+  var rx=Math.round(headW*0.34);
+  var ry=Math.round(headH*0.54);
+  var earRy=Math.round(headH*0.16);
+  var earRx=Math.round(headW*0.07);
+  var earCy=Math.round(topPx + headH*0.52);
+  var earOffset=Math.round(headW*0.30);
   for(var y=0;y<W;y++){
     for(var x=0;x<W;x++){
-      var on=false;
-      for(var oy=-2;oy<=2&&!on;oy++){
-        for(var ox=-2;ox<=2;ox++){
-          if(ox*ox+oy*oy>4) continue;
-          var nx=x+ox,ny=y+oy;
-          if(nx<0||nx>=W||ny<0||ny>=W) continue;
-          if(ny>splitPx-6) continue;
-          if(hdat[(ny*W+nx)*4+3]>170){on=true;break;}
-        }
-      }
-      if(on) mask[y*W+x]=1;
+      if(y<topPx || y>botPx) continue;
+      var nx=(x-cx)/Math.max(1,rx);
+      var ny=(y-cy)/Math.max(1,ry);
+      var inHead=(nx*nx+ny*ny)<=1.0;
+      var inLeftEar=((x-(cx-earOffset))/Math.max(1,earRx))**2 + ((y-earCy)/Math.max(1,earRy))**2 <= 1.0;
+      var inRightEar=((x-(cx+earOffset))/Math.max(1,earRx))**2 + ((y-earCy)/Math.max(1,earRy))**2 <= 1.0;
+      if(inHead || inLeftEar || inRightEar) mask[y*W+x]=1;
     }
   }
   return mask;
@@ -893,7 +900,10 @@ function getOutfitHeadCutPx(W){
   var hb=bodyHead?scanBounds(bodyHead.img):null;
   var headTopPx=hb?Math.round(hb.top*W):Math.round(Math.max(0,splitY-0.26)*W);
   var headSpan=Math.max(80,splitPx-headTopPx);
-  var collarLift=Math.round(Math.max(128,Math.min(174,headSpan*0.35)));
+  // Girls dresses need more neckline/shoulder room than the old cutoff left.
+  // Lift the start of extraction higher so the bodice survives up to the neck,
+  // while the actual head overlap is still removed by buildHeadEraseMask().
+  var collarLift=Math.round(Math.max(150,Math.min(210,headSpan*0.52)));
   return Math.max(0,splitPx-collarLift);
 }
 
@@ -982,6 +992,11 @@ function autoFitItem(genImg,cat,skipPreset){
     scale=Math.min(tw2/genW,th2/genH,outfitMaxScale);
     targetX=bodyBounds.cx*1024;
     targetY=((outfitTopNorm+bodyBounds.bot)*0.5)*1024;
+    // Copied petite outfits tend to sit too high after medium/tall refits
+    // because their extracted bounds are already cropped tightly at the top.
+    // Bias the target down slightly for larger bodies.
+    var bodyFitDownBias=currentBT==='tall'?usableH*1024*0.035:(currentBT==='medium'?usableH*1024*0.06:0);
+    targetY+=bodyFitDownBias;
   } else if(cat==='hairhats'){
     var tw3=headW*1.18;scale=Math.min(tw3/genW,0.72);
     targetX=headCx*1024;
@@ -1241,6 +1256,32 @@ function copyOutfitsFromBody(){
   });
 }
 
+function refitCurrentBodyOutfits(){
+  var s=bodyStates[currentBT];
+  if(!s||!s.bodyFull||!s.bodyHead){
+    alert('Generate and split the current body first.');
+    return;
+  }
+  var outfits=s.outfits||[];
+  if(!outfits.length){
+    alert('No outfits on '+currentBT+' to refit.');
+    return;
+  }
+  if(!confirm('Re-fit all '+outfits.length+' outfits to the current '+currentBT+' body? This replaces their saved outfit adjustments for this body.'))return;
+  var changed=0;
+  outfits.forEach(function(item){
+    if(!item||!item.img)return;
+    item.adj=autoFitItemForBody(item.img,'outfits',currentBT,true);
+    changed++;
+  });
+  syncLiveFromState();
+  updateCounts();
+  render();
+  renderPanel();
+  saveAll();
+  log('Re-fit '+changed+' outfits for '+currentBT+'.');
+}
+
 // ================================================================
 // API
 // ================================================================
@@ -1296,8 +1337,9 @@ function createMaskBlob(maskType){
   var maskData=mx.getImageData(0,0,1024,1024);var md=maskData.data;
 
   if(maskType==='outfit'){
-    // Let the model use the whole outfit zone, but explicitly protect only the
-    // actual head/face area. This leaves shoulders and neckline available.
+    // Keep outfit edits anchored to the existing body silhouette. The previous
+    // "whole zone minus head oval" mask gave the model enough free space to
+    // repaint a taller/wider child, which then broke extraction alignment.
     var bb=scanBounds(bodyFull.img);
     var hb=bodyHead?scanBounds(bodyHead.img):null;
     var splitPx=Math.round(splitY*1024);
@@ -1310,14 +1352,31 @@ function createMaskBlob(maskType){
     var maskCy=Math.round(headTopPx + headH*0.48);
     var maskRx=Math.round(headW*0.40);
     var maskRy=Math.round(headH*0.46);
+
+    var bc=document.createElement('canvas');bc.width=bc.height=1024;
+    bc.getContext('2d').drawImage(bodyFull.img,0,0,1024,1024);
+    var dc=document.createElement('canvas');dc.width=dc.height=1024;var dctx=dc.getContext('2d');
+    var dilate=26;
+    for(var dyO=-dilate;dyO<=dilate;dyO+=2) for(var dxO=-dilate;dxO<=dilate;dxO+=2){
+      if(dxO*dxO+dyO*dyO>dilate*dilate)continue;
+      dctx.drawImage(bc,dxO,dyO);
+    }
+    var dd=dctx.getImageData(0,0,1024,1024).data;
+
+    var collarTop=Math.max(py0,getOutfitHeadCutPx(1024));
+    var shoulderHalfW=Math.round(Math.max(headW*0.42,Math.min(220,(bb.right-bb.left)*1024*0.34)));
+    var shoulderBot=Math.min(py1,splitPx+24);
+
     for(var yO=py0;yO<py1;yO++) for(var xO=px0;xO<px1;xO++){
       var iO=(yO*1024+xO)*4;
-      var editable=true;
       var nx=(xO-maskCx)/Math.max(1,maskRx);
       var ny=(yO-maskCy)/Math.max(1,maskRy);
-      // block only the head/face oval and a narrow strip just above the chin
-      if(nx*nx+ny*ny<=1.0 && yO<=splitPx-18) editable=false;
-      if(editable) md[iO+3]=0;
+      var inHead=(nx*nx+ny*ny<=1.0 && yO<=splitPx-12);
+      if(inHead) continue;
+
+      var onSilhouette=dd[iO+3]>30;
+      var inCollarBand=(yO>=collarTop && yO<=shoulderBot && Math.abs(xO-cx)<=shoulderHalfW);
+      if(onSilhouette || inCollarBand) md[iO+3]=0;
     }
   } else if(FULL_ZONE_MASKS[maskType]){
     // FULL ZONE: make the ENTIRE rectangle editable
@@ -1449,7 +1508,10 @@ function extractOutfitDiff(resultDataUrl){
     // Preserve shoulders / upper bodice. Head overlap gets removed later using
     // the actual head mask, so this should start from near the split, not the
     // top of the head.
-    var minCut=Math.max(0,splitPx-92);
+    // Do not hard-cut deep into the upper bodice. We only need to stay just
+    // below the chin/neck area because the actual head overlap is removed by
+    // headErase below.
+    var minCut=Math.max(0,splitPx-18);
     var headErase=buildHeadEraseMask(W);
     var outC=document.createElement('canvas');outC.width=outC.height=W;
     var outCtx=outC.getContext('2d');
@@ -1700,7 +1762,36 @@ function extractOutfitRawZone(resultDataUrl){
     var rawCtx=rawC.getContext('2d');
     rawCtx.drawImage(resImg,0,0,W,W);
     removeWhiteBackground(rawC);
-    var rawImg=rawCtx.getImageData(0,0,W,W);
+    // Normalize the edited result back onto the original body silhouette.
+    // DALL-E can redraw the whole avatar larger/taller; if we extract against
+    // the original split from that enlarged result, the shoulders/top bodice
+    // get cut off. So first rescale/recenter the raw result to match bodyFull.
+    var rawBoundsImg=loadImg(rawC.toDataURL('image/png'));
+    return rawBoundsImg.then(function(rawImgObj){
+      var srcBounds=scanBounds(rawImgObj,60);
+      var bodyBounds=scanBounds(bodyFull.img,60);
+      var srcW=Math.max(1,srcBounds.right-srcBounds.left);
+      var srcH=Math.max(1,srcBounds.bot-srcBounds.top);
+      var bodyW=Math.max(1,bodyBounds.right-bodyBounds.left);
+      var bodyH=Math.max(1,bodyBounds.bot-bodyBounds.top);
+      var fitScale=Math.min((bodyW*1.00)/srcW,(bodyH*1.00)/srcH);
+      if(Math.abs(fitScale-1)>0.03 || Math.abs(srcBounds.cx-bodyBounds.cx)>0.005 || Math.abs(srcBounds.bot-bodyBounds.bot)>0.005){
+        var normC=document.createElement('canvas');normC.width=normC.height=W;
+        var normCtx=normC.getContext('2d');
+        var targetCx=bodyBounds.cx*W;
+        var targetBot=bodyBounds.bot*W;
+        var srcCx=srcBounds.cx*W;
+        var srcBot=srcBounds.bot*W;
+        var dx=targetCx - ((srcCx-512)*fitScale+512);
+        var dy=targetBot - ((srcBot-512)*fitScale+512);
+        normCtx.translate(512+dx,512+dy);
+        normCtx.scale(fitScale,fitScale);
+        normCtx.translate(-512,-512);
+        normCtx.drawImage(rawC,0,0,W,W);
+        rawC=normC;
+        rawCtx=normCtx;
+      }
+      var rawImg=rawCtx.getImageData(0,0,W,W);
     var rd=rawImg.data;
 
     function buildDil(r){
@@ -1720,7 +1811,7 @@ function extractOutfitRawZone(resultDataUrl){
     var headErase=buildHeadEraseMask(W);
     var bb=scanBounds(bodyFull.img);
     var splitPx=Math.round(splitY*W);
-    var minCut=Math.max(0,splitPx-92);
+    var topCutPx=Math.max(0,getOutfitHeadCutPx(W));
     var cx=Math.round(bb.cx*W);
     var fullW=Math.max(140,Math.round((bb.right-bb.left)*W));
     var shoulderBandBot=Math.min(W-1,splitPx+28);
@@ -1732,7 +1823,7 @@ function extractOutfitRawZone(resultDataUrl){
     var od=outImg.data;
     var kept=0, headRemoved=0;
 
-    for(var y=minCut;y<W;y++){
+    for(var y=topCutPx;y<W;y++){
       for(var x=0;x<W;x++){
         var i=(y*W+x)*4;
         if(rd[i+3]<=20) continue;
@@ -1786,8 +1877,9 @@ function extractOutfitRawZone(resultDataUrl){
     }
 
     outCtx.putImageData(outImg,0,0);
-    console.log('🟢 rawZone done — kept='+kept+' headRemoved='+headRemoved+' minCut='+minCut);
+    console.log('🟢 rawZone done — kept='+kept+' headRemoved='+headRemoved+' topCutPx='+topCutPx);
     return outC.toDataURL('image/png');
+    });
   });
 }
 // Legacy flood-fill approach (kept for reference)
@@ -2200,7 +2292,7 @@ function getMaskType(cat){return{outfits:'outfit'}[cat]||null;}
 
 function getCatInstruction(cat){
   return{
-    outfits:'Dress this character in the following COMPLETE outfit. Replace ALL the grey clothing. The outfit should have a proper COLLAR or NECKLINE that sits naturally on the neck. Include shoes on the feet. KEEP the round ball hands — do NOT add fingers. Do NOT change the head or face. ',
+    outfits:'Dress this character in the following COMPLETE outfit. Replace ALL the grey clothing ONLY. PRESERVE the EXACT existing body proportions, pose, shoulder width, arm position, leg length, feet size, and overall scale. Do NOT redraw the body taller, wider, slimmer, older, or more realistic. The outfit should have a proper COLLAR or NECKLINE that sits naturally on the neck. Include shoes on the feet. KEEP the round ball hands — do NOT add fingers. Do NOT change the head or face. ',
     faces:'ONLY the facial features of a cute cartoon character on a TRANSPARENT 1024x1024 background. Draw centered in the UPPER THIRD of the canvas (around y=250 to y=400). NOTHING else — no head outline, no skin fill, no head shape, no body, no hair. Just the floating facial features with dark brown outlines on pure transparency. Features: ',
     hairhats:'Draw floating hair strands ONLY on a transparent background. CRITICAL: ZERO head shape — do NOT draw any circle, oval, egg, or outline around where a head would be. The hair strands float freely in the air with empty space where the face would be — like hair in zero-gravity with no head inside it. ABSOLUTE RULES: 1) NO circular or oval outline of any kind. 2) NO face, eyes, nose, mouth, skin. 3) NO neck or body. 4) ONLY visible: hair strands and any hat/headwear material. 5) The interior face area MUST BE FULLY TRANSPARENT — empty air. Hair should frame the empty space from the sides and top only. Dark brown outlines (#3D2B1F). Description: ',
     stickers:'A cute accessory/prop item for a children\'s dress-up game on a TRANSPARENT 1024x1024 background. Centered. Front-facing. Dark chocolate brown outlines (#3D2B1F, thin). Clean vector style. Item: '
