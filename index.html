@@ -32,6 +32,8 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',sans-serif
 .fab{width:52px;height:52px;border-radius:14px;background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.3);color:#fff;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;box-shadow:0 2px 8px rgba(0,0,0,.3);}
 .fab:active{transform:scale(.85);background:rgba(255,255,255,.35);}
 .fab img{width:26px;height:26px;object-fit:contain;}
+.fab-save-glow{animation:savePulse 1s ease-in-out infinite;box-shadow:0 0 0 3px rgba(170,255,170,.38),0 0 24px rgba(120,255,150,.9),0 8px 20px rgba(0,0,0,.35)!important;background:rgba(60,210,95,.98)!important;}
+@keyframes savePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
 .magic-wand{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:120;width:126px;height:88px;border:none;background:none;cursor:pointer;display:flex;align-items:flex-start;justify-content:center;pointer-events:auto;touch-action:manipulation;transition:transform .15s cubic-bezier(.34,1.56,.64,1),filter .15s;filter:drop-shadow(0 8px 20px rgba(255,168,0,.35));}
 .magic-wand:active{transform:translateX(-50%) scale(.92);}
 .magic-wand .wand-star{position:absolute;top:0;left:50%;transform:translateX(-50%) rotate(-8deg);width:56px;height:56px;border-radius:18px;background:radial-gradient(circle at 30% 30%,#FFF7BF 0%,#FFD54A 35%,#FF9D00 78%,#F06B00 100%);box-shadow:0 0 0 4px rgba(255,244,180,.28),0 8px 18px rgba(255,146,0,.38);clip-path:polygon(50% 0%,62% 32%,96% 34%,70% 54%,79% 88%,50% 68%,21% 88%,30% 54%,4% 34%,38% 32%);}
@@ -165,6 +167,19 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',sans-serif
 .md-header .md-star{position:absolute;top:-8px;left:16px;font-size:28px;filter:drop-shadow(0 2px 4px rgba(200,150,0,.3));}
 .md-x{position:absolute;top:12px;right:12px;width:34px;height:34px;border:none;border-radius:50%;background:rgba(255,255,255,.88);color:#8B4A8F;font-size:20px;font-weight:900;cursor:pointer;display:grid;place-items:center;box-shadow:0 6px 14px rgba(120,60,120,.18);}
 .md-x:active{transform:scale(.97);}
+.askm{position:fixed;inset:0;display:none;place-items:center;background:rgba(40,16,58,.28);backdrop-filter:blur(8px);z-index:300}
+.askm.show{display:grid}
+.ask-card{width:min(92vw,420px);background:linear-gradient(180deg,#FFF6FD,#FDEBFA);border:3px solid #FFD4EC;border-radius:28px;padding:22px 20px 20px;box-shadow:0 24px 60px rgba(62,26,84,.28);text-align:center;position:relative}
+.ask-ttl{font-size:24px;font-weight:900;color:#5A3060;margin:10px 0 8px}
+.ask-msg{font-size:15px;line-height:1.55;color:#7A537E;font-weight:700;margin:0 0 16px}
+.ask-ico{display:flex;justify-content:center;gap:12px;font-size:36px}
+.ask-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ask-btn{border:none;border-radius:18px;padding:14px 16px;font-size:16px;font-weight:900;cursor:pointer;box-shadow:0 10px 18px rgba(64,28,86,.14)}
+.ask-yes{background:linear-gradient(180deg,#7CE7A0,#43C86E);color:#fff}
+.ask-no{background:linear-gradient(180deg,#FF8B97,#F15C69);color:#fff}
+.save-coach{position:absolute;top:74px;left:76px;background:linear-gradient(180deg,#FF5FB0,#FF7FBF);color:#fff;padding:10px 14px;border-radius:16px;box-shadow:0 12px 24px rgba(170,60,120,.28);font-size:12px;font-weight:900;line-height:1.35;max-width:180px;z-index:12;display:none}
+.save-coach.show{display:block}
+.save-coach::before{content:'';position:absolute;left:-10px;top:18px;border-top:8px solid transparent;border-bottom:8px solid transparent;border-right:10px solid #FF6BB7}
 .md-body{padding:20px 24px 16px;}
 .md-section{background:rgba(255,255,255,.7);border-radius:16px;padding:14px 16px;margin-bottom:14px;border:1.5px solid rgba(200,140,220,.12);box-shadow:inset 0 1px 0 rgba(255,255,255,.8);}
 .md-section-title{font-size:12px;font-weight:800;color:rgba(140,80,160,.5);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
@@ -525,8 +540,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',sans-serif
     <div class="fab-row">
       <button class="fab" onclick="doUndo()" title="Undo" style="background:rgba(120,50,200,.9);border-color:rgba(200,150,255,.5);"><span data-ic="back">↩</span></button>
       <button class="fab" onclick="doClear()" title="Clear All" style="background:rgba(220,50,50,.85);border-color:rgba(255,150,150,.4);">🧹</button>
-      <button class="fab" onclick="doSaveToWardrobe()" title="Save Look" style="background:rgba(50,180,80,.85);border-color:rgba(150,255,150,.4);">💾</button>
+      <button class="fab" id="saveLookFab" onclick="doSaveToWardrobe()" title="Save Look" style="background:rgba(50,180,80,.85);border-color:rgba(150,255,150,.4);">💾</button>
     </div>
+    <div class="save-coach" id="saveCoach">If you want to save this outfit, tap this button here! ✨</div>
     <div class="stk-toolbar" id="stkTb"><button class="stk-tb" onclick="stkScale(1.15)">＋</button><button class="stk-tb" onclick="stkScale(0.87)">－</button><button class="stk-tb" onclick="stkRotate(15)">↻</button><button class="stk-tb" onclick="stkFlip()">⇄</button><button class="stk-tb del" onclick="stkDelete()">✕</button></div>
     <div class="pose-label" id="poseLbl"></div><div class="toast" id="toast"></div>
   </div>
@@ -618,6 +634,18 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Nunito',sans-serif
       <div class="md-ver">Starlet v4.2</div>
     </div>
   </div></div>
+
+  <div class="askm" id="leaveSaveM">
+    <div class="ask-card">
+      <div class="ask-ico"><span style="filter:drop-shadow(0 2px 0 rgba(0,0,0,.08));">👗</span><span>✨</span></div>
+      <div class="ask-ttl">Save this look?</div>
+      <div class="ask-msg">Do you want to save this to your wardrobe before leaving dress up?</div>
+      <div class="ask-row">
+        <button class="ask-btn ask-yes" onclick="dressExitPromptSave()">✓ Save</button>
+        <button class="ask-btn ask-no" onclick="dressExitPromptSkip()">✕ Skip</button>
+      </div>
+    </div>
+  </div>
 
   <!-- CREATE SCREEN -->
   <div class="scr create-scr" id="createScr">
@@ -1507,7 +1535,9 @@ function startGame(){
 }
 
 function goHome(){
+  if(maybePromptDressExit(function(){goHome();}))return;
   saveCharToArray();
+  hideSaveCoach();
   if(bgMusic){bgMusic.pause();}
   if(musInterval){clearInterval(musInterval);musInterval=null;}
   showScr('homeScr');
@@ -1544,11 +1574,11 @@ function bnavTap(btn,action){
 function bnavGo(action){
   switch(action){
     case 'home':goHome();break;
-    case 'dress':if(chars.length)showScr('dressScr');else showToast('Create a doll first!');break;
-    case 'runway':if(chars.length){saveCharToArray();showScr('rwScr');}else showToast('Create a doll first!');break;
-    case 'photo':if(chars.length){saveCharToArray();showScr('pbScr');}else showToast('Create a doll first!');break;
-    case 'dollhouse':if(chars.length)saveCharToArray();showScr('dhScr');break;
-    case 'wardrobe':if(chars.length){saveCharToArray();fwFrom='dressScr';showScr('fwScr');}else showToast('Create a doll first!');break;
+    case 'dress':if(chars.length){hideSaveCoach();showScr('dressScr');}else showToast('Create a doll first!');break;
+    case 'runway':if(chars.length){if(maybePromptDressExit(function(){bnavGo('runway');}))return;saveCharToArray();hideSaveCoach();showScr('rwScr');}else showToast('Create a doll first!');break;
+    case 'photo':if(chars.length){if(maybePromptDressExit(function(){bnavGo('photo');}))return;saveCharToArray();hideSaveCoach();showScr('pbScr');}else showToast('Create a doll first!');break;
+    case 'dollhouse':if(chars.length){if(maybePromptDressExit(function(){bnavGo('dollhouse');}))return;saveCharToArray();hideSaveCoach();}showScr('dhScr');break;
+    case 'wardrobe':if(chars.length){if(maybePromptDressExit(function(){bnavGo('wardrobe');}))return;saveCharToArray();hideSaveCoach();fwFrom='dressScr';showScr('fwScr');}else showToast('Create a doll first!');break;
   }
 }
 function updateBnav(scrId){
@@ -2240,6 +2270,65 @@ function testVoiceLine(){speakLine('test');}
 var chars=[],ci=0,paid=false;
 var curScr='ls'; // current screen id
 var fwFrom='homeScr'; // where full wardrobe returns to
+var dressEntrySig='',dressDismissedSig='',pendingDressLeaveAction=null;
+
+function getCurrentLookSig(){
+  return JSON.stringify({eq:eq,si:si,bi:bi,poseIdx:poseIdx||0,st:st,clrVar:clrVar});
+}
+function markDressBaseline(){
+  dressEntrySig=getCurrentLookSig();
+  dressDismissedSig='';
+  hideSaveCoach();
+}
+function hasUnsavedDressLook(){
+  if(curScr!=='dressScr'||!chars.length||!chars[ci])return false;
+  var sig=getCurrentLookSig();
+  return sig!==dressEntrySig&&sig!==dressDismissedSig;
+}
+function hideSaveCoach(){
+  var fab=document.getElementById('saveLookFab');
+  var coach=document.getElementById('saveCoach');
+  if(fab)fab.classList.remove('fab-save-glow');
+  if(coach)coach.classList.remove('show');
+}
+function showSaveCoach(){
+  var fab=document.getElementById('saveLookFab');
+  var coach=document.getElementById('saveCoach');
+  if(fab)fab.classList.add('fab-save-glow');
+  if(coach)coach.classList.add('show');
+}
+function showLeaveSavePrompt(action){
+  pendingDressLeaveAction=action||null;
+  var m=document.getElementById('leaveSaveM');
+  if(m)m.classList.add('show');
+}
+function hideLeaveSavePrompt(){
+  var m=document.getElementById('leaveSaveM');
+  if(m)m.classList.remove('show');
+}
+function runPendingDressLeave(){
+  var fn=pendingDressLeaveAction;
+  pendingDressLeaveAction=null;
+  if(typeof fn==='function')fn();
+}
+function maybePromptDressExit(action){
+  if(hasUnsavedDressLook()){
+    showLeaveSavePrompt(action);
+    return true;
+  }
+  return false;
+}
+function dressExitPromptSave(){
+  hideLeaveSavePrompt();
+  showSaveCoach();
+  showToast('Tap the green save button to keep this look in your wardrobe!');
+}
+function dressExitPromptSkip(){
+  dressDismissedSig=getCurrentLookSig();
+  hideLeaveSavePrompt();
+  hideSaveCoach();
+  runPendingDressLeave();
+}
 
 function showScr(id){
   // Hide all screens
@@ -2260,7 +2349,7 @@ function showScr(id){
   // Wand is inside dressScr now — no manual show/hide needed
   // Screen-specific setup
   if(id==='homeScr')renderHome();
-  if(id==='dressScr'){loadCharIntoGlobals();bui();checkOnboard();}
+  if(id==='dressScr'){loadCharIntoGlobals();bui();checkOnboard();markDressBaseline();}
   if(id==='dhScr'){applyDollhouseAssets();renderDollhouse();}
   if(id==='fwScr')renderFullWardrobe();
   if(id==='createScr')renderCreateStep();

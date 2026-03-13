@@ -358,6 +358,33 @@ var HEAD_TEST_PROMPTS = [
   'Warm blonde hair attached to a petite head wearing a pink flower crown headband, soft curls tucked around the cheeks.'
 ];
 
+var GIRL_ONLY_PROMPTS = {
+  outfits: [
+    'A BLUSH PINK BALLET DRESS with a fitted sparkly bodice, layered tulle tutu skirt, satin ribbon waist bow, and PALE PINK BALLET SLIPPERS. Front-facing, symmetrical.',
+    'A LILAC PRINCESS GOWN with puff sleeves, heart-shaped bodice, glitter star trim, full flowing skirt, and tiny SILVER PRINCESS SHOES. Front-facing, symmetrical.',
+    'A HOT PINK PARTY DRESS with ruffled shoulders, flared skirt, shiny bow at the waist, and WHITE STRAPPY PARTY SHOES. Front-facing, symmetrical.',
+    'A SOFT PEACH SLEEPOVER LOOK — frilly pajama top with little heart print, matching shorts, fluffy slippers, and a satin hair bow detail on the outfit neckline. Front-facing, symmetrical.',
+    'A CREAM CARDIGAN over a ROSE FLORAL DRESS with gathered skirt, lace trim, and shiny MARY JANES. Front-facing, symmetrical.',
+    'A SKY BLUE FAIRY PARTY DRESS with sparkly puff sleeves, layered skirt, satin sash, and GLITTERY BLUE FLATS. Front-facing, symmetrical.',
+    'A CUTE SCHOOL DAY OUTFIT — pink cardigan, white blouse with bow collar, pleated berry skirt, knee socks, and glossy loafers. Front-facing, symmetrical.',
+    'A PASTEL POP STAR LOOK — cropped sparkly jacket, twirly skirt with stars, matching tights, and chunky PLATFORM SHOES in pink and lavender. Front-facing, symmetrical.',
+    'A WINTER CUTE OUTFIT — fluffy pink coat dress with faux-fur trim, knit tights, bow belt, and warm ankle boots. Front-facing, symmetrical.',
+    'A MINT TEA PARTY DRESS with oversized shoulder bows, scalloped hem, pearl buttons, and glossy kitten shoes. Front-facing, symmetrical.'
+  ],
+  hairhats: [
+    'Long glossy STRAWBERRY PINK curls tied into low twin ponytails with satin ribbon bows. ONLY the hair strands and bow material. ZERO face, ZERO skin, ZERO head shape.',
+    'A thick chestnut brown HALF-UP hairstyle with a giant pastel bow on top and soft curls falling down both sides. ONLY hair and bow. ZERO face, ZERO skin, ZERO head outline.',
+    'Long honey blonde princess waves with a tiny silver tiara nestled into the top. ONLY hair and tiara. ZERO face, ZERO skin, ZERO head shape.',
+    'Neat dark brown ballet bun with a pink ribbon bow wrapped around it and soft curled tendrils framing the empty face space. ONLY hair and ribbon. ZERO face, ZERO skin.',
+    'Cute auburn twin braids with short ribbon bows tied at the ends and wispy bangs hanging from the top only. ONLY hair and bow details. ZERO face, ZERO skin.',
+    'Soft black party curls with a jeweled headband across the top and bouncy curls down the sides. ONLY hair and headband. ZERO face, ZERO skin.',
+    'Long pastel lavender fairy hair with gentle waves and tiny flower clips scattered near the crown. ONLY hair and flower clips. ZERO face, ZERO skin.',
+    'A shiny golden blonde side ponytail with a huge bow and curled ends, sweet girly silhouette. ONLY hair and bow. ZERO face, ZERO skin.',
+    'Romantic warm brown ringlets with a pink flower crown headband sitting across the top. ONLY hair and flower crown. ZERO face, ZERO skin.',
+    'Playful orange-red high twin pigtails with chunky bows and full bangs, cute doll-like shape. ONLY hair and bows. ZERO face, ZERO skin.'
+  ]
+};
+
 // ================================================================
 // STATE — v8 Multi-Body Architecture
 // ================================================================
@@ -365,9 +392,9 @@ var cv=document.getElementById('cv'),ctx=cv.getContext('2d');
 var CATEGORIES=['outfits','faces','hairhats','stickers'];
 var SHARED_CATS=['faces','hairhats','stickers']; // shared across body types
 var EXPORT_H=1536,PAD_TOP=256;
-var DEFAULT_OPENAI_KEY='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';
+var DEFAULT_OPENAI_KEY='';
 var DEFAULT_GH_REPO='jamie323/starlet';
-var DEFAULT_GH_TOKEN='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';
+var DEFAULT_GH_TOKEN='';
 var STANDALONE_CATS={faces:true,hairhats:true,stickers:true};
 var BODY_TYPES=['petite','medium','tall'];
 var BODY_FRAME_TARGETS={
@@ -422,6 +449,8 @@ function switchBody(bt){
   syncStateFromLive(); // save current
   currentBT=bt;
   syncLiveFromState(); // load new
+  applyBaselinePreset('faces',currentBT);
+  applyBaselinePreset('hairhats',currentBT);
   // Update UI
   document.querySelectorAll('.bt-btn').forEach(function(b){b.classList.toggle('active',b.textContent.toLowerCase()===bt);});
   document.getElementById('curBodyLabel').textContent='('+bt.charAt(0).toUpperCase()+bt.slice(1)+')';
@@ -433,7 +462,7 @@ var pending=[],generating=false,genCancel=false,currentTab='outfits',editingItem
 var headTestsPending=[],headTestsKept=[];
 // Play mode: selected index per category (-1 = none)
 var playSelection={};CATEGORIES.forEach(function(c){playSelection[c]=-1;});
-var usedPromptIdx={};CATEGORIES.forEach(function(c){usedPromptIdx[c]=new Set();});
+var usedPromptIdx={outfits:{petite:new Set(),medium:new Set(),tall:new Set()},faces:new Set(),hairhats:new Set(),stickers:new Set()};
 var db=null;
 
 function log(s){var b=document.getElementById('logBox');b.textContent+=s+'\n';b.scrollTop=b.scrollHeight;}
@@ -527,25 +556,36 @@ function loadSaved(){
 
 // Seed usedPromptIdx from already-kept items so Gen 5/10 skips them
 function seedUsedPrompts(){
+  usedPromptIdx.outfits={petite:new Set(),medium:new Set(),tall:new Set()};
+  usedPromptIdx.faces=new Set();
+  usedPromptIdx.hairhats=new Set();
+  usedPromptIdx.stickers=new Set();
   CATEGORIES.forEach(function(cat){
-    usedPromptIdx[cat]=new Set();
     var pool1=PROMPTS[cat]||[];
     var pool2=PROMPTS_BATCH2[cat]||[];
     var pool=pool1.concat(pool2);
-    kept[cat].forEach(function(item){
-      // Match kept item name (first 40 chars) against combined prompt pool
+    function markPrompt(set,itemName){
       for(var i=0;i<pool.length;i++){
-        if(pool[i].substring(0,40)===item.name){usedPromptIdx[cat].add(i);break;}
+        if(pool[i].substring(0,40)===itemName){set.add(i);break;}
       }
-    });
-    // Also check pending items
-    pending.forEach(function(p){
-      if(p.category!==cat)return;
-      for(var i=0;i<pool.length;i++){
-        if(pool[i].substring(0,40)===p.name){usedPromptIdx[cat].add(i);break;}
-      }
-    });
-    log(cat+': '+usedPromptIdx[cat].size+'/'+pool.length+' prompts already used');
+    }
+    if(cat==='outfits'){
+      BODY_TYPES.forEach(function(bt){
+        var set=usedPromptIdx.outfits[bt];
+        (bodyStates[bt].outfits||[]).forEach(function(item){markPrompt(set,item.name);});
+        pending.forEach(function(p){
+          if(p.category==='outfits'&&p.bodyType===bt)markPrompt(set,p.name);
+        });
+        log(cat+'('+bt+'): '+set.size+'/'+pool.length+' prompts already used');
+      });
+    }else{
+      var set=usedPromptIdx[cat];
+      kept[cat].forEach(function(item){markPrompt(set,item.name);});
+      pending.forEach(function(p){
+        if(p.category===cat)markPrompt(set,p.name);
+      });
+      log(cat+': '+set.size+'/'+pool.length+' prompts already used');
+    }
   });
 }
 
@@ -767,11 +807,13 @@ function splitBody(){
   }
   x1.putImageData(d1,0,0);var lUrl=c1.toDataURL('image/png');
 
-  // Create body_head (above split) — trim bottom 30px with fade so outfit collar shows
+  // Create body_head (above split) with only a light neck fade.
+  // A stronger fade gets compounded later in preview/play and creates the
+  // artificial "missing shoulders" gap above outfits.
   var c2=document.createElement('canvas');c2.width=c2.height=1024;var x2=c2.getContext('2d');x2.drawImage(bodyFull.img,0,0,1024,1024);
   var d2=x2.getImageData(0,0,1024,1024);
   var splitPxH=Math.round(splitY*1024);
-  var neckFade=30; // fade out the bottom 30px of body_head (bare neck skin)
+  var neckFade=8; // keep neckline/shoulders intact; preview should not double-fade this
   for(var y2=splitPxH;y2<1024;y2++) for(var x2b=0;x2b<1024;x2b++) d2.data[(y2*1024+x2b)*4+3]=0;
   // Fade out the neck area
   for(var y2f=splitPxH-neckFade;y2f<splitPxH;y2f++){
@@ -792,7 +834,7 @@ function splitBody(){
 function computeAnchors(){
   if(!bodyFull) return;
   var b=scanBounds(bodyFull.img);var headH=splitY-b.top;var fullW=b.right-b.left;var midX=b.cx;var bodySpan=b.bot-splitY;
-  var outfitLift=Math.min(0.09,Math.max(0.055,headH*0.16));
+  var outfitLift=Math.min(0.188,Math.max(0.112,headH*0.300));
   anchors={bounds:b};
   slotBoxes={
     // OUTFIT: keep enough room for collars/hoods, but don't let edits crawl into the face zone
@@ -817,12 +859,41 @@ function scanBounds(img,alphaMin){
   if(tY===1024||lX===1024)return{top:0,bot:0,left:0,right:0,cx:0.5,cy:0.5};
   return{top:tY/1024,bot:bY/1024,left:lX/1024,right:rX/1024,cx:(lX+rX)/2/1024,cy:(tY+bY)/2/1024};
 }
+function buildHeadEraseMask(W){
+  if(!bodyHead) return null;
+  var hc=document.createElement('canvas');hc.width=hc.height=W;
+  var hctx=hc.getContext('2d');
+  hctx.drawImage(bodyHead.img,0,0,W,W);
+  var hdat=hctx.getImageData(0,0,W,W).data;
+  var mask=new Uint8Array(W*W);
+  var splitPx=Math.round(splitY*W);
+  // Build a conservative head-only erase mask from SOLID head pixels only.
+  // Do not include the faded neck zone at the bottom of bodyHead, or it deletes
+  // valid neckline/shoulder fabric from the outfit.
+  for(var y=0;y<W;y++){
+    for(var x=0;x<W;x++){
+      var on=false;
+      for(var oy=-2;oy<=2&&!on;oy++){
+        for(var ox=-2;ox<=2;ox++){
+          if(ox*ox+oy*oy>4) continue;
+          var nx=x+ox,ny=y+oy;
+          if(nx<0||nx>=W||ny<0||ny>=W) continue;
+          if(ny>splitPx-6) continue;
+          if(hdat[(ny*W+nx)*4+3]>170){on=true;break;}
+        }
+      }
+      if(on) mask[y*W+x]=1;
+    }
+  }
+  return mask;
+}
+
 function getOutfitHeadCutPx(W){
   var splitPx=Math.round(splitY*W);
   var hb=bodyHead?scanBounds(bodyHead.img):null;
   var headTopPx=hb?Math.round(hb.top*W):Math.round(Math.max(0,splitY-0.26)*W);
   var headSpan=Math.max(80,splitPx-headTopPx);
-  var collarLift=Math.round(Math.max(72,Math.min(112,headSpan*0.20)));
+  var collarLift=Math.round(Math.max(128,Math.min(174,headSpan*0.35)));
   return Math.max(0,splitPx-collarLift);
 }
 
@@ -1210,7 +1281,9 @@ function apiInpaint(bodyDataUrl,maskType,prompt){
 }
 
 // Categories where the ENTIRE zone should be editable (not just body silhouette)
-var FULL_ZONE_MASKS={outfit:true,hat:true,hair:true,bag:true};
+// Outfit is intentionally excluded: it needs shoulder/neck room, but letting the
+// full rectangle edit causes the model to redraw the whole head/upper face.
+var FULL_ZONE_MASKS={hat:true,hair:true,bag:true};
 
 function createMaskBlob(maskType){
   var zone=slotBoxes[maskType];if(!zone||!bodyFull)return Promise.resolve(null);
@@ -1222,7 +1295,31 @@ function createMaskBlob(maskType){
   mx.fillStyle='rgba(0,0,0,1)';mx.fillRect(0,0,1024,1024);
   var maskData=mx.getImageData(0,0,1024,1024);var md=maskData.data;
 
-  if(FULL_ZONE_MASKS[maskType]){
+  if(maskType==='outfit'){
+    // Let the model use the whole outfit zone, but explicitly protect only the
+    // actual head/face area. This leaves shoulders and neckline available.
+    var bb=scanBounds(bodyFull.img);
+    var hb=bodyHead?scanBounds(bodyHead.img):null;
+    var splitPx=Math.round(splitY*1024);
+    var cx=Math.round((hb?hb.cx:bb.cx)*1024);
+    var headTopPx=hb?Math.round(hb.top*1024):Math.round((splitY-0.26)*1024);
+    var headBotPx=hb?Math.round(hb.bot*1024):splitPx;
+    var headW=Math.max(160,Math.round((hb?(hb.right-hb.left):(bb.right-bb.left)*0.58)*1024));
+    var headH=Math.max(180,headBotPx-headTopPx);
+    var maskCx=cx;
+    var maskCy=Math.round(headTopPx + headH*0.48);
+    var maskRx=Math.round(headW*0.40);
+    var maskRy=Math.round(headH*0.46);
+    for(var yO=py0;yO<py1;yO++) for(var xO=px0;xO<px1;xO++){
+      var iO=(yO*1024+xO)*4;
+      var editable=true;
+      var nx=(xO-maskCx)/Math.max(1,maskRx);
+      var ny=(yO-maskCy)/Math.max(1,maskRy);
+      // block only the head/face oval and a narrow strip just above the chin
+      if(nx*nx+ny*ny<=1.0 && yO<=splitPx-18) editable=false;
+      if(editable) md[iO+3]=0;
+    }
+  } else if(FULL_ZONE_MASKS[maskType]){
     // FULL ZONE: make the ENTIRE rectangle editable
     // This allows AI to draw in empty space (above head for hats, beside body for bags)
     for(var y=py0;y<py1;y++) for(var x=px0;x<px1;x++){
@@ -1347,21 +1444,32 @@ function extractOutfitDiff(resultDataUrl){
     var refData=refCtx.getImageData(0,0,W,W).data;
 
     var splitPx=Math.round(splitY*W);
-    var headCut=getOutfitHeadCutPx(W);
+    var hbCut=bodyHead?scanBounds(bodyHead.img):null;
+    var headTopPx=hbCut?Math.round(hbCut.top*W):Math.round(Math.max(0,splitY-0.26)*W);
+    // Preserve shoulders / upper bodice. Head overlap gets removed later using
+    // the actual head mask, so this should start from near the split, not the
+    // top of the head.
+    var minCut=Math.max(0,splitPx-92);
+    var headErase=buildHeadEraseMask(W);
     var outC=document.createElement('canvas');outC.width=outC.height=W;
     var outCtx=outC.getContext('2d');
     var outImg=outCtx.getImageData(0,0,W,W);
     var od=outImg.data;
     var THRESH=40;
+    var shoulderBandBot=Math.min(W-1,splitPx+24);
     var kept2A=0;
 
-    for(var y=headCut;y<W;y++){
+    for(var y=minCut;y<W;y++){
       for(var x=0;x<W;x++){
         var i=(y*W+x)*4;
         var diff=Math.abs(compData[i]-refData[i])
                 +Math.abs(compData[i+1]-refData[i+1])
                 +Math.abs(compData[i+2]-refData[i+2]);
-        if(diff>THRESH){
+        // In the narrow upper shoulder/neck band, preserve more raw generated
+        // garment pixels so collar/shoulder fabric does not get stripped just
+        // because it is close in color to the original body.
+        var preserveShoulderBand=(y<=shoulderBandBot && rd[i+3]>20 && dil150[i+3]>=20);
+        if(diff>THRESH || preserveShoulderBand){
           od[i]=compData[i];od[i+1]=compData[i+1];od[i+2]=compData[i+2];od[i+3]=255;
           kept2A++;
         }
@@ -1378,7 +1486,7 @@ function extractOutfitDiff(resultDataUrl){
     var RAW_COLOR_T=45; // raw DALL-E color must differ from ref by this much (wings are colored vs white/skin)
     var RAW_ALPHA_T=15; // raw DALL-E alpha must be at least this (wings can be very translucent)
     var kept2B=0;
-    for(var y=headCut;y<W;y++){
+    for(var y=minCut;y<W;y++){
       for(var x=0;x<W;x++){
         var i=(y*W+x)*4;
         if(od[i+3]>=128)continue; // already caught by 2A
@@ -1388,7 +1496,8 @@ function extractOutfitDiff(resultDataUrl){
         var rawDiff=Math.abs(rd[i]-refData[i])
                    +Math.abs(rd[i+1]-refData[i+1])
                    +Math.abs(rd[i+2]-refData[i+2]);
-        if(rawDiff>RAW_COLOR_T){
+        var topBandRelax=(y<=shoulderBandBot)?18:RAW_COLOR_T;
+        if(rawDiff>topBandRelax){
           // Semi-transparent or fine-detailed outfit element — keep as fully opaque
           od[i]=rd[i];od[i+1]=rd[i+1];od[i+2]=rd[i+2];od[i+3]=255;
           kept2B++;
@@ -1481,7 +1590,7 @@ function extractOutfitDiff(resultDataUrl){
     var fillB=new Uint8Array(W*W);
     var fillVis=new Uint8Array(W*W);
     var fq=[];
-    for(var fy=headCut;fy<W;fy++){
+    for(var fy=minCut;fy<W;fy++){
       for(var fx=0;fx<W;fx++){
         var fidx=fy*W+fx;var fi=fidx*4;
         if(hd[fi+3]<128)continue; // only seed from opaque
@@ -1504,7 +1613,7 @@ function extractOutfitDiff(resultDataUrl){
       for(var n=0;n<4;n++){
         var ni=nb[n];
         if(ni<0||ni>=W*W||exterior[ni]||fillVis[ni])continue;
-        var ny2=(ni/W)|0;if(ny2<headCut)continue;
+        var ny2=(ni/W)|0;if(ny2<minCut)continue;
         fillVis[ni]=1;fillR[ni]=fillR[fidx];fillG[ni]=fillG[fidx];fillB[ni]=fillB[fidx];
         fq.push(ni);
       }
@@ -1512,7 +1621,7 @@ function extractOutfitDiff(resultDataUrl){
 
     // Apply
     var filledHoles=0;
-    for(var fy=headCut;fy<W;fy++){
+    for(var fy=minCut;fy<W;fy++){
       for(var fx=0;fx<W;fx++){
         var fidx=fy*W+fx;var fi=fidx*4;
         if(hd[fi+3]>=128||exterior[fidx]||!fillVis[fidx])continue;
@@ -1520,8 +1629,164 @@ function extractOutfitDiff(resultDataUrl){
         filledHoles++;
       }
     }
+
+    // ── STAGE 4: Remove actual head overlap, not a guessed neckline ─────
+    var headRemoved=0;
+    if(headErase){
+      for(var hy=minCut;hy<W;hy++){
+        for(var hx=0;hx<W;hx++){
+          var hi=(hy*W+hx)*4;
+          if(hd[hi+3]<128) continue;
+          if(headErase[hy*W+hx]){
+            hd[hi+3]=0;
+            headRemoved++;
+          }
+        }
+      }
+    }
+
+    // ── STAGE 5: Lower-shoe denoise ─────────────────────────────────────
+    // Clean thin striping/alias junk in the shoe zone by removing isolated
+    // pixels and filling tiny holes only in the very lower part of the asset.
+    var shoeTop=Math.round(splitPx + (W-splitPx)*0.55);
+    var denoiseChanged=0;
+    for(var py=shoeTop;py<W;py++){
+      for(var px=1;px<W-1;px++){
+        var pi=(py*W+px)*4;
+        var opaque=hd[pi+3]>=128;
+        var neigh=0;
+        for(var oy=-1;oy<=1;oy++){
+          for(var ox=-1;ox<=1;ox++){
+            if(ox===0&&oy===0) continue;
+            var ni=((py+oy)*W+(px+ox))*4;
+            if(hd[ni+3]>=128) neigh++;
+          }
+        }
+        if(opaque && neigh<=1){
+          hd[pi+3]=0;
+          denoiseChanged++;
+        } else if(!opaque && neigh>=6){
+          var sumR=0,sumG=0,sumB=0,count=0;
+          for(var oy=-1;oy<=1;oy++){
+            for(var ox=-1;ox<=1;ox++){
+              if(ox===0&&oy===0) continue;
+              var ni=((py+oy)*W+(px+ox))*4;
+              if(hd[ni+3]>=128){
+                sumR+=hd[ni];sumG+=hd[ni+1];sumB+=hd[ni+2];count++;
+              }
+            }
+          }
+          if(count){
+            hd[pi]=Math.round(sumR/count);
+            hd[pi+1]=Math.round(sumG/count);
+            hd[pi+2]=Math.round(sumB/count);
+            hd[pi+3]=255;
+            denoiseChanged++;
+          }
+        }
+      }
+    }
     outCtx.putImageData(holeImg,0,0);
-    console.log('🟢 v25 done — kept2A='+kept2A+' kept2B='+kept2B+' filledHoles='+filledHoles+' headCut='+headCut);
+    console.log('🟢 v25 done — kept2A='+kept2A+' kept2B='+kept2B+' filledHoles='+filledHoles+' headRemoved='+headRemoved+' denoiseChanged='+denoiseChanged+' minCut='+minCut);
+    return outC.toDataURL('image/png');
+  });
+}
+
+function extractOutfitRawZone(resultDataUrl){
+  console.log('🟢 extractOutfitRawZone v25 — raw mask zone + head erase');
+  var W=1024;
+  return loadImg(resultDataUrl).then(function(resImg){
+    var rawC=document.createElement('canvas');rawC.width=rawC.height=W;
+    var rawCtx=rawC.getContext('2d');
+    rawCtx.drawImage(resImg,0,0,W,W);
+    removeWhiteBackground(rawC);
+    var rawImg=rawCtx.getImageData(0,0,W,W);
+    var rd=rawImg.data;
+
+    function buildDil(r){
+      var src=document.createElement('canvas');src.width=src.height=W;
+      src.getContext('2d').drawImage(bodyFull.img,0,0,W,W);
+      var d=document.createElement('canvas');d.width=d.height=W;
+      var ctx=d.getContext('2d');
+      var step=Math.max(3,Math.floor(r/30));
+      for(var dy=-r;dy<=r;dy+=step) for(var dx=-r;dx<=r;dx+=step){
+        if(dx*dx+dy*dy>r*r)continue;
+        ctx.drawImage(src,dx,dy);
+      }
+      return ctx.getImageData(0,0,W,W).data;
+    }
+
+    var dil150=buildDil(150);
+    var headErase=buildHeadEraseMask(W);
+    var bb=scanBounds(bodyFull.img);
+    var splitPx=Math.round(splitY*W);
+    var minCut=Math.max(0,splitPx-92);
+    var cx=Math.round(bb.cx*W);
+    var fullW=Math.max(140,Math.round((bb.right-bb.left)*W));
+    var shoulderBandBot=Math.min(W-1,splitPx+28);
+    var shoulderHalfW=Math.round(fullW*0.60);
+
+    var outC=document.createElement('canvas');outC.width=outC.height=W;
+    var outCtx=outC.getContext('2d');
+    var outImg=outCtx.getImageData(0,0,W,W);
+    var od=outImg.data;
+    var kept=0, headRemoved=0;
+
+    for(var y=minCut;y<W;y++){
+      for(var x=0;x<W;x++){
+        var i=(y*W+x)*4;
+        if(rd[i+3]<=20) continue;
+        var keep=dil150[i+3]>=20;
+        if(!keep && y<=shoulderBandBot && Math.abs(x-cx)<=shoulderHalfW) keep=true;
+        if(!keep) continue;
+        if(headErase && headErase[y*W+x]){
+          headRemoved++;
+          continue;
+        }
+        od[i]=rd[i];od[i+1]=rd[i+1];od[i+2]=rd[i+2];od[i+3]=255;
+        kept++;
+      }
+    }
+
+    // Lower-zone denoise for shoe striping
+    var shoeTop=Math.round(splitPx + (W-splitPx)*0.55);
+    for(var py=shoeTop;py<W;py++){
+      for(var px=1;px<W-1;px++){
+        var pi=(py*W+px)*4;
+        var opaque=od[pi+3]>=128;
+        var neigh=0;
+        for(var oy=-1;oy<=1;oy++){
+          for(var ox=-1;ox<=1;ox++){
+            if(ox===0&&oy===0) continue;
+            var ni=((py+oy)*W+(px+ox))*4;
+            if(od[ni+3]>=128) neigh++;
+          }
+        }
+        if(opaque && neigh<=1){
+          od[pi+3]=0;
+        } else if(!opaque && neigh>=6){
+          var sumR=0,sumG=0,sumB=0,count=0;
+          for(var oy2=-1;oy2<=1;oy2++){
+            for(var ox2=-1;ox2<=1;ox2++){
+              if(ox2===0&&oy2===0) continue;
+              var ni2=((py+oy2)*W+(px+ox2))*4;
+              if(od[ni2+3]>=128){
+                sumR+=od[ni2];sumG+=od[ni2+1];sumB+=od[ni2+2];count++;
+              }
+            }
+          }
+          if(count){
+            od[pi]=Math.round(sumR/count);
+            od[pi+1]=Math.round(sumG/count);
+            od[pi+2]=Math.round(sumB/count);
+            od[pi+3]=255;
+          }
+        }
+      }
+    }
+
+    outCtx.putImageData(outImg,0,0);
+    console.log('🟢 rawZone done — kept='+kept+' headRemoved='+headRemoved+' minCut='+minCut);
     return outC.toDataURL('image/png');
   });
 }
@@ -1725,6 +1990,26 @@ function render(){
   if(splitLineVisible&&!bodyLower) drawSplitLine();
 }
 
+function drawPreviewHeadOverlay(fadePx){
+  if(!bodyHead) return;
+  var f=Math.max(30,fadePx||30);
+  var c=document.createElement('canvas');c.width=c.height=1024;
+  var x=c.getContext('2d');
+  x.drawImage(bodyHead.img,0,0,1024,1024);
+  var d=x.getImageData(0,0,1024,1024);
+  var splitPxH=Math.round(splitY*1024);
+  for(var y2=splitPxH;y2<1024;y2++) for(var x2b=0;x2b<1024;x2b++) d.data[(y2*1024+x2b)*4+3]=0;
+  for(var y2f=Math.max(0,splitPxH-f);y2f<splitPxH;y2f++){
+    var fade=1.0-((y2f-(splitPxH-f))/f);
+    for(var x2f=0;x2f<1024;x2f++){
+      var pi2=(y2f*1024+x2f)*4;
+      d.data[pi2+3]=Math.round(d.data[pi2+3]*fade);
+    }
+  }
+  x.putImageData(d,0,0);
+  ctx.drawImage(c,0,0,1024,1024);
+}
+
 function renderPreview(item){
   if(currentTab==='play'){renderPlay();return;}
   ctx.clearRect(0,0,1024,1024);
@@ -1741,7 +2026,12 @@ function renderPreview(item){
   // Layer A: hair BEHIND head
   if(showingHair) drawPreviewAdj(item,false);
   if(showingHeadTest) drawAdj(item);
-  if(bodyHead&&!showingHeadTest) ctx.drawImage(bodyHead.img,0,0,1024,1024);
+  if(bodyHead&&!showingHeadTest){
+    // The split head already has a light fade baked in. Re-fading it again
+    // while previewing outfits creates the false "cut shoulders / phantom split"
+    // gap under the head.
+    ctx.drawImage(bodyHead.img,0,0,1024,1024);
+  }
   // Non-hair, non-outfit items (faces, stickers) draw IN FRONT of head
   if(item&&item.img&&!showingOutfit&&!showingHair&&!showingHeadTest){
     if(item.category==='faces') drawPreviewAdj(item,false);
@@ -1873,6 +2163,8 @@ function renderPlay(){
   if(hairhatItem) drawPreviewAdj(hairhatItem,false);
 
   // Layer 3: body_head — head sits in front of hair sides/back
+  // The split head already carries the neckline fade. Drawing a second fade
+  // here creates the artificial gap above dresses.
   if(bodyHead) ctx.drawImage(bodyHead.img,0,0,1024,1024);
 
   // Layer 4: Face — in front of head
@@ -1920,7 +2212,8 @@ function getNextPrompts(cat,count){
   var pool1=PROMPTS[cat]||[];
   var pool2=PROMPTS_BATCH2[cat]||[];
   var pool=pool1.concat(pool2);
-  var used=usedPromptIdx[cat];var result=[];
+  var used=(cat==='outfits')?usedPromptIdx.outfits[currentBT]:usedPromptIdx[cat];
+  var result=[];
   for(var i=0;i<pool.length&&result.length<count;i++){if(!used.has(i)){result.push({idx:i,text:pool[i]});used.add(i);}}
   if(result.length<count){
     log('⚠️ All '+pool.length+' '+cat+' prompts used! Wrapping around...');
@@ -2044,7 +2337,45 @@ function generateFromList(cat,promptList,onDone){
       return result;
     }).then(function(result){
       var defaultAdj=autoFitItem(result.img,cat);
-      pending.push({name:promptText.substring(0,40),img:result.img,dataUrl:result.dataUrl,rawDalle:result.rawDalle||null,category:cat,status:'pending',adj:defaultAdj});
+      pending.push({name:promptText.substring(0,40),img:result.img,dataUrl:result.dataUrl,rawDalle:result.rawDalle||null,category:cat,bodyType:cat==='outfits'?currentBT:null,status:'pending',adj:defaultAdj});
+      done++;updateProgress(done,total,errors);renderPanel();renderPreview(pending[pending.length-1]);
+    }).catch(function(e){
+      log('Error: '+e.message);errors++;done++;updateProgress(done,total,errors);
+      if(e.message==='RATE_LIMIT'){log('Rate limited — 30s...');setTimeout(function(){next(i);},30000);return;}
+    }).then(function(){setTimeout(function(){next(i+1);},1500);});
+  }
+  next(0);
+}
+
+function generateGirlOnly(cat){
+  var list=GIRL_ONLY_PROMPTS[cat];
+  if(!list||!list.length){
+    alert('No girls-only prompts configured for '+cat+'.');
+    return;
+  }
+  if(cat!=='outfits'){
+    generateFromList(cat,list);
+    return;
+  }
+  if(!bodyFull||!bodyLower){alert('Generate and split body first!');return;}
+  if(generating){genCancel=true;return;}
+  generating=true;genCancel=false;
+  pending=pending.filter(function(p){return p.category!==cat;});
+  var total=list.length,done=0,errors=0;
+  updateProgress(done,total,errors);renderPanel();
+  function next(i){
+    if(i>=total||genCancel){generating=false;genCancel=false;updateProgress(done,total,errors,true);renderPanel();return;}
+    var promptText=list[i];
+    log('Girls '+(i+1)+'/'+total+': '+promptText.substring(0,50)+'...');
+    updateProgress(done,total,errors);
+    var outfitPrompt=getCatInstruction(cat)+promptText+'. Flat colors, dark brown outlines. Cute children\'s game style.';
+    apiInpaint(bodyFull.dataUrl,getMaskType(cat),outfitPrompt).then(function(resultUrl){
+      return extractOutfitRawZone(resultUrl).then(function(croppedUrl){
+        return loadImg(croppedUrl).then(function(img){return{img:img,dataUrl:croppedUrl,rawDalle:resultUrl};});
+      });
+    }).then(function(result){
+      var defaultAdj=autoFitItem(result.img,cat);
+      pending.push({name:promptText.substring(0,40),img:result.img,dataUrl:result.dataUrl,rawDalle:result.rawDalle||null,category:cat,bodyType:currentBT,status:'pending',adj:defaultAdj});
       done++;updateProgress(done,total,errors);renderPanel();renderPreview(pending[pending.length-1]);
     }).catch(function(e){
       log('Error: '+e.message);errors++;done++;updateProgress(done,total,errors);
@@ -2235,7 +2566,7 @@ function updateCounts(){var total=0;CATEGORIES.forEach(function(cat){var n=kept[
   // Remaining outfits prompts
   var pool1=PROMPTS.outfits||[];var pool2=PROMPTS_BATCH2.outfits||[];
   var totalPrompts=pool1.length+pool2.length;
-  var usedCount=usedPromptIdx.outfits?usedPromptIdx.outfits.size:0;
+  var usedCount=usedPromptIdx.outfits&&usedPromptIdx.outfits[currentBT]?usedPromptIdx.outfits[currentBT].size:0;
   var remEl=document.getElementById('cnt-remaining');
   if(remEl){var rem=totalPrompts-usedCount;remEl.textContent=rem+'/'+totalPrompts;remEl.style.color=rem>0?'#4ADE80':'#EF4444';}
   // All outfits across all bodies
@@ -2309,6 +2640,7 @@ function renderPanel(){
   html+='<div class="gen-row">';
   html+='<button class="btn btn-orange" onclick="generateBatch(\''+cat+'\',5)" '+(generating?'disabled':'')+'>Gen 5</button>';
   html+='<button class="btn btn-orange" onclick="generateBatch(\''+cat+'\',10)" '+(generating?'disabled':'')+'>Gen 10</button>';
+  if(cat==='outfits'||cat==='hairhats') html+='<button class="btn btn-pink" onclick="generateGirlOnly(\''+cat+'\')" '+(generating?'disabled':'')+' title="Girl-focused ballet, princess, party, bows, and similar prompts">🎀 Gen 10 Girls</button>';
   html+='<button class="btn btn-blue" onclick="generateFromList(\''+cat+'\',PROMPTS_BATCH2.'+cat+')" '+(generating?'disabled':'')+' title="20 brand-new prompts">🔥 Gen 20 New</button>';
   if(cat==='hairhats') html+='<button class="btn btn-pink" onclick="generateHeadTests()" '+(generating?'disabled':'')+' title="Petite-only experiment">🧪 Gen 3 Heads</button>';
   if(generating) html+='<button class="btn btn-red" onclick="genCancel=true">⏹ Stop</button>';
@@ -2691,14 +3023,28 @@ try {
     try { localStorage.setItem('gh_token', this.value.trim()); } catch(e) {}
   });
 } catch(e) {}
+function loadLocalSecrets(){
+  return fetch('.local-secrets.json?ts='+Date.now(),{cache:'no-store'}).then(function(r){
+    if(!r.ok)throw new Error('no local secrets');
+    return r.json();
+  }).then(function(s){
+    if(s&&s.OPENAI_API_KEY){
+      document.getElementById('apiKey').value=s.OPENAI_API_KEY;
+      try{localStorage.setItem('openai_api_key',s.OPENAI_API_KEY);}catch(e){}
+      log('Loaded local OpenAI key from .local-secrets.json');
+    }
+  }).catch(function(){});
+}
 try {
   var savedApiKey = localStorage.getItem('openai_api_key');
   document.getElementById('apiKey').value = savedApiKey || DEFAULT_OPENAI_KEY;
   document.getElementById('apiKey').addEventListener('change', function(){
     try { localStorage.setItem('openai_api_key', this.value.trim()); } catch(e) {}
   });
+  if(!savedApiKey)loadLocalSecrets();
 } catch(e) {
   document.getElementById('apiKey').value = DEFAULT_OPENAI_KEY;
+  loadLocalSecrets();
 }
 
 // ================================================================
@@ -2874,7 +3220,15 @@ function curatorAutoFetch(){
   });
 }
 
-dbOpen().then(function(){log('v24 — push guard flag, no double-push');return loadSaved();}).then(function(){return curatorAutoFetch();}).then(function(){resetSharedPreviewAdjsToPetite();normalizeSharedFaces(false);normalizeSharedHairHats(false);render();renderPanel();}).catch(function(e){log('DB: '+e);render();renderPanel();});
+dbOpen().then(function(){log('v24 — push guard flag, no double-push');return loadSaved();}).then(function(){return curatorAutoFetch();}).then(function(){
+  resetSharedPreviewAdjsToPetite();
+  normalizeSharedFaces(false);
+  normalizeSharedHairHats(false);
+  applyBaselinePreset('faces',currentBT);
+  applyBaselinePreset('hairhats',currentBT);
+  render();
+  renderPanel();
+}).catch(function(e){log('DB: '+e);render();renderPanel();});
 </script>
 </body>
 </html>
